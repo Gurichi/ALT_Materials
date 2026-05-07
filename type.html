@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Typing Academy - Elite Pro V3</title>
+    <style>
+        :root {
+            --primary: #4caf50;
+            --accent: #00bcd4;
+            --warning: #ff9800;
+            --error: #ff3838;
+            --text: #ffffff;
+            --text-muted: #8585a3;
+            --card-bg: rgba(20, 20, 35, 0.75);
+            --panel-bg: rgba(40, 40, 65, 0.4);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --flash-opacity: 0; /* 動的にJSから書き換えます */
+        }
+
+        /* 活発なグラデーション背景テーマ（11色） */
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #b0b0cc; /* 眩しい白文字を避け、落ち着いたグレーシルバーに */
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            background-size: 400% 400%;
+            animation: gradientBG 25s ease infinite; /* 動きをさらにゆっくりに */
+            transition: background-color 0.15s ease, color 0.3s ease;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body.theme-cyber { background: linear-gradient(-45deg, #09090e, #141423, #0d1b2a, #110414); }
+        body.theme-blue { background: linear-gradient(-45deg, #02111b, #001f3f, #005f73, #0a1128); }
+        body.theme-purple { background: linear-gradient(-45deg, #12051c, #240046, #3c096c, #1a002c); }
+        body.theme-emerald { background: linear-gradient(-45deg, #021c15, #0b3c2e, #145c47, #05241b); }
+        body.theme-sunset { background: linear-gradient(-45deg, #230012, #47061a, #6e1423, #1f0008); }
+        body.theme-nordic { background: linear-gradient(-45deg, #203a43, #2c5364, #0f2027, #3a6073); }
+        body.theme-sakura { background: linear-gradient(-45deg, #4a2c3a, #69304c, #2b111c, #5c2c44); }
+        body.theme-mono { background: linear-gradient(-45deg, #111111, #222222, #1a1a1a, #080808); --accent: #ffffff; }
+        body.theme-tokyo { background: linear-gradient(-45deg, #1f002c, #001233, #3d0066, #002855); --accent: #ff007f; }
+        body.theme-volcano { background: linear-gradient(-45deg, #240b00, #4a1500, #140300, #3d0f00); --warning: #ff5500; }
+        body.theme-sepia { background: linear-gradient(-45deg, #1c140e, #2e2116, #140d08, #3b2b1d); --accent: #d4a373; }
+
+        /* エラー時の背景フラッシュ（不透明度をCSS変数で動的に制御） */
+        body.bg-error { 
+            background: rgba(0, 5, 5, var(--flash-opacity)) !important; 
+        }
+
+        .container {
+            max-width: 850px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 45px;
+            border-radius: 28px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        h1 {
+            font-size: 40px;
+            margin-top: 0;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 4px;
+            margin-bottom: 25px;
+            animation: textPulse 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes textPulse {
+            0% { box-shadow: 0 0 2px rgba(76, 175, 80, 0.3); }
+            100% { box-shadow: 0 0 8px rgba(76, 175, 80, 0.6); }
+        }
+
+        .dashboard {
+            background: var(--panel-bg);
+            border-radius: 20px;
+            padding: 15px 25px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .dash-item div:first-child { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; letter-spacing: 1px; }
+        .dash-item div:last-child { font-size: 20px; font-weight: bold; color: var(--accent); }
+
+        .settings-toggle {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .settings-toggle:hover { transform: rotate(45deg) scale(1.1); background: rgba(255,255,255,0.15); }
+
+        /* 設定モーダルウィンドウ */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .settings-panel {
+            background: #12121e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 35px;
+            max-width: 600px;
+            width: 92%;
+            text-align: left;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+        .settings-panel h2 { margin-top: 0; font-size: 22px; color: var(--accent); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .setting-item { display: flex; flex-direction: column; gap: 6px; }
+        .setting-item label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+        select { background: #1c1c2b; color: #fff; border: 1px solid #3d3d5c; padding: 10px; border-radius: 10px; font-size: 14px; outline: none; transition: var(--transition); }
+        select:focus { border-color: var(--accent); }
+        .toggle-label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; margin-top: 8px; }
+        .toggle-label input { width: 18px; height: 18px; accent-color: var(--primary); }
+
+        /* モード選択エリア */
+        .mode-section-title { text-align: left; font-size: 14px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1.5px; margin: 20px 0 10px 0; font-weight: 700; }
+        .mode-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .mode-card {
+            background: rgba(34, 34, 53, 0.4); padding: 18px 10px; border-radius: 18px; cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.03); transition: var(--transition);
+        }
+        .mode-card:hover { transform: translateY(-4px); background: rgba(42, 42, 66, 0.7); border-color: var(--primary); box-shadow: 0 10px 20px rgba(76,175,80,0.15); }
+        .mode-card.premium-mode:hover { border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,188,212,0.15); }
+        .mode-card h3 { margin: 0 0 5px 0; font-size: 15px; color: var(--accent); font-weight: 700; }
+        .mode-card p { margin: 0; font-size: 11px; color: var(--text-muted); }
+
+        /* ゲームメイン画面 */
+        .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 16px; color: var(--text-muted); }
+        .timer-badge { background: var(--error); color: white; padding: 4px 14px; border-radius: 20px; font-weight: bold; }
+        .japanese-hint { font-size: 28px; font-weight: bold; color: var(--warning); margin-bottom: 20px; min-height: 40px; }
+        
+        /* フォントサイズ可変コンテナ */
+ .word-display {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            font-family: 'Consolas', monospace;
+            margin: 25px 0;
+            background: #040406; /* より深い黒 */
+            padding: 25px;
+            border-radius: 18px;
+            min-height: 95px;
+            text-align: left;
+            white-space: normal;
+            word-break: keep-all;
+            overflow-wrap: break-word;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.02); /* 白枠線をほぼ見えないレベルに */
+        }
+        .word-display.font-large { font-size: 34px; }
+        .word-display.font-xlarge { font-size: 40px; }
+        .word-display span { display: inline-block; white-space: pre; }
+
+        .typed { 
+            color: #52527a; 
+            opacity: 0.6; 
+        }
+        .current {
+            color: #050508 !important; /* 白文字を完全に排除し、背景に沈む黒文字に */
+            background: linear-gradient(135deg, #4caf50, #2e7d32); /* 眩しさを抑えた深みのある緑 */
+            padding: 2px 5px;
+            border-radius: 6px;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.4); /* 白ではなく緑の淡い光に変更 */
+            display: inline-block;
+            transition: background 0.1s ease, box-shadow 0.1s ease;
+        }
+        .current.char-error { background: linear-gradient(135deg, var(--error), red) !important; box-shadow: 0 0 18px var(--error) !important; }
+        .untyped { 
+            color: #d1d1e0; 
+        }
+
+        .hint-bar { font-size: 16px; color: var(--text-muted); margin: 20px 0; }
+        .next-key { font-size: 26px; font-weight: 800; color: var(--accent); display: inline-block; margin-left: 10px; }
+
+        .screen { animation: screenSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes screenSlideIn { from { opacity: 0; transform: scale(0.97) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+        .shake { animation: shake 0.23s ease-in-out; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 30px 0; }
+        .stat-box { background: var(--panel-bg); padding: 20px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.03); }
+        .stat-box h4 { margin: 0 0 10px 0; color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
+        .stat-box p { margin: 0; font-size: 34px; font-weight: 800; color: var(--primary); }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary), #66bb6a); color: gray; padding: 14px 45px;
+            font-size: 18px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3); transition: var(--transition);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(76, 175, 80, 0.5); }
+
+        .progress-bar { width: 100%; height: 6px; background: #09090d; border-radius: 3px; margin-top: 30px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.2s; }
+    </style>
+</head>
+<body class="theme-cyber">
+
+<div class="container" id="game-container">
+    <button class="settings-toggle" onclick="toggleModal(true)">⚙️</button>
+
+    <h1>ENGLISH TYPING ACADEMY</h1>
+    
+    <div class="dashboard">
+        <div class="dash-item"><div>総タイプ数</div><div id="global-total-keys">0</div></div>
+        <div class="dash-item"><div>クリア数</div><div id="global-total-words">0</div></div>
+        <div class="dash-item"><div>正確性</div><div id="global-avg-accuracy">0%</div></div>
+        <div class="dash-item"><div>最高WPM</div><div id="global-max-wpm" style="color:var(--warning);">0</div></div>
+    </div>
+
+    <!-- モード選択 -->
+    <div id="screen-menu" class="screen">
+        <div class="mode-section-title">単語練習コース</div>
+        <div class="mode-container">
+            <div class="mode-card" onclick="startSetup('easy')"><h3>Easy Words</h3><p>3-4文字の英単語</p></div>
+            <div class="mode-card" onclick="startSetup('medium')"><h3>Medium Words</h3><p>5-6文字の英単語</p></div>
+            <div class="mode-card" onclick="startSetup('hard')"><h3>Hard Words</h3><p>7-8文字の英単語</p></div>
+            <div class="mode-card" onclick="startSetup('expert')"><h3>Expert Words</h3><p>9文字以上の難単語</p></div>
+        </div>
+        <div class="mode-section-title">文章練習コース</div>
+        <div class="mode-container">
+            <div class="mode-card premium-mode" onclick="startSetup('sentenceEasy')"><h3>Sentence (Easy)</h3><p>文法的に正しい初級文章</p></div>
+            <div class="mode-card premium-mode" onclick="startSetup('sentenceNormal')"><h3>Sentence (Normal)</h3><p>実用的な標準会話文</p></div>
+            <div class="mode-card premium-mode" onclick="startSetup('sentenceHard')"><h3>Sentence (Hard)</h3><p>接続詞等を含む高度文</p></div>
+        </div>
+    </div>
+
+    <!-- プレイ画面 -->
+    <div id="screen-game" class="screen" style="display: none;">
+        <div class="game-header">
+            <div id="game-progress-counter">問題 1 / 5</div>
+            <div id="timer-wrapper" style="display: none;">残り時間: <span id="game-timer" class="timer-badge">60</span></div>
+        </div>
+        <div class="japanese-hint" id="japanese-text">-</div>
+        <div class="word-display" id="word-trigger"></div>
+        <div class="hint-bar">NEXT KEY: <span class="next-key" id="next-key-hint">-</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <!-- リザルト画面 -->
+    <div id="screen-result" class="screen" style="display: none;">
+        <h2 id="result-title">🎉 セッション結果</h2>
+        <div class="stats-grid">
+            <div class="stat-box"><h4>WPM (タイピング速度)</h4><p id="result-wpm">0</p></div>
+            <div class="stat-box"><h4>今回の正確性</h4><p id="result-accuracy">0%</p></div>
+        </div>
+        <div id="new-record-alert" style="color:var(--warning); font-weight:bold; margin-bottom:20px; display:none;">🔥 ハイスコア更新！ (NEW HIGH SCORE!)</div>
+        <button class="btn" onclick="showMenu()">メニューにもどる</button>
+    </div>
+</div>
+
+<!-- モーダル設定メニュー -->
+<div class="modal-overlay" id="settings-modal" onclick="if(event.target===this) toggleModal(false)">
+    <div class="settings-panel">
+        <h2>⚙️ オプション設定 (Settings)</h2>
+        <div class="settings-grid">
+            <div class="setting-item">
+                <label for="set-time">制限時間 (Time Limit)</label>
+                <select id="set-time" onchange="changeSetting('time', this.value)">
+                    <option value="0">制限なし</option>
+                    <option value="30">30秒</option>
+                    <option value="60">60秒</option>
+                    <option value="90">90秒</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="set-words">出題数 (Questions)</label>
+                <select id="set-words" onchange="changeSetting('wordCount', this.value)">
+                    <option value="5">5問</option>
+                    <option value="10">10問</option>
+                    <option value="15">15問</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="set-theme">背景グラデーションテーマ</label>
+                <select id="set-theme" onchange="changeSetting('theme', this.value)">
+                    <option value="cyber">Cyber Dark (漆黒)</option>
+                    <option value="blue">Deep Blue (深海)</option>
+                    <option value="purple">Midnight Purple (紫)</option>
+                    <option value="emerald">Emerald Forest (緑)</option>
+                    <option value="sunset">Crimson Sunset (茜)</option>
+                    <option value="nordic">Nordic Frost (水色)</option>
+                    <option value="sakura">Sakura Blossom (桜色)</option>
+                    <option value="mono">Monochrome (白黒)</option>
+                    <option value="tokyo">Neon Tokyo (マゼンタ)</option>
+                    <option value="volcano">Volcano (溶岩)</option>
+                    <option value="sepia">Warm Sepia (セピア)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="set-flash">ミス時の背景フラッシュ強度</label>
+                <select id="set-flash" onchange="changeSetting('flash', this.value)">
+                    <option value="1.0">通常フラッシュ (100%)</option>
+                    <option value="0.3">ひかえめ (30%)</option>
+                    <option value="0.0">フラッシュなし (0%)</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label for="set-fontsize">文字サイズ (Font Size)</label>
+                <select id="set-fontsize" onchange="changeSetting('fontSize', this.value)">
+                    <option value="normal">Normal (標準)</option>
+                    <option value="large">Large (大きめ)</option>
+                    <option value="xlarge">Extra Large (特大)</option>
+                </select>
+            </div>
+        </div>
+        <div style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+            <label class="toggle-label">
+                <input type="checkbox" id="set-caps" onchange="changeSetting('caps', this.checked)"> <strong>Capitalization</strong> (大文字小文字を厳格に区別)
+            </label>
+            <label class="toggle-label" style="margin-top: 8px;">
+                <input type="checkbox" id="set-punct" onchange="changeSetting('punct', this.checked)"> <strong>Punctuation</strong> (記号「.,?'!」の入力を必須にする)
+            </label>
+            <label class="toggle-label" style="margin-top: 8px;">
+                <input type="checkbox" id="set-sound" onchange="changeSetting('sound', this.checked)"> <strong>Sound Effect</strong> (正解タイプ時にピコっと音を鳴らす)
+            </label>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn" style="padding:10px 30px; font-size:15px;" onclick="toggleModal(false)">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // データベース定義
+    const database = {
+        easy: [{eng:"cat",jpn:"ねこ"},{eng:"dog",jpn:"いぬ"},{eng:"sun",jpn:"たいよう"},{eng:"book",jpn:"ほん"},{eng:"fish",jpn:"さかな"},{eng:"milk",jpn:"ぎゅうにゅう"},{eng:"bird",jpn:"とり"},{eng:"ball",jpn:"ボール"},{eng:"tree",jpn:"き"},{eng:"cake",jpn:"ケーキ"},{eng:"egg",jpn:"たまご"},{eng:"lion",jpn:"ライオン"},{eng:"desk",jpn:"つくえ"},{eng:"frog",jpn:"かえる"},{eng:"hand",jpn:"て"},{eng:"boy",jpn:"おとこのこ"},{eng:"girl",jpn:"おんなのこ"},{eng:"home",jpn:"おうち"},{eng:"star",jpn:"ほし"},{eng:"moon",jpn:"つき"},{eng:"door",jpn:"ドア"},{eng:"hat",jpn:"ぼうし"},{eng:"cup",jpn:"コップ"},{eng:"pig",jpn:"ぶた"},{eng:"cow",jpn:"うし"},{eng:"fox",jpn:"きつね"},{eng:"bear",jpn:"くま"},{eng:"duck",jpn:"あひる"},{eng:"ship",jpn:"ふね"},{eng:"boat",jpn:"こぶね"}],
+        medium: [{eng:"apple",jpn:"りんご"},{eng:"banana",jpn:"バナナ"},{eng:"orange",jpn:"オレンジ"},{eng:"school",jpn:"がっこう"},{eng:"window",jpn:"まど"},{eng:"guitar",jpn:"ギター"},{eng:"pencil",jpn:"えんぴつ"},{eng:"eraser",jpn:"けしごむ"},{eng:"animal",jpn:"どうぶつ"},{eng:"cherry",jpn:"さくらんぼ"},{eng:"grape",jpn:"ぶどう"},{eng:"lemon",jpn:"レモン"},{eng:"melon",jpn:"メロン"},{eng:"peach",jpn:"もも"},{eng:"tomato",jpn:"トマト"},{eng:"potato",jpn:"じゃがいも"},{eng:"carrot",jpn:"にんじん"},{eng:"onion",jpn:"たまねぎ"},{eng:"cheese",jpn:"チーズ"},{eng:"bread",jpn:"パン"}],
+        hard: [{eng:"computer",jpn:"コンピューター"},{eng:"keyboard",jpn:"キーボード"},{eng:"student",jpn:"せいと"},{eng:"teacher",jpn:"せんせい"},{eng:"station",jpn:"えき"},{eng:"morning",jpn:"あさ"},{eng:"kitchen",jpn:"だいどころ"},{eng:"elephant",jpn:"ぞう"},{eng:"kangaroo",jpn:"カンガルー"},{eng:"dinosaur",jpn:"きょうりゅう"},{eng:"hospital",jpn:"びょういん"},{eng:"airplane",jpn:"ひこうき"},{eng:"notebook",jpn:"ノート"},{eng:"calendar",jpn:"カレンダー"},{eng:"umbrella",jpn:"かさ"},{eng:"backpack",jpn:"リュックサック"},{eng:"scissors",jpn:"はさみ"},{eng:"sneakers",jpn:"スニーカー"},{eng:"necklace",jpn:"ネックレス"},{eng:"bracelet",jpn:"ブレスレット"}],
+        expert: [{eng:"dictionary",jpn:"じしょ"},{eng:"unbelievable",jpn:"しんじられない"},{eng:"information",jpn:"じょうほう"},{eng:"university",jpn:"だいがく"},{eng:"environment",jpn:"かんきょう"},{eng:"celebration",jpn:"お祝い"},{eng:"electricity",jpn:"でんき"},{eng:"refrigerator",jpn:"れいぞうこ"},{eng:"supermarket",jpn:"スーパーマーケット"},{eng:"transportation",jpn:"こうつうきかん"},{eng:"architecture",jpn:"けんちく"},{eng:"photography",jpn:"しゃしんじゅつ"},{eng:"destination",jpn:"もくてきち"},{eng:"imagination",jpn:"そうぞうりょく"},{eng:"organization",jpn:"そしき"},{eng:"communication",jpn:"つうしん"},{eng:"entertainment",jpn:"ごらく"},{eng:"neighborhood",jpn:"きんじょ"},{eng:"relationship",jpn:"かんけい"},{eng:"responsibility",jpn:"せきにん"}],
+        sentenceEasy: [
+            {eng:"This is my mother's textbook.",jpn:"これは私の母の教科書です。"},
+            {eng:"Does he play tennis every day?",jpn:"彼は毎日テニスをしますか？"},
+            {eng:"Wow, that bird sings beautifully!",jpn:"わあ、あの鳥は美しく歌いますね！"},
+            {eng:"We didn't go to the school library.",jpn:"私たちは学校の図書館へ行きませんでした。"},
+            {eng:"Is this your brother's new bicycle?",jpn:"これはあなたのお兄さんの新しい自転車ですか？"},
+            {eng:"My father doesn't cook dinner on Sundays.",jpn:"父は日曜日には夕食を作りません。"},
+            {eng:"Look at that star! It is very bright.",jpn:"あの星を見て！とても輝いています。"},
+            {eng:"She doesn't like to read scary books.",jpn:"彼女は怖い本を読むのが好きではありません。"}
+        ],
+        sentenceNormal: [
+            {eng:"You shouldn't eat candies before washing your hands.",jpn:"手を洗う前にキャンディを食べてはいけません。"},
+            {eng:"Aren't you looking forward to seeing your old friends?",jpn:"古い友人たちに会うのを amass 楽しみにしていませんか？"},
+            {eng:"He can't speak French, but he can speak English fluently.",jpn:"彼はフランス語は話せませんが、英語を流暢に話せます。"},            {eng:"Excuse me, could you please tell me the way to the station?",jpn:"すみません、駅への道を教えていただけますか？"},
+            {eng:"Don't worry about the small mistakes!",jpn:"小さな間違いを心配しないで！"},
+            {eng:"Why did she decide to buy that expensive smart watch?",jpn:"なぜ彼女はあの高価なスマートウォッチを買うことに決めたのですか？"},
+            {eng:"It's wonderful that you invited me to your birthday party.",jpn:"私を誕生会に招待してくれてとても嬉しいです。"}
+        ],
+        sentenceHard: [
+            {eng:"Although it was raining heavily, didn't they cancel the picnic?",jpn:"激しい雨が降っていたのに、彼らはピクニックを中止しなかったのですか？"},
+            {eng:"The interesting book, which I borrowed yesterday, wasn't there.",jpn:"私が昨日借りた面白い本は、そこにはありませんでした。"},
+            {eng:"If you don't study hard, you won't pass this difficult examination.",jpn:"一生懸命勉強しなければ、この難しい試験には合格しないでしょう。"},
+            {eng:"What is the best solution to solve this complex environmental problem?",jpn:"この複雑な環境問題を解決するための最善の解決策は何ですか？"},
+            {eng:"He deeply apologized for keeping us waiting for such a long time!",jpn:"彼は私たちをこのような長い間待たせたことを深く謝罪しました！"},
+            {eng:"Isn't this the most beautiful sunset that you've ever seen in your life?",jpn:"これはあなたが人生で見た中で最も美しい夕焼けではありませんか？"}
+        ]
+    };
+
+    // セーブデータ・システム設定構造
+    let userStats = { totalKeys: 0, totalWords: 0, correctKeys: 0, incorrectKeys: 0, maxWpm: 0 };
+    let gameSettings = { time: "0", wordCount: "5", theme: "cyber", flash: "1.0", fontSize: "normal", caps: false, punct: false, sound: false };
+
+    let activeData = [], currentQuizIndex = 0, typedCharCount = 0, currentTargetWord = "";
+    let startTime = 0, sessionCorrect = 0, sessionIncorrect = 0, timerId = null, timeLeft = 0;
+
+    // DOMキャッシュ
+    const gameContainer = document.getElementById('game-container');
+    const screenMenu = document.getElementById('screen-menu');
+    const screenGame = document.getElementById('screen-game');
+    const screenResult = document.getElementById('screen-result');
+    const japaneseText = document.getElementById('japanese-text');
+    const wordTrigger = document.getElementById('word-trigger');
+    const nextKeyHint = document.getElementById('next-key-hint');
+    const progressFill = document.getElementById('progress-fill');
+    const resultWpm = document.getElementById('result-wpm');
+    const resultAccuracy = document.getElementById('result-accuracy');
+    const resultTitle = document.getElementById('result-title');
+    const newRecordAlert = document.getElementById('new-record-alert');
+    
+    const lblTotalKeys = document.getElementById('global-total-keys');
+    const lblTotalWords = document.getElementById('global-total-words');
+    const lblAvgAccuracy = document.getElementById('global-avg-accuracy');
+    const lblMaxWpm = document.getElementById('global-max-wpm');
+    
+    const progressCounter = document.getElementById('game-progress-counter');
+    const timerWrapper = document.getElementById('timer-wrapper');
+    const gameTimer = document.getElementById('game-timer');
+
+    function toggleModal(show) {
+        document.getElementById('settings-modal').style.display = show ? "flex" : "none";
+    }
+
+    // 起動時のストレージ読み込み
+    window.onload = function() {
+        loadProgressAndSettings();
+        showMenu();
+    };
+
+    function loadProgressAndSettings() {
+        const savedStats = localStorage.getItem('typing_academy_v3_stats');
+        if (savedStats) { try { userStats = JSON.parse(savedStats); if(!userStats.maxWpm) userStats.maxWpm=0; } catch(e) {} }
+        
+        const savedSettings = localStorage.getItem('typing_academy_v3_settings');
+        if (savedSettings) { 
+            try { 
+                gameSettings = JSON.parse(savedSettings);
+                document.getElementById('set-time').value = gameSettings.time;
+                document.getElementById('set-words').value = gameSettings.wordCount;
+                document.getElementById('set-theme').value = gameSettings.theme;
+                document.getElementById('set-flash').value = gameSettings.flash;
+                document.getElementById('set-fontsize').value = gameSettings.fontSize;
+                document.getElementById('set-caps').checked = gameSettings.caps;
+                document.getElementById('set-punct').checked = gameSettings.punct;
+                document.getElementById('set-sound').checked = gameSettings.sound;
+            } catch(e) {} 
+        }
+        applyTheme(gameSettings.theme);
+        applyFontSize(gameSettings.fontSize);
+        updateDashboardHTML();
+    }
+
+    function changeSetting(key, value) {
+        // 設定値の型判定と更新
+        gameSettings[key] = (value === 'true' || value === true) ? true : (value === 'false' || value === false) ? false : value;
+        if (key === 'theme') applyTheme(value);
+        if (key === 'fontSize') applyFontSize(value);
+        localStorage.setItem('typing_academy_v3_settings', JSON.stringify(gameSettings));
+    }
+
+    function applyTheme(themeName) {
+        document.body.className = '';
+        document.body.classList.add('theme-' + themeName);
+    }
+
+    function applyFontSize(size) {
+        wordTrigger.className = 'word-display';
+        if (size === 'large') wordTrigger.classList.add('font-large');
+        if (size === 'xlarge') wordTrigger.classList.add('font-xlarge');
+    }
+
+    function updateDashboardHTML() {
+        lblTotalKeys.innerText = userStats.totalKeys.toLocaleString();
+        lblTotalWords.innerText = userStats.totalWords.toLocaleString();
+        lblMaxWpm.innerText = (userStats.maxWpm || 0).toString();
+        const totalAttempts = userStats.correctKeys + userStats.incorrectKeys;
+        lblAvgAccuracy.innerText = totalAttempts > 0 ? Math.round((userStats.correctKeys / totalAttempts) * 100) + "%" : "0%";
+    }
+
+    function showMenu() {
+        if(timerId) clearInterval(timerId);
+        screenMenu.style.display = "block"; screenGame.style.display = "none"; screenResult.style.display = "none";
+        updateDashboardHTML();
+    }
+
+    function startSetup(mode) {
+        toggleModal(false);
+        screenMenu.style.display = "none"; screenGame.style.display = "block";
+        
+        activeData = [...database[mode]].sort(() => Math.random() - 0.5);
+        const maxWords = parseInt(gameSettings.wordCount);
+        if (activeData.length > maxWords) activeData = activeData.slice(0, maxWords);
+
+        currentQuizIndex = 0; sessionCorrect = 0; sessionIncorrect = 0;
+        newRecordAlert.style.display = "none";
+        
+        const maxTime = parseInt(gameSettings.time);
+        if (maxTime > 0) {
+            timeLeft = maxTime;
+            gameTimer.innerText = timeLeft;
+            timerWrapper.style.display = "block";
+            timerId = setInterval(updateTimer, 1000);
+        } else {
+            timerWrapper.style.display = "none";
+        }
+
+        startTime = Date.now();
+        loadQuiz();
+    }
+
+    function updateTimer() {
+        timeLeft--;
+        gameTimer.innerText = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(timerId);
+            endSession(true);
+        }
+    }
+
+    function loadQuiz() {
+        typedCharCount = 0;
+        currentTargetWord = activeData[currentQuizIndex].eng;
+        japaneseText.innerText = activeData[currentQuizIndex].jpn;
+        progressCounter.innerText = `問題 ${currentQuizIndex + 1} / ${activeData.length}`;
+        progressFill.style.width = `${(currentQuizIndex / activeData.length) * 100}%`;
+        
+        checkAndSkipPunctuation();
+        updateWordDisplay();
+        speakWord(currentTargetWord);
+    }
+
+    function checkAndSkipPunctuation() {
+        if (!gameSettings.punct) {
+            const punctRegex = /[^a-zA-Z0-9 ]/;
+            while (typedCharCount < currentTargetWord.length && punctRegex.test(currentTargetWord[typedCharCount])) {
+                typedCharCount++;
+            }
+        }
+    }
+
+    function updateWordDisplay() {
+        let htmlContent = "";
+        for (let i = 0; i < currentTargetWord.length; i++) {
+            if (i < typedCharCount) {
+                htmlContent += `<span class="typed">${currentTargetWord[i]}</span>`;
+            } else if (i === typedCharCount) {
+                htmlContent += `<span class="current" id="current-target-char">${currentTargetWord[i]}</span>`;
+                nextKeyHint.innerText = currentTargetWord[i] === " " ? "SPACE" : currentTargetWord[i].toUpperCase();
+            } else {
+                htmlContent += `<span class="untyped">${currentTargetWord[i]}</span>`;
+            }
+        }
+        wordTrigger.innerHTML = htmlContent;
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (screenGame.style.display === "none") return;
+        if (e.key.length > 1 && e.key !== "Spacebar" && e.key !== " ") return;
+
+        const nextTargetChar = currentTargetWord[typedCharCount];
+        if (!nextTargetChar) return;
+
+        let isCorrect = false;
+        if (gameSettings.caps) {
+            isCorrect = (e.key === nextTargetChar);
+        } else {
+            isCorrect = (e.key.toLowerCase() === nextTargetChar.toLowerCase());
+        }
+        
+        if (isCorrect) {
+            typedCharCount++; sessionCorrect++; userStats.correctKeys++; userStats.totalKeys++;
+            playTypeSound(); // 正解音波形生成
+            checkAndSkipPunctuation();
+
+            if (typedCharCount < currentTargetWord.length) {
+                updateWordDisplay();
+            } else {
+                userStats.totalWords++; currentQuizIndex++;
+                if (currentQuizIndex < activeData.length) { 
+                    loadQuiz(); 
+                } else { 
+                    if(timerId) clearInterval(timerId); 
+                    progressFill.style.width = "100%"; 
+                    setTimeout(() => endSession(false), 300); 
+                }
+            }
+        } else {
+            sessionIncorrect++; userStats.incorrectKeys++; userStats.totalKeys++;
+            triggerMissEffects();
+        }
+        localStorage.setItem('typing_academy_v3_stats', JSON.stringify(userStats));
+        updateDashboardHTML();
+    });
+
+    function endSession(isTimeUp = false) {
+        if(timerId) clearInterval(timerId);
+        screenGame.style.display = "none"; screenResult.style.display = "block";
+        resultTitle.innerText = isTimeUp ? "時間切れ！" : "セッション結果";
+
+        const minutesPassed = (Date.now() - startTime) / 60000;
+        const wpm = Math.round((sessionCorrect / 5) / minutesPassed);
+        const totalSessionKeys = sessionCorrect + sessionIncorrect;
+        
+        const currentWpm = isFinite(wpm) && wpm > 0 ? wpm : 0;
+        const accuracy = totalSessionKeys > 0 ? Math.round((sessionCorrect / totalSessionKeys) * 100) : 0;
+
+        resultWpm.innerText = currentWpm;
+        resultAccuracy.innerText = accuracy + "%";
+
+        if (currentWpm > (userStats.maxWpm || 0)) {
+            userStats.maxWpm = currentWpm;
+            newRecordAlert.style.display = "block";
+            localStorage.setItem('typing_academy_v3_stats', JSON.stringify(userStats));
+            updateDashboardHTML();
+        }
+    }
+
+    // 視覚過敏を考慮した動的フラッシュ強度調整付きミスエフェクト
+    function triggerMissEffects() {
+        gameContainer.classList.remove('shake'); void gameContainer.offsetWidth; gameContainer.classList.add('shake');
+        
+        const flashIntensity = parseFloat(gameSettings.flash);
+        if (flashIntensity > 0) {
+            document.documentElement.style.setProperty('--flash-opacity', flashIntensity);
+            document.body.classList.add('bg-error');
+        }
+
+        const charElem = document.getElementById('current-target-char');
+        if (charElem) charElem.classList.add('char-error');
+        
+        setTimeout(() => {
+            document.body.classList.remove('bg-error');
+            if (charElem) charElem.classList.remove('char-error');
+        }, 130);
+    }
+
+    // 外部ファイル不要：ブラウザのビープ波形を合成して小気味いいクリックサウンドを鳴らす
+    function playTypeSound() {
+        if (!gameSettings.sound) return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(580, ctx.currentTime); // ピコっと高めの心地いい周波数
+            gain.gain.setValueAtTime(0.08, ctx.currentTime); // 邪魔にならない極小音量
+            gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.05); // 0.05秒でシュッとフェードアウト
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.05);
+        } catch(e) {}
+    }
+
+    function speakWord(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US'; utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+</script>
+</body>
+</html>
