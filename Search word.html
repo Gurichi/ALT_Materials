@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Search Generator Pro</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #000000;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 30px; }
+        
+        /* サイドバー（操作パネル） */
+        .sidebar { flex: 350px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); height: fit-content; }
+        .sidebar h1 { font-size: 1.4rem; margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
+        
+        .control-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #666; }
+        input[type="text"] { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
+	input[type="range"] { width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 	8px; font-size: 1rem; }
+        
+        .grid-size-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-bottom: 10px; font-size: 1rem; }
+        .btn-add { background: var(--accent); color: white; }
+        .btn-add:hover { background: #2980b9; }
+        .btn-save { background: #27ae60; color: white; }
+        .btn-load { background: #f39c12; color: white; }
+        .btn-print { background: var(--primary); color: white; margin-top: 20px; font-size: 1.1rem; }
+
+        .word-tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .word-tag { background: #ecf0f1; padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
+        .remove-tag { color: #e74c3c; cursor: pointer; font-weight: bold; }
+
+        /* パズル表示エリア */
+        .preview-area { flex: 1; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; min-height: 800px; }
+        #puzzle-title { margin-top: 0; font-size: 3rem; letter-spacing: 4px; text-decoration: underline; font-family: fantasy; text-decoration-thickness: 9px;}
+        
+        #grid { display: grid; margin: 30px auto; border: 2px solid #333; width: fit-content; background: #fff; }
+        .cell { border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: monospace; text-transform: uppercase; user-select: none; }
+        
+        .word-bank { margin-top: 40px; text-align: left; }
+        .word-bank h3 { border-bottom: 2px solid #333; display: inline-block; margin-bottom: 15px; }
+        .word-bank-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 1.1rem; font-family: 'Courier New', Courier, monospace; }
+
+        /* 印刷設定 */
+        @media print {
+            body { background: white; padding: 0; }
+            .sidebar { display: none; }
+            .preview-area { box-shadow: none; width: 100%; padding: 0; margin: 0; }
+            .container { display: block; }
+            .cell { border: 1px solid #999; }
+            .word-bank-list { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="sidebar">
+        <h1>Word Search Setup</h1>
+        
+        <div class="control-group">
+            <div class="grid-size-display">
+                <label>Grid Size</label>
+                <span id="sizeValue">20 x 20</span>
+            </div>
+            <input type="range" id="sizeRange" min="8" max="30" value="20" oninput="updateGridSize(this.value)">
+        </div>
+
+        <div class="control-group">
+            <label>Add Word</label>
+            <input type="text" id="wordInput" placeholder="Enter word..." onkeypress="if(event.key==='Enter') addWord()">
+            <button class="btn btn-add" style="margin-top:10px" onclick="addWord()">Add to Puzzle</button>
+        </div>
+        
+        <div class="word-tag-container" id="wordTagContainer"></div>
+        
+        <button class="btn btn-save" style="margin-top:20px" onclick="saveJSON()">Download JSON</button>
+        <input type="file" id="fileInput" style="display:none" onchange="loadJSON(event)" multiple>
+        <button class="btn btn-load" onclick="document.getElementById('fileInput').click()">Upload JSON(s)</button>
+        
+        <button class="btn btn-print" onclick="window.print()">Print to A4 / PDF</button>
+    </div>
+
+    <div class="preview-area">
+        <h2 id="puzzle-title">WORD SEARCH</h2>
+        <div id="grid"></div>
+        <div class="word-bank">
+            <h3>WORDS TO FIND:</h3>
+            <div class="word-bank-list" id="wordBankList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let words = [];
+    let gridSize = 20;
+
+    function updateGridSize(val) {
+        gridSize = parseInt(val);
+        document.getElementById('sizeValue').innerText = `${gridSize} x ${gridSize}`;
+        generatePuzzle();
+    }
+
+    function addWord() {
+        const input = document.getElementById('wordInput');
+        const word = input.value.toUpperCase().trim().replace(/[^A-Z]/g, '');
+        
+        if (!word) return;
+        if (word.length > gridSize) {
+            alert(`Word is too long for a ${gridSize}x${gridSize} grid!`);
+            return;
+        }
+        if (words.includes(word)) {
+            alert("Word already added!");
+            return;
+        }
+
+        words.push(word);
+        input.value = '';
+        updateUI();
+        generatePuzzle();
+    }
+
+    function removeWord(index) {
+        words.splice(index, 1);
+        updateUI();
+        generatePuzzle();
+    }
+
+    function updateUI() {
+        // Sidebar Tags
+        const tagContainer = document.getElementById('wordTagContainer');
+        tagContainer.innerHTML = '';
+        words.forEach((word, i) => {
+            tagContainer.innerHTML += `<div class="word-tag">${word} <span class="remove-tag" onclick="removeWord(${i})">×</span></div>`;
+        });
+
+        // Puzzle Word Bank
+        const bankList = document.getElementById('wordBankList');
+        bankList.innerHTML = '';
+        [...words].sort().forEach(word => {
+            bankList.innerHTML += `<div>□ ${word}</div>`;
+        });
+    }
+
+    function generatePuzzle() {
+        const gridDiv = document.getElementById('grid');
+        const cellSize = Math.min(550 / gridSize, 45); // A4サイズに収まるよう調整
+        
+        gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
+        let grid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+
+        // 単語の配置を試行
+        words.forEach(word => {
+            let placed = false;
+            let attempts = 0;
+            while (!placed && attempts < 200) {
+                const direction = Math.floor(Math.random() * 3); // 0:横, 1:縦, 2:斜め
+                const row = Math.floor(Math.random() * gridSize);
+                const col = Math.floor(Math.random() * gridSize);
+                
+                if (canPlace(grid, word, row, col, direction)) {
+                    placeWord(grid, word, row, col, direction);
+                    placed = true;
+                }
+                attempts++;
+            }
+        });
+
+        // グリッドを描画
+        gridDiv.innerHTML = '';
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                const char = grid[r][c] || letters[Math.floor(Math.random() * letters.length)];
+                gridDiv.innerHTML += `<div class="cell" style="width:${cellSize}px; height:${cellSize}px; font-size:${cellSize*0.6}px">${char}</div>`;
+            }
+        }
+    }
+
+    function canPlace(grid, word, row, col, dir) {
+        // dir 0: Horizontal, 1: Vertical, 2: Diagonal
+        for (let i = 0; i < word.length; i++) {
+            let r = row + (dir === 1 || dir === 2 ? i : 0);
+            let c = col + (dir === 0 || dir === 2 ? i : 0);
+            
+            if (r >= gridSize || c >= gridSize) return false;
+            if (grid[r][c] !== '' && grid[r][c] !== word[i]) return false;
+        }
+        return true;
+    }
+
+    function placeWord(grid, word, row, col, dir) {
+        for (let i = 0; i < word.length; i++) {
+            let r = row + (dir === 1 || dir === 2 ? i : 0);
+            let c = col + (dir === 0 || dir === 2 ? i : 0);
+            grid[r][c] = word[i];
+        }
+    }
+
+    // JSON Functions
+    function saveJSON() {
+        const data = { gridSize, words };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `wordsearch-${gridSize}x${gridSize}.json`;
+        a.click();
+    }
+
+    async function loadJSON(event) {
+        for (let file of event.target.files) {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (data.words) {
+                // 既存の単語とマージ（重複排除）
+                words = [...new Set([...words, ...data.words])];
+                if (data.gridSize > gridSize) updateGridSize(data.gridSize);
+            }
+        }
+        updateUI();
+        generatePuzzle();
+    }
+
+    // 初期化
+    generatePuzzle();
+</script>
+
+</body>
+</html>
