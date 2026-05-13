@@ -1,0 +1,7 @@
+==================================================
+README.txt - Jeopardy
+Last Updated: 2026/05/13
+==================================================
+
+[2026-05-12] ADDED: HTML file and Powerpoint Version
+[2026-05-13] ADDED: Images/*. Images to use in the game. json file for 3-4th grade gameboard settings and questions.

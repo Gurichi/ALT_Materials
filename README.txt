@@ -1,6 +1,6 @@
 ==================================================
 README.txt - ALT Folder (Assistant Language Teacher)
-Last Updated: 2026/05/12
+Last Updated: 2026/05/13
 ==================================================
 
 1. PURPOSE
@@ -20,6 +20,7 @@ ALT/
   ├─ Tools/          → Files containing content to create worksheets 
   ├─ Typing Game/    → HTML game to practice typing. (Work-In-Progress)
   ├─ Word Book/      → Contains vocabulary from the word book. Can be used for Karuta
+  ├─ Word Search/    → Contains vocabulary from the word book. Create word search sheets
   ├─ update.txt      → Log of all changes (adds, removals, modifications) with dates
   └─ README.txt      → This file
 
