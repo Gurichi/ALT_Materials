@@ -20,7 +20,7 @@
         .control-group { margin-bottom: 20px; }
         label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #666; }
         input[type="text"] { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-	input[type="range"] { width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 	8px; font-size: 1rem; }
+	    input[type="range"] { width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 	8px; font-size: 1rem; }
         
         .grid-size-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         
@@ -67,11 +67,41 @@
             <div class="grid-size-display">
                 <label>Grid Size</label>
                 <span id="sizeValue">20 x 20</span>
+                <div class="control-group">
+    <label>Directions</label>
+
+    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+        <input type="checkbox" id="allowHorizontal" checked>
+        Horizontal
+    </label>
+
+    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+        <input type="checkbox" id="allowVertical" checked>
+        Vertical
+    </label>
+
+    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+        <input type="checkbox" id="allowDiagonal" checked>
+        Diagonal
+    </label>
+
+    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
+        <input type="checkbox" id="allowBackward">
+        Allow Backwards
+    </label>
+</div>
             </div>
             <input type="range" id="sizeRange" min="8" max="30" value="20" oninput="updateGridSize(this.value)">
         </div>
-
+        
         <div class="control-group">
+            <label>Puzzle Title</label>
+            <input
+                type="text"
+                id="titleInput"
+                placeholder="Enter puzzle title..."
+                oninput="updateTitle()"
+            >
             <label>Add Word</label>
             <input type="text" id="wordInput" placeholder="Enter word..." onkeypress="if(event.key==='Enter') addWord()">
             <button class="btn btn-add" style="margin-top:10px" onclick="addWord()">Add to Puzzle</button>
@@ -82,6 +112,10 @@
         <button class="btn btn-save" style="margin-top:20px" onclick="saveJSON()">Download JSON</button>
         <input type="file" id="fileInput" style="display:none" onchange="loadJSON(event)" multiple>
         <button class="btn btn-load" onclick="document.getElementById('fileInput').click()">Upload JSON(s)</button>
+
+        <button class="btn btn-add" onclick="generatePuzzle()">
+            🔄 Refresh Grid
+        </button>
         
         <button class="btn btn-print" onclick="window.print()">Print to A4 / PDF</button>
     </div>
@@ -131,6 +165,17 @@
         updateUI();
         generatePuzzle();
     }
+    function updateTitle() {
+
+        const input =
+            document.getElementById('titleInput');
+
+        const title =
+            input.value.trim();
+
+        document.getElementById('puzzle-title').innerText =
+            title || 'WORD SEARCH';
+    }
 
     function updateUI() {
         // Sidebar Tags
@@ -148,64 +193,256 @@
         });
     }
 
-    function generatePuzzle() {
-        const gridDiv = document.getElementById('grid');
-        const cellSize = Math.min(550 / gridSize, 45); // A4サイズに収まるよう調整
-        
-        gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
-        let grid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+function getDirections() {
+    const dirs = [];
 
-        // 単語の配置を試行
-        words.forEach(word => {
-            let placed = false;
-            let attempts = 0;
-            while (!placed && attempts < 200) {
-                const direction = Math.floor(Math.random() * 3); // 0:横, 1:縦, 2:斜め
-                const row = Math.floor(Math.random() * gridSize);
-                const col = Math.floor(Math.random() * gridSize);
-                
-                if (canPlace(grid, word, row, col, direction)) {
-                    placeWord(grid, word, row, col, direction);
-                    placed = true;
-                }
-                attempts++;
+    const horizontal = document.getElementById('allowHorizontal').checked;
+    const vertical = document.getElementById('allowVertical').checked;
+    const diagonal = document.getElementById('allowDiagonal').checked;
+    const backward = document.getElementById('allowBackward').checked;
+
+    // Forward directions
+    if (horizontal) dirs.push([0, 1]);
+    if (vertical) dirs.push([1, 0]);
+    if (diagonal) dirs.push([1, 1]);
+
+    // Backward directions
+    if (backward) {
+        if (horizontal) dirs.push([0, -1]);
+        if (vertical) dirs.push([-1, 0]);
+        if (diagonal) {
+            dirs.push([-1, -1]);
+            dirs.push([1, -1]);
+            dirs.push([-1, 1]);
+        }
+    }
+
+    return dirs;
+}
+
+function generatePuzzle() {
+    const gridDiv = document.getElementById('grid');
+    const cellSize = Math.min(550 / gridSize, 45);
+
+    gridDiv.style.gridTemplateColumns =
+        `repeat(${gridSize}, ${cellSize}px)`;
+
+    let grid = Array(gridSize)
+        .fill()
+        .map(() => Array(gridSize).fill(''));
+
+    const directions = getDirections();
+
+    // Longest words first
+    const sortedWords = [...words].sort((a, b) => b.length - a.length);
+
+    sortedWords.forEach((word, wordIndex) => {
+
+        let bestPlacement = null;
+        let bestScore = -1;
+
+        // First word can go anywhere
+        const maxAttempts = wordIndex === 0 ? 200 : 3000;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+
+            const [dr, dc] =
+                directions[Math.floor(Math.random() * directions.length)];
+
+            const row = Math.floor(Math.random() * gridSize);
+            const col = Math.floor(Math.random() * gridSize);
+
+            if (!canPlace(grid, word, row, col, dr, dc)) {
+                continue;
             }
-        });
 
-        // グリッドを描画
-        gridDiv.innerHTML = '';
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            // Count overlaps
+            let overlapScore = 0;
+
+            for (let i = 0; i < word.length; i++) {
+
+                const r = row + dr * i;
+                const c = col + dc * i;
+
+                if (grid[r][c] === word[i]) {
+                    overlapScore++;
+                }
+            }
+
+            // Prefer overlapping placements
+            if (overlapScore > bestScore) {
+                bestScore = overlapScore;
+
+                bestPlacement = {
+                    row,
+                    col,
+                    dr,
+                    dc
+                };
+
+                // Perfect overlap found
+                if (overlapScore >= Math.min(3, word.length)) {
+                    break;
+                }
+            }
+        }
+
+        // Place best found position
+        if (bestPlacement) {
+            placeWord(
+                grid,
+                word,
+                bestPlacement.row,
+                bestPlacement.col,
+                bestPlacement.dr,
+                bestPlacement.dc
+            );
+        } else {
+            console.warn(`Could not place word: ${word}`);
+        }
+    });
+
+    // Only show words actually placed in grid
+    const validWords = extractWordsFromGrid(grid);
+
+    // Update visible word bank
+    const bankList = document.getElementById('wordBankList');
+    bankList.innerHTML = '';
+
+    validWords.sort().forEach(word => {
+        bankList.innerHTML += `<div>□ ${word}</div>`;
+    });
+
+    // Fill remaining cells
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    gridDiv.innerHTML = '';
+
+    for (let r = 0; r < gridSize; r++) {
+        for (let c = 0; c < gridSize; c++) {
+
+            const char =
+                grid[r][c] ||
+                letters[Math.floor(Math.random() * letters.length)];
+
+            gridDiv.innerHTML += `
+                <div class="cell"
+                    style="
+                        width:${cellSize}px;
+                        height:${cellSize}px;
+                        font-size:${cellSize * 0.6}px
+                    ">
+                    ${char}
+                </div>
+            `;
+        }
+    }
+}
+
+function canPlace(grid, word, row, col, dr, dc) {
+
+    for (let i = 0; i < word.length; i++) {
+
+        const r = row + dr * i;
+        const c = col + dc * i;
+
+        // Out of bounds
+        if (
+            r < 0 ||
+            c < 0 ||
+            r >= gridSize ||
+            c >= gridSize
+        ) {
+            return false;
+        }
+
+        // Allow overlap ONLY if same letter
+        if (
+            grid[r][c] !== '' &&
+            grid[r][c] !== word[i]
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function placeWord(grid, word, row, col, dr, dc) {
+
+    for (let i = 0; i < word.length; i++) {
+
+        const r = row + dr * i;
+        const c = col + dc * i;
+
+        grid[r][c] = word[i];
+    }
+}
+function extractWordsFromGrid(grid) {
+
+    const foundWords = new Set();
+
+    const directions = [
+        [0, 1],   // horizontal
+        [1, 0],   // vertical
+        [1, 1],   // diagonal down-right
+        [0, -1],  // horizontal backwards
+        [-1, 0],  // vertical backwards
+        [-1, -1], // diagonal up-left
+        [1, -1],  // diagonal down-left
+        [-1, 1]   // diagonal up-right
+    ];
+
+    for (const word of words) {
+
+        outerLoop:
         for (let r = 0; r < gridSize; r++) {
             for (let c = 0; c < gridSize; c++) {
-                const char = grid[r][c] || letters[Math.floor(Math.random() * letters.length)];
-                gridDiv.innerHTML += `<div class="cell" style="width:${cellSize}px; height:${cellSize}px; font-size:${cellSize*0.6}px">${char}</div>`;
+
+                for (const [dr, dc] of directions) {
+
+                    let match = true;
+
+                    for (let i = 0; i < word.length; i++) {
+
+                        const nr = r + dr * i;
+                        const nc = c + dc * i;
+
+                        if (
+                            nr < 0 ||
+                            nc < 0 ||
+                            nr >= gridSize ||
+                            nc >= gridSize
+                        ) {
+                            match = false;
+                            break;
+                        }
+
+                        if (grid[nr][nc] !== word[i]) {
+                            match = false;
+                            break;
+                        }
+                    }
+
+                    if (match) {
+                        foundWords.add(word);
+                        break outerLoop;
+                    }
+                }
             }
         }
     }
 
-    function canPlace(grid, word, row, col, dir) {
-        // dir 0: Horizontal, 1: Vertical, 2: Diagonal
-        for (let i = 0; i < word.length; i++) {
-            let r = row + (dir === 1 || dir === 2 ? i : 0);
-            let c = col + (dir === 0 || dir === 2 ? i : 0);
-            
-            if (r >= gridSize || c >= gridSize) return false;
-            if (grid[r][c] !== '' && grid[r][c] !== word[i]) return false;
-        }
-        return true;
-    }
-
-    function placeWord(grid, word, row, col, dir) {
-        for (let i = 0; i < word.length; i++) {
-            let r = row + (dir === 1 || dir === 2 ? i : 0);
-            let c = col + (dir === 0 || dir === 2 ? i : 0);
-            grid[r][c] = word[i];
-        }
-    }
+    return [...foundWords];
+}
 
     // JSON Functions
     function saveJSON() {
-        const data = { gridSize, words };
+        const data = {
+            gridSize,
+            words,
+            title: document.getElementById('titleInput').value
+        };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -218,6 +455,12 @@
             const text = await file.text();
             const data = JSON.parse(text);
             if (data.words) {
+                if (data.title) {
+                    document.getElementById('titleInput').value =
+                        data.title;
+
+                    updateTitle();
+                }
                 // 既存の単語とマージ（重複排除）
                 words = [...new Set([...words, ...data.words])];
                 if (data.gridSize > gridSize) updateGridSize(data.gridSize);
