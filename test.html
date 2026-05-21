@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snakes &amp; Ladders: Amazonian Sandbox Quest SPA</title>
+    <style>
+        :root {
+            --jungle-dark: #0f1f11;
+            --leaf-green: #2a5934;
+            --moss-green: #4f8a5b;
+            --bamboo-wood: #c29b62;
+            --stone-even: #283029;
+            --stone-odd: #1e241f;
+            --gold-accent: #ffd700;
+            --question-glow: #00f0ff;
+            --panel-bg: rgba(15, 31, 17, 0.96);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Verdana', 'Trebuchet MS', sans-serif; }
+        
+        body { 
+            width: 100vw; height: 100vh; height: -webkit-fill-available;
+            background-color: var(--jungle-dark);
+            background-image: 
+                radial-gradient(at 10% 20%, rgba(79, 138, 91, 0.25) 0px, transparent 50%),
+                radial-gradient(at 90% 80%, rgba(194, 155, 98, 0.15) 0px, transparent 50%),
+                linear-gradient(rgba(42, 89, 52, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(42, 89, 52, 0.1) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            overflow: hidden; color: #f0f5f1; position: relative;
+        }
+
+        h1 { 
+            position: fixed; top: 15px; left: 15px; 
+            font-size: calc(10px + 0.6vh); font-weight: bold;
+            letter-spacing: 1px; text-transform: uppercase;
+            background: linear-gradient(135deg, #a3e635, var(--gold-accent));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7); z-index: 20; pointer-events: none;
+        }
+
+        .bottom-right-controls {
+            position: fixed; bottom: 15px; right: 15px;
+            display: flex; flex-direction: column; gap: 8px; z-index: 100;
+        }
+        .action-btn {
+            background: rgba(42, 89, 52, 0.9); border: 2px solid var(--bamboo-wood);
+            color: #fff; padding: 10px 18px; border-radius: 10px; font-weight: bold;
+            font-size: 11px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: all 0.2s;
+        }
+        .action-btn:hover { background: var(--moss-green); transform: scale(1.03); }
+
+        /* 100% Viewport Square Board Frame */
+        .game-layout { 
+            position: relative; display: flex; justify-content: center; align-items: center; 
+            width: 100vh; height: 100vh; max-width: 100vw; max-height: 100vh;
+            aspect-ratio: 1 / 1; padding: 0; 
+        }
+
+        .board-container { 
+            position: relative; background: #111612; width: 100%; height: 100%;
+        }
+
+        #board { 
+            display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr); 
+            border: none; background: #111612; width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 5;
+        }
+
+        .cell { 
+            border: 1px solid rgba(255, 255, 255, 0.03); display: flex; flex-direction: column; 
+            justify-content: space-between; padding: 5%; font-weight: bold; font-size: calc(5px + 0.6vh); 
+            position: relative; color: rgba(240, 245, 241, 0.25); user-select: none;
+        }
+        .cell-even { background: var(--stone-even); }
+        .cell-odd { background: var(--stone-odd); }
+        .cell-100 { background: linear-gradient(135deg, rgba(255,215,0,0.25), transparent) !important; color: var(--gold-accent); font-weight: 900; }
+        .q-mark-glow {
+            position: absolute; top: 15%; right: 15%; font-size: calc(8px + 0.8vh);
+            color: var(--question-glow); font-weight: 900;
+            text-shadow: 0 0 8px var(--question-glow), 0 0 15px var(--question-glow);
+            animation: qPulse 1.2s infinite alternate ease-in-out; pointer-events: none; z-index: 15;
+        }
+        @keyframes qPulse { 0% { opacity: 0.3; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }
+
+        /* Canvas layered over tiles but underneath pieces */
+        #pathway-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .pieces-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40; }
+        
+        .piece { 
+            width: calc(6px + 1.4vh); height: calc(6px + 1.4vh); max-width: 26px; max-height: 26px;
+            border-radius: 50%; border: calc(1px + 0.1vh) solid rgba(255, 255, 255, 0.9); 
+            outline: calc(1px + 0.05vh) solid rgba(0, 0, 0, 0.4);
+            background-image: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.65) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0.5) 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.6); cursor: grab; pointer-events: auto; position: absolute; transform: translate(-50%, -50%); left: 0; top: 0;
+            z-index: 45;
+        }
+        .piece:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.2); z-index: 50; }
+        .piece.crowded-medium { width: calc(5px + 1vh); height: calc(5px + 1vh); }
+        .piece.crowded-heavy { width: calc(4px + 0.7vh); height: calc(4px + 0.7vh); }
+
+        /* --- Sidebar Menu Styling --- */
+        .hamburger-btn {
+            position: fixed; top: 15px; right: 15px; width: 38px; height: 38px;
+            background: rgba(42, 89, 52, 0.85); border: 2px solid var(--bamboo-wood); border-radius: 8px;
+            cursor: pointer; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px;
+        }
+        .hamburger-btn span { width: 16px; height: 2.5px; background: #fff; border-radius: 2px; transition: all 0.3s; }
+        .hamburger-btn.active span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); background: #ff5555; }
+        .hamburger-btn.active span:nth-child(2) { opacity: 0; }
+        .hamburger-btn.active span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); background: #ff5555; }
+
+        .sidebar {
+            position: fixed; top: 0; right: -310px; width: 290px; height: 100vh;
+            background: var(--panel-bg); border-left: 3px solid var(--bamboo-wood); box-shadow: -15px 0 40px rgba(0,0,0,0.6);
+            z-index: 150; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            padding: 70px 15px 15px 15px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto;
+            transition: right 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+        .sidebar.open { right: 0; }
+
+        /* --- Moveable Popup Controls --- */
+        .dice-popup {
+            position: fixed; top: 70px; left: 15px; width: 160px; background: rgba(20, 35, 22, 0.96);
+            border: 2px solid var(--bamboo-wood); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            z-index: 100; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; padding: 8px; touch-action: none;
+        }
+        .dice-popup-header {
+            width: 100%; display: flex; justify-content: space-between; align-items: center; cursor: move;
+            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 6px;
+            font-size: 10px; font-weight: bold; color: var(--bamboo-wood); text-transform: uppercase; user-select: none;
+        }
+        .close-popup-btn { background: none!important; border: none!important; color: #ff5555!important; font-size: 14px!important; cursor: pointer; }
+
+        /* --- QUIZ POPUP MODAL --- */
+        .quiz-modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(5, 12, 6, 0.85); z-index: 300; display: flex;
+            align-items: center; justify-content: center; backdrop-filter: blur(10px);
+            visibility: hidden; opacity: 0; transition: opacity 0.3s;
+        }
+        .quiz-modal.show { visibility: visible; opacity: 1; }
+        .quiz-box {
+            background: rgba(20, 35, 22, 0.98); border: 3px solid var(--bamboo-wood);
+            border-radius: 20px; width: 90%; max-width: 440px; padding: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8); text-align: center;
+        }
+        .quiz-title { font-size: 14px; text-transform: uppercase; color: var(--gold-accent); margin-bottom: 12px; font-weight: bold; }
+        .quiz-text { font-size: 16px; margin-bottom: 20px; line-height: 1.5; color: #fff; }
+        .quiz-options { display: flex; flex-direction: column; gap: 10px; }
+        .quiz-opt-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); padding: 12px; text-align: left; font-size: 14px; color: #fff; cursor: pointer; border-radius: 6px; }
+        .quiz-opt-btn:hover { background: var(--moss-green); color: #fff; }
+
+        /* --- SEPARATED CRUD VIEWER MODAL --- */
+        .quiz-crud-view {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--jungle-dark); z-index: 250; padding: 60px 20px 20px 20px;
+            display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+            visibility: hidden; opacity: 0; transition: all 0.3s ease;
+        }
+        .quiz-crud-view.show { visibility: visible; opacity: 1; }
+        .crud-container { max-width: 800px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+        .crud-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bamboo-wood); padding-bottom: 10px; }
+        .crud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media(max-width: 600px) { .crud-grid { grid-template-columns: 1fr; } }
+        
+        .quiz-list-table { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; max-height: 400px; overflow-y: auto; }
+        .quiz-item-node { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
+        .quiz-item-node:last-child { border: none; }
+        .quiz-node-details { display: flex; flex-direction: column; gap: 3px; max-width: 70%; }
+
+        .summon-dice-btn {
+            position: fixed; bottom: 15px; left: 15px; width: 44px; height: 44px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--moss-green), var(--leaf-green)); border: 2px solid var(--bamboo-wood);
+            font-size: 18px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 90; visibility: hidden;
+        }
+
+        .section { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 10px; }
+        h3 { font-size: 11px; text-transform: uppercase; color: var(--gold-accent); margin-bottom: 8px; }
+
+        input[type="text"], input[type="number"], select { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 8px; color: #fff; font-size: 11px; width: 100%; outline: none; }
+        
+        button { background: linear-gradient(135deg, #2a402e, #17261a); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; }
+        button:hover { background: var(--moss-green); }
+        button.danger { background: linear-gradient(135deg, rgba(231,29,54,0.25), rgba(231,29,54,0.08)); border-color: rgba(231,29,54,0.4); color: #ff5577; }
+        button.danger:hover { background: #e71d36; color: #fff; }
+        button.success { background: linear-gradient(135deg, rgba(163,230,53,0.2), rgba(163,230,53,0.05)); border-color: rgba(163,230,53,0.4); color: #a3e635; }
+        button.success:hover { background: #a3e635; color: #000; }
+
+        .btn-group { display: flex; gap: 4px; margin-top: 4px; }
+        .team-row, .item-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 5px 8px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; }
+        .team-info { display: flex; align-items: center; gap: 6px; }
+        .color-dot { width: 9px; height: 9px; border-radius: 50%; }
+        
+        .item-list { max-height: 300px; overflow-y: auto; }
+
+        .dice-area { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+        #status { font-size: 10px; text-align: center; font-weight: bold; width: 100%; background: rgba(0,0,0,0.4); padding: 5px; border-radius: 6px; border-left: 3px solid var(--gold-accent); }
+        .scene { width: 46px; height: 46px; perspective: 300px; margin: 2px 0; }
+        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1); }
+        .cube-face { 
+            position: absolute; width: 46px; height: 46px; background: #fdfaf2; border: 1.5px solid #5a4f3f; border-radius: 7px; 
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 3px; align-items: center; justify-items: center;
+        }
+        .pip { width: 6.5px; height: 6.5px; background-color: #3e3529; border-radius: 50%; }
+        .face-1 .pip { background-color: #cc2233; width: 11px; height: 11px; }
+        
+        .face-1 { transform: rotateY(0deg) translateZ(23px); display: flex !important; justify-content: center !important; align-items: center !important; }
+        .face-2 { transform: rotateY(90deg) translateZ(23px); }
+        .face-3 { transform: rotateX(90deg) translateZ(23px); }
+        .face-4 { transform: rotateX(-90deg) translateZ(23px); }
+        .face-5 { transform: rotateY(-90deg) translateZ(23px); }
+        .face-6 { transform: rotateY(180deg) translateZ(23px); }
+    </style>
+</head>
+<body>
+    <h1>Amazonian Quest</h1>
+    
+    <!-- Floating controls bar -->
+    <div class="bottom-right-controls">
+        <button class="action-btn" onclick="openQuizView()">📝 Manage Quizzes</button>
+    </div>
+
+    <div class="hamburger-btn" id="menu-toggle" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+    </div>
+
+    <!-- Moveable Pop-up Ivory Bone 3D Dice UI Component -->
+    <div class="dice-popup" id="movable-dice-station">
+        <div class="dice-popup-header" id="dice-drag-bar">
+            <span>✛ Drag Engine</span>
+            <button class="close-popup-btn" onclick="minimizeDicePopup()">×</button>
+        </div>
+        <div class="dice-area">
+            <div id="status">Red Active</div>
+            <div class="scene">
+                <div id="cube" class="cube">
+                    <div class="cube-face face-1"><span class="pip"></span></div>
+                    <div class="cube-face face-2"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
+                    <div class="cube-face face-3"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 2/2;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
+                    <div class="cube-face face-4"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
+                    <div class="cube-face face-5"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/2;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
+                    <div class="cube-face face-6"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/1;"></span><span class="pip" style="grid-area: 2/3;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
+                </div>
+            </div>
+            <div class="btn-group" style="width: 100%;">
+                <button id="roll-btn" style="flex: 2; padding:6px; background: linear-gradient(135deg, var(--bamboo-wood), #a07640); color: #fff;">Roll</button>
+                <button onclick="skipActivePlayerTurn()" style="flex: 1; background: #37474f; font-size: 9px; padding: 0;" title="Skip Player Turn">⏭️ Skip</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Gameplay Quiz Display Overlay Container -->
+    <div class="quiz-modal" id="quiz-overlay">
+        <div class="quiz-box">
+            <div class="quiz-title">⚠️ Ruins Encountered!</div>
+            <div class="quiz-text" id="quiz-box-text">Question text...</div>
+            <div class="quiz-options" id="quiz-box-options"></div>
+        </div>
+    </div>
+
+    <!-- Separated SPA Dashboard View for full Quiz CRUD Management -->
+    <div class="quiz-crud-view" id="quiz-crud-viewport">
+        <div class="crud-container">
+            <div class="crud-header">
+                <h2 style="color: var(--gold-accent);">📝 Ancient Quiz Codex Manager</h2>
+                <button class="action-btn danger" onclick="closeQuizView()">✕ Close Codex</button>
+            </div>
+            
+            <div class="crud-grid">
+                <!-- Form Module: Add & Update Node Entries -->
+                <div class="section" style="display: flex; flex-direction: column; gap: 8px;">
+                    <h4 style="color: var(--bamboo-wood); text-transform: uppercase; font-size: 11px;">Add / Edit Quiz Node</h4>
+                    <div>
+                        <label style="font-size: 10px; opacity: 0.6;">Target Tile Number (2 - 99)</label>
+                        <input type="number" id="crud-tile" min="2" max="99" value="12">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px; opacity: 0.6;">Question Prompt Text</label>
+                        <input type="text" id="crud-question" placeholder="e.g., What color is an emerald?">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px; color: #a3e635;">Option A (Correct Answer)</label>
+                        <input type="text" id="crud-opt-a" placeholder="Correct Choice">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px; color: #ff5555;">Option B (Wrong Trap)</label>
+                        <input type="text" id="crud-opt-b" placeholder="Decoy Choice">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px; color: #ff5555;">Option C (Wrong Trap)</label>
+                        <input type="text" id="crud-opt-c" placeholder="Decoy Choice">
+                    </div>
+                    <div class="btn-group" style="margin-top: 6px;">
+                        <button class="success" onclick="executeCrudSave()" style="flex: 2;">💾 Save / Update Quiz</button>
+                        <button onclick="triggerCrudShuffle()" style="background: var(--moss-green); flex: 1;">🔀 Shuffle Locations</button>
+                    </div>
+                </div>
+
+                <!-- Read Module: Live Table Tracking View list -->
+                <div class="section" style="display: flex; flex-direction: column; gap: 8px;">
+                    <h4 style="color: var(--bamboo-wood); text-transform: uppercase; font-size: 11px;">Active Matrix Database Sync</h4>
+                    <div class="quiz-list-table" id="crud-live-nodes-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="summon-dice-btn" id="recall-dice-trigger" onclick="maximizeDicePopup()">🎲</div>
+
+    <div class="game-layout">
+        <div class="board-container">
+            <div id="board"></div>
+            <canvas id="pathway-canvas"></canvas>
+            <div class="pieces-overlay" id="animation-layer"></div>
+        </div>
+        
+        <div class="sidebar" id="config-sidebar">
+            <div class="section">
+                <h3>💾 Profile Cloud Storage</h3>
+                <input type="text" id="save-layout-name" placeholder="Save Profile Name" style="margin-bottom:6px;">
+                <div class="btn-group">
+                    <button class="success" onclick="saveBoardProfile()" style="flex:1;">Save Map</button>
+                    <button class="success" onclick="loadBoardProfile()" style="flex:1;">Load Map</button>
+                </div>
+            </div>
+
+            <!-- Gimmick Customization and Automated Anti-Clump Map Randomizer -->
+            <div class="section">
+                <h3>🛠️ Map Realignment Sandbox</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px; margin-bottom:6px;">
+                    <div>
+                        <label style="font-size:9px; opacity:0.6; font-weight:bold;"># of Ladders</label>
+                        <input type="number" id="rand-ladders-count" min="1" max="15" value="5">
+                    </div>
+                    <div>
+                        <label style="font-size:9px; opacity:0.6; font-weight:bold;"># of Snakes</label>
+                        <input type="number" id="rand-snakes-count" min="1" max="15" value="5">
+                    </div>
+                </div>
+                <button class="success" onclick="triggerMapRandomizer()" style="width: 100%; padding: 8px; margin-bottom: 12px; background: linear-gradient(135deg, #a3e635, var(--moss-green)); color:#000;">🎲 Randomize Map</button>
+                
+                <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-bottom:4px;">
+                    <div><input type="number" id="link-start" min="1" max="99" value="15" placeholder="From"></div>
+                    <div><input type="number" id="link-end" min="2" max="100" value="45" placeholder="To"></div>
+                </div>
+                <div class="btn-group">
+                    <button id="add-ladder-btn" class="success" style="flex:1;">+ Ladder</button>
+                    <button id="add-snake-btn" class="danger" style="flex:1;">+ Snake</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>👥 Explorers (Teams)</h3>
+                <div id="teams-list"></div>
+                <div class="btn-group">
+                    <input type="color" id="new-team-color" value="#ff5555" style="width:35px; padding:0; height:28px; border:none; cursor:pointer;">
+                    <input type="text" id="new-team-name" placeholder="Name">
+                    <button id="add-team-btn" style="padding:0 10px;">+</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📋 Grid Link Coordinates</h3>
+                <div id="items-list" class="item-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SPA View Controls ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('config-sidebar');
+            const toggle = document.getElementById('menu-toggle');
+            sidebar.classList.toggle('open');
+            toggle.classList.toggle('active');
+        }
+
+        function openQuizView() {
+            document.getElementById('quiz-crud-viewport').classList.add('show');
+            refreshCrudLiveListUI(); 
+        }
+
+        function closeQuizView() {
+            document.getElementById('quiz-crud-viewport').classList.remove('remove');
+            document.getElementById('quiz-crud-viewport').classList.remove('show');
+        }
+
+        // --- 2. Movable & Draggable Floating Pop-up UI Engine ---
+        const popup = document.getElementById('movable-dice-station');
+        const dragBar = document.getElementById('dice-drag-bar');
+        const summonBtn = document.getElementById('recall-dice-trigger');
+        
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        dragBar.addEventListener('mousedown', dragStart);
+        dragBar.addEventListener('touchstart', dragStart, { passive: false });
+
+        function dragStart(e) {
+            isDragging = true;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            startX = clientX;
+            startY = clientY;
+            const computedStyle = window.getComputedStyle(popup);
+            initialLeft = parseInt(computedStyle.left) || 15;
+            initialTop = parseInt(computedStyle.top) || 70;
+            
+            if (e.type === 'mousedown') {
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+            } else {
+                document.addEventListener('touchmove', dragMove, { passive: false });
+                document.addEventListener('touchend', dragEnd);
+            }
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            let deltaX = clientX - startX;
+            let deltaY = clientY - startY;
+            popup.style.left = (initialLeft + deltaX) + 'px';
+            popup.style.top = (initialTop + deltaY) + 'px';
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function dragEnd() {
+            isDragging = false;
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchmove', dragMove);
+            document.removeEventListener('touchend', dragEnd);
+        }
+
+        function minimizeDicePopup() {
+            popup.style.opacity = '0'; popup.style.transform = 'scale(0.8)';
+            setTimeout(() => { popup.style.visibility = 'hidden'; summonBtn.style.visibility = 'visible'; }, 300);
+        }
+
+        function maximizeDicePopup() {
+            popup.style.visibility = 'visible'; popup.style.opacity = '1'; popup.style.transform = 'scale(1)'; summonBtn.style.visibility = 'hidden';
+        }
+
+        // --- 3. Core Game State Configuration Engine variables ---
+        let teams = [
+            { id: 1, name: "Explorer Red", color: "#ff4d6d", position: 1, currentX: 0, currentY: 0 },
+            { id: 2, name: "Viper Blue", color: "#00f0ff", position: 1, currentX: 0, currentY: 0 },
+            { id: 3, name: "Orchid Green", color: "#a3e635", position: 1, currentX: 0, currentY: 0 }
+        ];
+        let currentTeamIndex = 0;
+        let isRolling = false;
+        let snakeColors = ['#38b000', '#ff7b00', '#9d4edd', '#e63946', '#00b4d8'];
+        let currentXRotation = 0; 
+        let currentYRotation = 0;
+
+        let links = [
+            { id: 1, type: 'ladder', start: 4, end: 25 },
+            { id: 2, type: 'ladder', start: 13, end: 46 },
+            { id: 3, type: 'ladder', start: 33, end: 49 },
+            { id: 4, type: 'ladder', start: 50, end: 69 },
+            { id: 5, type: 'ladder', start: 62, end: 81 },
+            { id: 6, type: 'snake', start: 27, end: 5 },
+            { id: 7, type: 'snake', start: 43, end: 18 },
+            { id: 8, type: 'snake', start: 74, end: 53 },
+            { id: 9, type: 'snake', start: 89, end: 68 },
+            { id: 10, type: 'snake', start: 99, end: 41 }
+        ];
+
+        let quizDatabase = {
+            12: { q: "What is the capital of France?", a: "Paris", b: "London", c: "Berlin" },
+            24: { q: "Which animal is known as the King of the Jungle?", a: "Lion", b: "Tiger", c: "Elephant" },
+            40: { q: "How many colors are there in a rainbow?", a: "7", b: "6", c: "8" },
+            55: { q: "What is 5 + 7?", a: "12", b: "11", c: "13" }
+        };
+        // --- 4. Responsive Engine Pass Calculations ---
+        function getCellCenterCoordinates(cellNum) {
+            const board = document.getElementById('board');
+            const targetCell = document.getElementById(`cell-${cellNum}`);
+            if (!board || !targetCell) return { x: 0, y: 0 };
+            
+            const bRect = board.getBoundingClientRect();
+            const cRect = targetCell.getBoundingClientRect();
+            
+            return {
+                x: cRect.left - bRect.left + cRect.width / 2,
+                y: cRect.top - bRect.top + cRect.height / 2
+            };
+        }
+
+        function createBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            for (let r = 0; r < 10; r++) {
+                for (let c = 0; c < 10; c++) {
+                    let rowLogic = 9 - r;
+                    let cellNum = (rowLogic % 2 === 0) ? (rowLogic * 10 + c + 1) : (rowLogic * 10 + (9 - c) + 1);
+                    
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${(r+c)%2===0 ? 'cell-even' : 'cell-odd'}`;
+                    if(cellNum === 100) cell.classList.add('cell-100');
+                    cell.id = `cell-${cellNum}`;
+                    cell.innerHTML = `<div>${cellNum}</div>`;
+                    
+                    cell.addEventListener('dragover', e => e.preventDefault());
+                    cell.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const teamId = parseInt(e.dataTransfer.getData('text/plain'));
+                        updateTeamPosition(teamId, cellNum, false);
+                    });
+                    board.appendChild(cell);
+                }
+            }
+            refreshGlowingQuestionMarks();
+            
+            // Wait brief moment for layout frames computation to finish cleanly
+            setTimeout(() => {
+                resizeAndRedrawCanvas();
+            }, 60);
+        }
+
+        function refreshGlowingQuestionMarks() {
+            document.querySelectorAll('.q-mark-glow').forEach(el => el.remove());
+            for (const tile in quizDatabase) {
+                const targetCell = document.getElementById(`cell-${tile}`);
+                if (targetCell) {
+                    targetCell.insertAdjacentHTML('beforeend', `<div class="q-mark-glow">?</div>`);
+                }
+            }
+        }
+
+        // --- 5. SPA Quiz Codex CRUD Controller ---
+        function refreshCrudLiveListUI() {
+            const listContainer = document.getElementById('crud-live-nodes-list');
+            listContainer.innerHTML = '';
+            
+            const sortedTiles = Object.keys(quizDatabase).sort((a,b) => a - b);
+            
+            if(sortedTiles.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; opacity:0.4; padding:20px; font-size:12px;">Codex Empty. Add a quiz below.</div>`;
+                return;
+            }
+
+            sortedTiles.forEach(tile => {
+                const quiz = quizDatabase[tile];
+                const node = document.createElement('div');
+                node.className = 'quiz-item-node';
+                node.innerHTML = `
+                    <div class="quiz-node-details">
+                        <strong style="color:var(--gold-accent)">Tile ${tile}: ${quiz.q}</strong>
+                        <span style="color:#a3e635">✔ ${quiz.a}</span>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="loadQuizToForm(${tile})" style="background:#2a402e; padding:4px 8px;">Edit</button>
+                        <button class="danger" onclick="deleteQuizNode(${tile})" style="padding:4px 8px;">X</button>
+                    </div>
+                `;
+                listContainer.appendChild(node);
+            });
+        }
+
+        function loadQuizToForm(tile) {
+            const quiz = quizDatabase[tile];
+            if (!quiz) return;
+            document.getElementById('crud-tile').value = tile;
+            document.getElementById('crud-question').value = quiz.q;
+            document.getElementById('crud-opt-a').value = quiz.a;
+            document.getElementById('crud-opt-b').value = quiz.b;
+            document.getElementById('crud-opt-c').value = quiz.c;
+        }
+
+        function executeCrudSave() {
+            const tile = parseInt(document.getElementById('crud-tile').value);
+            const question = document.getElementById('crud-question').value.trim();
+            const optA = document.getElementById('crud-opt-a').value.trim();
+            const optB = document.getElementById('crud-opt-b').value.trim();
+            const optC = document.getElementById('crud-opt-c').value.trim();
+
+            if (isNaN(tile) || tile < 2 || tile > 99 || !question || !optA || !optB || !optC) {
+                alert("Form Error: Fill in all fields correctly (Tile bounds: 2-99)."); return;
+            }
+
+            quizDatabase[tile] = { q: question, a: optA, b: optB, c: optC };
+            
+            document.getElementById('crud-question').value = '';
+            document.getElementById('crud-opt-a').value = ''; 
+            document.getElementById('crud-opt-b').value = ''; 
+            document.getElementById('crud-opt-c').value = '';
+            
+            refreshGlowingQuestionMarks();
+            refreshCrudLiveListUI();
+        }
+
+        function deleteQuizNode(tile) {
+            if(confirm(`Are you sure you want to remove the quiz on tile ${tile}?`)) {
+                delete quizDatabase[tile];
+                refreshGlowingQuestionMarks();
+                refreshCrudLiveListUI();
+            }
+        }
+
+        function triggerCrudShuffle() {
+            let quizzes = Object.values(quizDatabase);
+            if(quizzes.length === 0) { alert("Nothing to shuffle!"); return; }
+            
+            quizDatabase = {}; 
+            let takenTiles = new Set();
+
+            quizzes.forEach(quiz => {
+                let randomTile;
+                do {
+                    randomTile = Math.floor(Math.random() * 98) + 2;
+                } while (takenTiles.has(randomTile) || links.some(l => l.start === randomTile));
+                
+                takenTiles.add(randomTile);
+                quizDatabase[randomTile] = quiz;
+            });
+
+            refreshGlowingQuestionMarks();
+            refreshCrudLiveListUI();
+            alert("Quiz matrix successfully rearranged across safe spaces!");
+        }
+        // --- 6. Responsive Pathways Drawing Engine ---
+        function drawPathways() {
+            const canvas = document.getElementById('pathway-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const scaleFactor = canvas.width / 600;
+
+            links.forEach((link, idx) => {
+                const start = getCellCenterCoordinates(link.start);
+                const end = getCellCenterCoordinates(link.end);
+
+                if (link.type === 'ladder') {
+                    ctx.save();
+                    let dx = end.x - start.x; let dy = end.y - start.y;
+                    let angle = Math.atan2(dy, dx); let len = Math.hypot(dx, dy);
+                    let railOffset = 6.5 * scaleFactor;
+                    ctx.translate(start.x, start.y); ctx.rotate(angle);
+                    ctx.strokeStyle = '#85581A'; ctx.lineWidth = Math.max(1.5, 4 * scaleFactor);
+                    ctx.beginPath(); ctx.moveTo(0, -railOffset); ctx.lineTo(len, -railOffset); ctx.moveTo(0, railOffset); ctx.lineTo(len, railOffset); ctx.stroke();
+                    ctx.strokeStyle = '#c29b62'; ctx.lineWidth = Math.max(1, 2.5 * scaleFactor);
+                    let stepSpacing = 16 * scaleFactor;
+                    ctx.beginPath();
+                    for (let d = stepSpacing; d < len; d += stepSpacing) { ctx.moveTo(d, -railOffset - 1); ctx.lineTo(d, railOffset + 1); }
+                    ctx.stroke(); ctx.restore();
+                } else {
+                    ctx.save();
+                    let dx = end.x - start.x; let dy = end.y - start.y;
+                    let len = Math.hypot(dx, dy); let angle = Math.atan2(dy, dx);
+                    let points = []; let steps = 40; let waveCount = 2.5; let waveAmplitude = 15 * scaleFactor;
+                    for (let i = 0; i <= steps; i++) {
+                        let t = i / steps; let lx = t * len; let ly = Math.sin(t * Math.PI * 2 * waveCount) * waveAmplitude;
+                        let wx = start.x + lx * Math.cos(angle) - ly * Math.sin(angle); let wy = start.y + lx * Math.sin(angle) + ly * Math.cos(angle);
+                        points.push({x: wx, y: wy});
+                    }
+                    let baseColor = snakeColors[idx % snakeColors.length];
+                    ctx.strokeStyle = baseColor; ctx.lineWidth = Math.max(4, 10 * scaleFactor); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                    ctx.beginPath(); ctx.moveTo(points.x, points.y);
+                    for(let p = 1; p < points.length; p++) { ctx.lineTo(points[p].x, points[p].y); }
+                    ctx.stroke();
+                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(0.8, 2 * scaleFactor); ctx.setLineDash([4 * scaleFactor, 6 * scaleFactor]);
+                    ctx.beginPath(); ctx.moveTo(points.x, points.y);
+                    for(let p = 1; p < points.length; p++) { ctx.lineTo(points[p].x, points[p].y); }
+                    ctx.stroke(); ctx.setLineDash([]);
+                    ctx.fillStyle = baseColor;
+                    let tailPoint = points[points.length - 1]; let prevPoint = points[points.length - 3];
+                    let tailAngle = Math.atan2(tailPoint.y - prevPoint.y, tailPoint.x - prevPoint.x);
+                    let tailWidth = 4.5 * scaleFactor; let tailLength = 11 * scaleFactor;
+                    ctx.beginPath(); ctx.moveTo(tailPoint.x, tailPoint.y);
+                    ctx.lineTo(tailPoint.x - tailLength * Math.cos(tailAngle) + tailWidth * Math.sin(tailAngle), tailPoint.y - tailLength * Math.sin(tailAngle) - tailWidth * Math.cos(tailAngle));
+                    ctx.lineTo(tailPoint.x - tailLength * Math.cos(tailAngle) - tailWidth * Math.sin(tailAngle), tailPoint.y - tailLength * Math.sin(tailAngle) + tailWidth * Math.cos(tailAngle));
+                    ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = baseColor; ctx.beginPath(); ctx.arc(start.x, start.y, 8 * scaleFactor, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#ff2244'; ctx.lineWidth = Math.max(0.8, 1.5 * scaleFactor);
+                    let tongueLen = 4.5 * scaleFactor; ctx.beginPath(); ctx.moveTo(start.x, start.y);
+                    ctx.lineTo(start.x + tongueLen * Math.cos(angle - 0.25), start.y + tongueLen * Math.sin(angle - 0.25));
+                    ctx.moveTo(start.x, start.y);
+                    ctx.lineTo(start.x + tongueLen * Math.cos(angle + 0.25), start.y + tongueLen * Math.sin(angle + 0.25));
+                    ctx.stroke(); ctx.restore();
+                }
+            });
+            renderGimmickList();
+        }
+
+        // --- 7. Token Layer Renderer ---
+        function updatePiecesDisplay() {
+            const layer = document.getElementById('animation-layer');
+            layer.innerHTML = '';
+            const cellOccupancy = {};
+            teams.forEach(team => {
+                if(!cellOccupancy[team.position]) cellOccupancy[team.position] = [];
+                cellOccupancy[team.position].push(team);
+            });
+
+            teams.forEach(team => {
+                const piece = document.createElement('div');
+                piece.className = 'piece';
+                piece.style.backgroundColor = team.color;
+                piece.title = team.name;
+                piece.draggable = true;
+                piece.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', team.id));
+
+                let offsetX = 0; let offsetY = 0;
+                const occupants = cellOccupancy[team.position] || [];
+                if (occupants.length > 1) {
+                    const idx = occupants.indexOf(team);
+                    if (occupants.length === 2) {
+                        piece.classList.add('crowded-medium'); offsetX = (idx === 0 ? -6 : 6);
+                    } else {
+                        piece.classList.add('crowded-heavy');
+                        if (idx === 0) { offsetX = -5; offsetY = -5; }
+                        else if (idx === 1) { offsetX = 5; offsetY = -5; }
+                        else if (idx === 2) { offsetX = -5; offsetY = 5; }
+                        else { offsetX = 5; offsetY = 5; }
+                    }
+                }
+                piece.style.left = (team.currentX + offsetX) + 'px';
+                piece.style.top = (team.currentY + offsetY) + 'px';
+                layer.appendChild(piece);
+            });
+            updateStatusText();
+        }
+
+        // --- 8. Core Physics Animation Loop Engine ---
+        function updateTeamPosition(teamId, newPos, autoCheckGimmick = false) {
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+            
+            if (newPos > 100) {
+                if(autoCheckGimmick) document.getElementById('status').innerText = `💥 ${team.name}: Overflow bounced! Staying at ${team.position}`;
+                return; 
+            }
+
+            if (autoCheckGimmick) {
+                let startPos = team.position;
+                let stepsArray = [];
+                for (let i = startPos + 1; i <= newPos; i++) { stepsArray.push(i); }
+
+                function animateTileJumps() {
+                    if (stepsArray.length === 0) {
+                        if (quizDatabase[team.position]) {
+                            setTimeout(() => triggerQuizPopupModal(team, team.position), 300);
+                        } else {
+                            processGimmickLinks(team);
+                        }
+                        return;
+                    }
+                    let nextTile = stepsArray.shift();
+                    let targetCoords = getCellCenterCoordinates(nextTile);
+                    let startX = team.currentX; let startY = team.currentY;
+                    let duration = 280; let startTime = performance.now();
+
+                    function jumpStep(now) {
+                        let progress = (now - startTime) / duration;
+                        if (progress > 1) progress = 1;
+                        team.currentX = startX + (targetCoords.x - startX) * progress;
+                        team.currentY = startY + (targetCoords.y - startY) * progress;
+                        team.currentY += -22 * Math.sin(progress * Math.PI);
+                        updatePiecesDisplay();
+                        if (progress < 1) { requestAnimationFrame(jumpStep); } 
+                        else { team.position = nextTile; updatePiecesDisplay(); setTimeout(animateTileJumps, 60); }
+                    }
+                    requestAnimationFrame(jumpStep);
+                }
+                animateTileJumps();
+            } else {
+                let currentCoords = getCellCenterCoordinates(newPos);
+                team.position = newPos; team.currentX = currentCoords.x; team.currentY = currentCoords.y;
+                updatePiecesDisplay();
+            }
+        }
+
+        function processGimmickLinks(team) {
+            const link = links.find(l => l.start === team.position);
+            if (link) {
+                setTimeout(() => {
+                    let startCoords = getCellCenterCoordinates(link.start);
+                    let endCoords = getCellCenterCoordinates(link.end);
+                    let duration = 850; let startTime = performance.now();
+                    let dx = endCoords.x - startCoords.x; let dy = endCoords.y - startCoords.y;
+                    let len = Math.hypot(dx, dy); let angle = Math.atan2(dy, dx);
+                    const scaleFactor = document.getElementById('pathway-canvas').width / 600;
+                    let waveCount = 2.5; let waveAmplitude = 15 * scaleFactor;
+
+                    function curveStep(now) {
+                        let progress = (now - startTime) / duration;
+                        if (progress > 1) progress = 1;
+                        if (link.type === 'ladder') {
+                            team.currentX = startCoords.x + dx * progress; team.currentY = startCoords.y + dy * progress;
+                        } else {
+                            let lx = progress * len; let ly = Math.sin(progress * Math.PI * 2 * waveCount) * waveAmplitude;
+                            team.currentX = startCoords.x + lx * Math.cos(angle) - ly * Math.sin(angle);
+                            team.currentY = startCoords.y + lx * Math.sin(angle) + ly * Math.cos(angle);
+                        }
+                        updatePiecesDisplay();
+                        if (progress < 1) { requestAnimationFrame(curveStep); } 
+                        else { team.position = link.end; team.currentX = endCoords.x; team.currentY = endCoords.y; updatePiecesDisplay(); checkWinState(team); }
+                    }
+                    requestAnimationFrame(curveStep);
+                }, 350);
+            } else {
+                checkWinState(team);
+            }
+        }
+
+        function checkWinState(team) {
+            if(team.position === 100) alert(`🏆 EXPEDITION MASTER: ${team.name} won!`);
+        }
+
+        function triggerQuizPopupModal(team, tileNum) {
+            const quiz = quizDatabase[tileNum];
+            if (!quiz) return;
+            const overlay = document.getElementById('quiz-overlay');
+            document.getElementById('quiz-box-text').innerText = quiz.q;
+            const optionsBox = document.getElementById('quiz-box-options');
+            optionsBox.innerHTML = '';
+
+            let choices = [
+                { text: quiz.a, isCorrect: true }, { text: quiz.b, isCorrect: false }, { text: quiz.c, isCorrect: false }
+            ].sort(() => Math.random() - 0.5);
+
+            choices.forEach(choice => {
+                const btn = document.createElement('button'); btn.className = 'quiz-opt-btn'; btn.innerText = choice.text;
+                btn.onclick = () => {
+                    overlay.classList.remove('show');
+                    if (choice.isCorrect) {
+                        document.getElementById('status').innerText = `✨ Correct answer! ${team.name} stays on tile ${tileNum}.`;
+                        processGimmickLinks(team);
+                    } else {
+                        let penaltyTile = Math.max(1, team.position - 1);
+                        document.getElementById('status').innerText = `❌ Wrong! Penalty step backward to tile ${penaltyTile}.`;
+                        let currentCoords = getCellCenterCoordinates(penaltyTile);
+                        team.position = penaltyTile; team.currentX = currentCoords.x; team.currentY = currentCoords.y;
+                        updatePiecesDisplay();
+                    }
+                };
+                optionsBox.appendChild(btn);
+            });
+            overlay.classList.add('show');
+        }
+
+        // --- 9. Turn Management & Handlers ---
+        function skipActivePlayerTurn() {
+            if(isRolling || teams.length === 0) return;
+            const skippedTeam = teams[currentTeamIndex];
+            currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+            document.getElementById('status').innerText = `⏭️ Skipped turn for ${skippedTeam.name}.`;
+            updatePiecesDisplay();
+        }
+
+        // --- 10. 🚨 UPGRADED HIGH-INTELLIGENCE ANTI-CLUMP MAP RANDOMIZER ENGINE ---
+        function triggerMapRandomizer() {
+            const lCount = parseInt(document.getElementById('rand-ladders-count').value) || 5;
+            const sCount = parseInt(document.getElementById('rand-snakes-count').value) || 5;
+            
+            links = []; 
+            let protectedTiles = new Set(); // Multi-space clumping prevention lock mask
+
+            // Internal safety verification handler logic to secure clean grids distribution
+            function addProximityProtection(tile) {
+                // Blocks a 5-tile radius buffer around any established point (tile-2 to tile+2)
+                for (let offset = -2; offset <= 2; offset++) {
+                    let lockedIndex = tile + offset;
+                    if (lockedIndex >= 1 && lockedIndex <= 100) {
+                        protectedTiles.add(lockedIndex);
+                    }
+                }
+            }
+
+            // Build Random Short Ladders (Length max: 20, Distributed cleanly)
+            let ladderAttempts = 0;
+            for(let i = 0; i < lCount && ladderAttempts < 200; i++) {
+                ladderAttempts++;
+                let s = Math.floor(Math.random() * 78) + 2; // Upper bound capped to keep spacing clean
+                
+                if (protectedTiles.has(s) || quizDatabase[s]) { i--; continue; }
+                
+                // 🚨 FORCE MAX LENGTH OF 20 CONSTRAINT CALCULATIONS
+                let maxPossibleEnd = Math.min(100, s + 20);
+                let e = Math.floor(Math.random() * (maxPossibleEnd - (s + 2))) + (s + 2);
+                
+                if (protectedTiles.has(e) || e > 99) { i--; continue; }
+                
+                // Add structure locks to state database map arrays
+                addProximityProtection(s);
+                addProximityProtection(e);
+                links.push({ id: Date.now() + Math.random(), type: 'ladder', start: s, end: e });
+            }
+
+            // Build Random Short Snakes (Length max: 20, Distributed cleanly)
+            let snakeAttempts = 0;
+            for(let i = 0; i < sCount && snakeAttempts < 200; i++) {
+                snakeAttempts++;
+                let s = Math.floor(Math.random() * 85) + 10; 
+                
+                if (protectedTiles.has(s) || quizDatabase[s]) { i--; continue; }
+                
+                // 🚨 FORCE MAX LENGTH OF 20 CONSTRAINT CALCULATIONS
+                let minPossibleEnd = Math.max(1, s - 20);
+                let e = Math.floor(Math.random() * ((s - 2) - minPossibleEnd)) + minPossibleEnd;
+                
+                if (protectedTiles.has(e) || e < 2) { i--; continue; }
+                
+                addProximityProtection(s);
+                addProximityProtection(e);
+                links.push({ id: Date.now() + Math.random(), type: 'snake', start: s, end: e });
+            }
+
+            drawPathways();
+            alert(`Map reset! Generated ${links.filter(l=>l.type==='ladder').length} Ladders and ${links.filter(l=>l.type==='snake').length} Snakes (Max length 20, Anti-clump distribution verified).`);
+        }
+
+        // --- 11. Profile LocalStorage Engine ---
+        function saveBoardProfile() {
+            const name = document.getElementById('save-layout-name').value.trim();
+            if (!name) { alert("Input a name key."); return; }
+            const exportPayload = { links: links, quizDatabase: quizDatabase };
+            localStorage.setItem(`SL_PROFILE_${name}`, JSON.stringify(exportPayload));
+            alert(`Profile [${name}] archived successfully!`);
+        }
+
+        function loadBoardProfile() {
+            const name = document.getElementById('save-layout-name').value.trim();
+            if (!name) { alert("Input target profile key."); return; }
+            const rawPayload = localStorage.getItem(`SL_PROFILE_${name}`);
+            if (!rawPayload) { alert(`Failed profile lookup.`); return; }
+            const data = JSON.parse(rawPayload);
+            links = data.links || []; quizDatabase = data.quizDatabase || {};
+            createBoard(); alert(`Profile layout executed successfully!`);
+        }
+
+        function updateStatusText() {
+            if(teams.length === 0) { document.getElementById('status').innerText = "Awaiting nodes..."; return; }
+            const currentTeam = teams[currentTeamIndex];
+            const status = document.getElementById('status');
+            status.innerText = `${currentTeam.name}'s Shift (Tile: ${currentTeam.position})`;
+            status.style.borderLeftColor = currentTeam.color;
+        }
+
+        // --- 12. Dynamic Rescaling Auto-Pass Logic Handler ---
+        function resizeAndRedrawCanvas() {
+            const canvas = document.getElementById('pathway-canvas');
+            const board = document.getElementById('board');
+            if (!canvas || !board) return;
+
+            canvas.width = board.clientWidth;
+            canvas.height = board.clientHeight;
+            
+            drawPathways(); 
+            teams.forEach(t => {
+                let currentCoords = getCellCenterCoordinates(t.position);
+                t.currentX = currentCoords.x;
+                t.currentY = currentCoords.y;
+            });
+            updatePiecesDisplay();
+        }
+
+        // --- 13. Ivory Bone Dice Logic ---
+        document.getElementById('roll-btn').addEventListener('click', () => {
+            if (isRolling || teams.length === 0) return; isRolling = true;
+            const cube = document.getElementById('cube'); const result = Math.floor(Math.random() * 6) + 1;
+            const additionalRotX = (Math.floor(Math.random() * 3) + 4) * 360;
+            const additionalRotY = (Math.floor(Math.random() * 3) + 4) * 360;
+            let targetX = 0; let targetY = 0;
+            switch(result) {
+                case 1: targetX = 0; targetY = 0; break; case 2: targetX = 0; targetY = -90; break;
+                case 3: targetX = -90; targetY = 0; break; case 4: targetX = 90; targetY = 0; break;
+                case 5: targetX = 0; targetY = 90; break; case 6: targetX = 180; targetY = 0; break;
+            }
+            currentXRotation += additionalRotX; currentYRotation += additionalRotY;
+            cube.style.transform = `rotateX(${currentXRotation + targetX}deg) rotateY(${currentYRotation + targetY}deg)`;
+            const currentTeam = teams[currentTeamIndex];
+            
+            setTimeout(() => {
+                let nextPos = currentTeam.position + result;
+                updateTeamPosition(currentTeam.id, nextPos, true);
+                currentTeamIndex = (currentTeamIndex + 1) % teams.length; isRolling = false;
+            }, 1400); 
+        });
+
+        // --- 14. UI Synchronizer Layout Components Lists ---
+        function renderTeamsUI() {
+            const list = document.getElementById('teams-list'); list.innerHTML = '';
+            teams.forEach((team) => {
+                const row = document.createElement('div'); row.className = 'team-row';
+                row.innerHTML = `
+                    <div class="team-info"><div class="color-dot" style="color:${team.color}; background:${team.color}"></div><span>${team.name} (${team.position}/100)</span></div>
+                    <button class="danger" style="padding:4px 10px; font-size:10px;" onclick="removeTeam(${team.id})">Expel</button>
+                `;
+                list.appendChild(row);
+            });
+            if(currentTeamIndex >= teams.length) currentTeamIndex = 0;
+            updatePiecesDisplay();
+        }
+
+        window.removeTeam = function(id) { teams = teams.filter(t => t.id !== id); renderTeamsUI(); };
+
+        document.getElementById('add-team-btn').addEventListener('click', () => {
+            const nameInput = document.getElementById('new-team-name'); const colorInput = document.getElementById('new-team-color');
+            if(!nameInput.value.trim()) return;
+            let coords = getCellCenterCoordinates(1);
+            teams.push({ id: Date.now(), name: nameInput.value.trim(), color: colorInput.value, position: 1, currentX: coords.x, currentY: coords.y });
+            nameInput.value = ''; renderTeamsUI();
+        });
+
+        function renderGimmickList() {
+            const list = document.getElementById('items-list'); list.innerHTML = '';
+            links.forEach(link => {
+                const row = document.createElement('div'); row.className = 'item-row';
+                row.innerHTML = `
+                    <span style="font-weight:bold; color:${link.type==='ladder'?'#b58253':'#38b000'}">${link.type === 'ladder' ? '🪜 Ladder' : '🐍 Snake'} [${link.start} ➔ ${link.end}]</span>
+                    <button class="danger" style="padding:3px 8px; font-size:10px;" onclick="removeGimmick(${link.id})">Burn</button>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        window.removeGimmick = function(id) { links = links.filter(l => l.id !== id); drawPathways(); };
+
+        function addGimmick(type) {
+            const start = parseInt(document.getElementById('link-start').value); const end = parseInt(document.getElementById('link-end').value);
+            if (isNaN(start) || isNaN(end) || start < 1 || start > 100 || end < 1 || end > 100 || start === end) { alert("Setup Error: Boundary mismatch."); return; }
+            if (type === 'ladder' && start >= end) { alert("Ladders go up."); return; }
+            if (type === 'snake' && start <= end) { alert("Snakes fall down."); return; }
+            links.push({ id: Date.now(), type, start, end }); drawPathways();
+        }
+
+        document.getElementById('add-ladder-btn').addEventListener('click', () => addGimmick('ladder'));
+        document.getElementById('add-snake-btn').addEventListener('click', () => addGimmick('snake'));
+
+        window.addEventListener('resize', resizeAndRedrawCanvas);
+        window.addEventListener('orientationchange', () => setTimeout(resizeAndRedrawCanvas, 250));
+
+        // System Core Init Launch
+        createBoard();
+        renderTeamsUI();
+    </script>
+</body>
+</html>
