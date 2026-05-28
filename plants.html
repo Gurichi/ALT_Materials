@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Quantum Bio-Lab Ecosystem Sandbox V5 - Deep Bio-Horror</title>
+  <style>
+    body {
+      margin: 0; padding: 0; background: #000;
+      overflow: hidden; height: 100vh; user-select: none; font-family: 'Courier New', monospace;
+    }
+    canvas { display: block; width: 100vw; height: 100vh; position: absolute; top:0; left:0; z-index: 1; }
+    
+    /* Neon Bio-Hazard Movable UI Panel Dashboard Styling */
+    .draggable-panel {
+      position: absolute; top: 15px; left: 15px; background: rgba(0, 0, 0, 0.94);
+      border: 1px solid #0f0; border-radius: 6px; color: #0f0;
+      box-shadow: 0 4px 30px rgba(0,255,0,0.4); width: 365px; z-index: 100;
+    }
+    .panel-header {
+      background: #111; padding: 10px; font-weight: bold; font-size: 11px;
+      text-transform: uppercase; border-bottom: 1px solid #0f0; border-radius: 5px 5px 0 0;
+      cursor: move; display: flex; justify-content: space-between; align-items: center;
+    }
+    .minimize-btn {
+      background: none; color: #0f0; border: none; font-weight: bold;
+      font-size: 14px; cursor: pointer; padding: 0 5px;
+    }
+    .panel-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .panel-body.minimized { display: none; }
+    
+    .title-sub { font-size: 11px; font-weight: bold; text-transform: uppercase; border-bottom: 1px dashed #333; padding-bottom: 4px; margin-top: 4px; }
+    .tool-group { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+    .btn {
+      background: #000; color: #0f0; border: 1px solid #0f0; padding: 5px 8px;
+      border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px; transition: all 0.2s;
+    }
+    .btn:hover { background: #131; }
+    .btn.active { background: #0f0; color: #000; box-shadow: 0 0 10px #0f0; }
+    .upgrade-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin: 2px 0; }
+    .btn:disabled { border-color: #333; color: #333; cursor: not-allowed; background: #000; }
+    
+    .slider-container { display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-top: 4px; }
+    .slider { width: 120px; accent-color: #0f0; }
+  </style>
+</head>
+<body>
+
+<div id="labPanel" class="draggable-panel">
+  <div class="panel-header" id="panelHeader">
+    <span>☣️ ECO-QUANTUM LAB v5.0</span>
+    <button class="minimize-btn" onclick="toggleMinimize()">[_]</button>
+  </div>
+  <div class="panel-body" id="panelBody">
+    <div>
+      <div class="title-sub">Laboratory Interaction Modules</div>
+      <div style="font-size: 11px; margin: 2px 0;">Bio-Credits: <span id="creditDisplay">0</span>🗲 | Clock: <span id="timeDisplay">06:00</span></div>
+      <div class="tool-group">
+        <button id="tool-grab" class="btn active" onclick="setTool('grab')">🖐️ Grab</button>
+        <button id="tool-cut" class="btn" onclick="setTool('cut')">✂️ Cut</button>
+        <button id="tool-water" class="btn" onclick="setTool('water')">💧 Water</button>
+        <button id="tool-burn" class="btn" onclick="setTool('burn')">🔥 Burn</button>
+        <button id="tool-freeze" class="btn" onclick="setTool('freeze')">❄️ Freeze</button>
+        <button id="tool-mutate" class="btn" onclick="setTool('mutate')">🧪 AOE Mutate</button>
+        <button id="tool-seed" class="btn" onclick="setTool('seed')">🌱 Drop Seeds</button>
+        <button id="tool-bomb" class="btn" onclick="setTool('bomb')">🚀 Shock Bomb</button>
+        <button id="tool-fertilizer" class="btn" onclick="setTool('fertilizer')">💊 Fertilizer</button>
+        <button id="tool-shockwave" class="btn" onclick="setTool('shockwave')">⚡ Shockwave</button>
+        <button id="tool-purge" class="btn" onclick="setTool('purge')">🧹 Bio Purge</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="title-sub">🌤️ Macro Weather Climate Overrides</div>
+      <div class="tool-group">
+        <button id="weath-clear" class="btn active" onclick="setWeather('clear')">☀️ Clear</button>
+        <button id="weath-toxic" class="btn" onclick="setWeather('toxic')">🌧️ Toxic Rain</button>
+        <button id="weath-tornado" class="btn" onclick="setWeather('tornado')">🌪️ Tornado</button>
+      </div>
+      <div class="slider-container">
+        <span>⚠️ Severity Level (<span id="severityVal">1</span>)</span>
+        <input type="range" min="1" max="3" value="1" class="slider" id="severitySlider" oninput="updateSeverity(this.value)">
+      </div>
+    </div>
+
+    <div>
+      <div class="title-sub">🛒 Lab Upgrades Marketplace</div>
+      <div class="upgrade-row">
+        <span>💧 Sprinkler Radial Burst+</span>
+        <button class="btn" id="up-water" onclick="buyUpgrade('water', 50)">Buy (50)</button>
+      </div>
+      <div class="upgrade-row">
+        <span>🧬 Spore Outbreak Containment</span>
+        <button class="btn" id="up-alien" onclick="buyUpgrade('alien', 120)">Unlock (120)</button>
+      </div>
+      <div class="upgrade-row">
+        <span>🤖 Auto-Sanitization Drone Grid</span>
+        <button class="btn" id="up-drone" onclick="buyUpgrade('drone', 200)">Deploy (200)</button>
+      </div>
+      <div class="upgrade-row">
+        <span>🧪 Cellular Mitosis Serum</span>
+        <button class="btn" id="up-grow" onclick="buyUpgrade('grow', 80)">Inject (80)</button>
+      </div>
+      <div class="upgrade-row">
+        <span>👾 Insect Spawner Gate</span>
+        <button class="btn" id="up-bugs" onclick="buyUpgrade('bugs', 140)">Breach (140)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<canvas id="grassCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('grassCanvas');
+const ctx = canvas.getContext('2d');
+
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+const blades = [];
+const particles = [];
+const chatBubbles = [];
+const slimes = [];  // Pathogen slime vectors array (Properly instantiated)
+const bugs = [];    // Hostile insect locust array
+
+// Global Laboratory Parameter Framework
+let bioCredits = 0;
+let currentTool = 'grab';
+let currentWeather = 'clear'; 
+let weatherSeverity = 1;      
+let waterRadius = 70; 
+let alienSeedsUnlocked = false;
+let droneActive = false;
+let fastGrowthMultiplier = 1.0;
+let bugsUnlocked = false;
+
+// System Clocks & Weather Vectors
+let dayTimeClock = 360; 
+let activeTornado = null;
+const mouse = { x: 0, y: 0, isDown: false, grabbedBlade: null, grabRatio: 1.0 };
+
+function setTool(t) {
+  currentTool = t;
+  document.querySelectorAll('.panel-body .btn').forEach(b => {
+    if(b.id.startsWith('tool-')) b.classList.remove('active');
+  });
+  const btn = document.getElementById(`tool-${t}`);
+  if(btn) btn.classList.add('active');
+}
+
+function setWeather(w) {
+  currentWeather = w;
+  document.querySelectorAll('.panel-body .btn').forEach(b => {
+    if(b.id.startsWith('weath-')) b.classList.remove('active');
+  });
+  document.getElementById(`weath-${w}`).classList.add('active');
+  activeTornado = (w === 'tornado') ? { x: width / 2, vx: weatherSeverity * 1.5 } : null;
+}
+
+function updateSeverity(val) {
+  weatherSeverity = parseInt(val);
+  document.getElementById('severityVal').innerText = val;
+  if (activeTornado !== null) activeTornado.vx = (activeTornado.vx > 0 ? 1 : -1) * weatherSeverity * 1.5;
+}
+
+// Draggable Interface Mechanism
+const panel = document.getElementById('labPanel');
+const header = document.getElementById('panelHeader');
+let isDraggingPanel = false;
+let panelOffsetX = 0; let panelOffsetY = 0;
+
+header.addEventListener('mousedown', (e) => {
+  if(e.target.classList.contains('minimize-btn')) return;
+  isDraggingPanel = true;
+  panelOffsetX = e.clientX - panel.offsetLeft;
+  panelOffsetY = e.clientY - panel.offsetTop;
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (isDraggingPanel) {
+    panel.style.left = (e.clientX - panelOffsetX) + 'px';
+    panel.style.top = (e.clientY - panelOffsetY) + 'px';
+  }
+});
+window.addEventListener('mouseup', () => { isDraggingPanel = false; });
+
+function toggleMinimize() {
+  const body = document.getElementById('panelBody');
+  const mBtn = document.querySelector('.minimize-btn');
+  body.classList.toggle('minimized');
+  mBtn.innerText = body.classList.contains('minimized') ? "[+]" : "[_]";
+}
+
+function buyUpgrade(type, cost) {
+  if (bioCredits >= cost) {
+    bioCredits -= cost;
+    document.getElementById('creditDisplay').innerText = Math.floor(bioCredits);
+    if (type === 'water') { waterRadius = 160; document.getElementById('up-water').disabled = true; document.getElementById('up-water').innerText = "MAXED"; } 
+    else if (type === 'alien') { alienSeedsUnlocked = true; document.getElementById('up-alien').disabled = true; document.getElementById('up-alien').innerText = "UNLOCKED"; } 
+    else if (type === 'drone') { droneActive = true; document.getElementById('up-drone').disabled = true; document.getElementById('up-drone').innerText = "ONLINE"; } 
+    else if (type === 'grow') { fastGrowthMultiplier = 2.5; document.getElementById('up-grow').disabled = true; document.getElementById('up-grow').innerText = "INJECTED"; }
+    else if (type === 'bugs') { bugsUnlocked = true; document.getElementById('up-bugs').disabled = true; document.getElementById('up-bugs').innerText = "BREACHED"; }
+  }
+}
+
+function triggerSpeech(bladeRef, text) {
+  if (!bladeRef) return;
+  for (let i = chatBubbles.length - 1; i >= 0; i--) {
+    if (chatBubbles[i].owner === bladeRef) chatBubbles.splice(i, 1);
+  }
+  chatBubbles.push({ owner: bladeRef, x: bladeRef.tipX, y: bladeRef.tipY - 20, text: text, life: 120 });
+}
+class Particle {
+  constructor(x, y, type, extra = {}) {
+    this.x = x; this.y = y; this.type = type; // 'fire', 'water', 'plasma', 'toxicRain', 'clipping', 'fallingSeed', 'iceShard', 'spark'
+    this.alpha = 1; this.life = 1;
+    this.decay = Math.random() * 0.03 + 0.015;
+    this.vx = (Math.random() - 0.5) * 5;
+    this.vy = type === 'water' ? Math.random() * 4 + 4 : (type === 'toxicRain' ? Math.random() * 3 + 5 : -(Math.random() * 3 + 1));
+    this.size = type === 'plasma' ? Math.random() * 4 + 2 : (type === 'fallingSeed' ? 3.5 : Math.random() * 2.5 + 1);
+    this.gravity = (type === 'clipping' || type === 'fallingSeed' || type === 'iceShard') ? 0.22 : 0;
+
+    if (type === 'clipping') {
+      this.vx = (Math.random() - 0.5) * 8; this.vy = -(Math.random() * 5 + 2);
+      this.length = Math.random() * 14 + 6; this.width = extra.width || 2;
+      this.color = extra.color || '#4caf50'; this.angle = Math.random() * Math.PI * 2;
+      this.spin = (Math.random() - 0.5) * 0.2; this.decay = 0.01;
+    }
+    
+    if (type === 'fallingSeed') {
+      this.vx = (Math.random() - 0.5) * 4; this.vy = -(Math.random() * 2 + 1);
+      this.color = extra.isFlowerSeed ? `hsl(${Math.random()*360}, 90%, 60%)` : '#8c603e';
+      this.isFlowerSeed = extra.isFlowerSeed || false;
+      this.decay = 0.001; 
+    }
+
+    if (type === 'iceShard') { 
+      this.color = '#cceeff'; 
+      this.size = Math.random() * 3 + 2;
+      this.vx = (Math.random() - 0.5) * 7;
+      this.vy = -(Math.random() * 5 + 2);
+      this.decay = Math.random() * 0.02 + 0.01;
+    }
+    if (type === 'spark') { this.color = '#ffff55'; this.decay = 0.03; this.vy = (Math.random()-0.5)*6; }
+  }
+
+  update() {
+    if (this.type === 'clipping' || this.type === 'fallingSeed' || this.type === 'iceShard') {
+      this.vy += this.gravity; this.x += this.vx; this.y += this.vy;
+      
+      if (this.y > height - 6) {
+        this.y = height - 6; this.vx *= 0.5; this.vy = 0;
+        
+        if (this.type === 'fallingSeed') {
+          let b = new GrassBlade(this.x);
+          if (this.isFlowerSeed) { b.isFlower = true; b.flowerVariety = 'default'; }
+          blades.push(b);
+          this.life = 0; 
+        }
+      }
+    } else {
+      this.x += this.vx; this.y += this.vy;
+    }
+    
+    this.life -= this.decay;
+    this.alpha = Math.max(0, this.life);
+  }
+
+  draw() {
+    ctx.save(); ctx.globalAlpha = this.alpha;
+    if (this.type === 'clipping') {
+      ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+      ctx.fillStyle = this.color; ctx.fillRect(-this.width/2, 0, this.width, this.length);
+    } else if (this.type === 'fallingSeed') {
+      ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#221100'; ctx.stroke();
+    } else {
+      if (this.type === 'fire') ctx.fillStyle = Math.random() > 0.4 ? '#ff5500' : '#ffcc00';
+      else if (this.type === 'water') ctx.fillStyle = '#3af';
+      else if (this.type === 'plasma') ctx.fillStyle = '#b3f';
+      else if (this.type === 'toxicRain') ctx.fillStyle = '#7f0'; 
+      else ctx.fillStyle = this.color;
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+class PathogenSlime {
+  constructor() {
+    this.x = Math.random() * width;
+    this.y = -20; 
+    this.vx = (Math.random() - 0.5) * 3;
+    this.vy = Math.random() * 2 + 1;
+    this.radius = 12 + Math.random() * 8;
+    this.hp = 100;
+    this.state = 'falling'; 
+    this.color = '#ff0055';
+    this.targetPlant = null;
+  }
+
+  update() {
+    if (this.state === 'falling') {
+      this.y += this.vy;
+      if (this.y >= height - this.radius) {
+        this.y = height - this.radius;
+        this.state = 'crawling';
+      }
+    } else {
+      if (!this.targetPlant || blades.indexOf(this.targetPlant) === -1 || this.targetPlant.state !== 'healthy') {
+        this.targetPlant = null;
+        let minD = 9999;
+        blades.forEach(b => {
+          if (b.state === 'healthy') {
+            let d = Math.abs(b.baseX - this.x);
+            if (d < minD) { minD = d; this.targetPlant = b; }
+          }
+        });
+      }
+
+      if (this.targetPlant) {
+        let dir = this.targetPlant.baseX > this.x ? 1 : -1;
+        this.x += dir * 0.8;
+
+        if (Math.abs(this.targetPlant.baseX - this.x) < 15) {
+          this.targetPlant.currentHeight = Math.max(10, this.targetPlant.currentHeight - 0.4);
+          this.targetPlant.attackedLog('bug'); 
+          
+          if (Math.random() < 0.015) {
+            // Infection tracking converts plants to zombie profiles
+            this.targetPlant.mutate('zombie');
+          }
+          
+          if (this.targetPlant.currentHeight <= 15) {
+            this.targetPlant.state = 'decayed';
+            this.targetPlant.assignColors();
+            this.targetPlant = null;
+          }
+        }
+      } else {
+        this.x += this.vx;
+        if (this.x < 10 || this.x > width - 10) this.vx *= -1;
+      }
+    }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.fillStyle = this.color;
+    ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius + Math.sin(Date.now() * 0.01) * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#400014';
+    ctx.beginPath();
+    ctx.arc(this.x + Math.sin(Date.now()*0.005)*3, this.y - 2, this.radius * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+class HostileBug {
+  constructor() {
+    this.x = Math.random() > 0.5 ? -20 : width + 20;
+    this.y = Math.random() * (height - 150);
+    this.vx = (Math.random() * 2 + 1) * (this.x < 0 ? 1 : -1);
+    this.vy = (Math.random() - 0.5) * 2;
+    this.size = 6 + Math.random() * 4;
+    this.hp = 60;
+    this.targetPlant = null;
+    this.biteCooldown = 0;
+  }
+
+  update() {
+    if (!this.targetPlant || blades.indexOf(this.targetPlant) === -1 || this.targetPlant.state !== 'healthy') {
+      this.targetPlant = null;
+      let minD = 9999;
+      blades.forEach(b => {
+        if (b.state === 'healthy') {
+          let d = Math.sqrt((b.tipX - this.x)**2 + (b.tipY - this.y)**2);
+          if (d < minD) { minD = d; this.targetPlant = b; }
+        }
+      });
+    }
+
+    if (this.targetPlant) {
+      let dx = this.targetPlant.tipX - this.x;
+      let dy = this.targetPlant.tipY - this.y;
+      let dist = Math.sqrt(dx*dx + dy*dy);
+      
+      this.x += (dx / dist) * 1.8;
+      this.y += (dy / dist) * 1.8;
+
+      if (dist < 15 && --this.biteCooldown <= 0) {
+        this.biteCooldown = 30; 
+        this.targetPlant.currentHeight = Math.max(15, this.targetPlant.currentHeight - 5);
+        this.targetPlant.attackedLog('bug'); 
+        
+        if (this.targetPlant.isAlive && Math.random() < 0.25) {
+          triggerSpeech(this.targetPlant, "Get away from me, pest! Stop biting!");
+        }
+        if (this.targetPlant.currentHeight <= 20) {
+          this.targetPlant.state = 'decayed';
+          this.targetPlant.assignColors();
+        }
+      }
+    } else {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x < -40 || this.x > width + 40) this.vx *= -1;
+    }
+  }
+
+  draw() {
+    ctx.save(); ctx.fillStyle = '#3a5f25';
+    let wingOsc = Math.sin(Date.now() * 0.1) * this.size;
+    ctx.beginPath();
+    ctx.ellipse(this.x, this.y, this.size, this.size*0.5, Math.atan2(this.vy, this.vx), 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(200, 240, 255, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(this.x, this.y - 4, this.size*0.4, Math.abs(wingOsc), Math.PI/4, 0, Math.PI*2);
+    ctx.fill(); ctx.restore();
+  }
+}
+class GrassBlade {
+  constructor(explicitX) {
+    this.baseX = explicitX !== undefined ? explicitX : Math.random() * width;
+    this.init();
+  }
+
+  init() {
+    this.baseY = height + 10;
+    this.maxHeight = Math.random() * 110 + 80;
+    this.currentHeight = Math.random() * 30 + 30;
+    this.growthRate = (Math.random() * 0.10 + 0.05) * fastGrowthMultiplier;
+    this.baseWidth = Math.random() * 4 + 3;
+    
+    this.tipX = this.baseX; this.tipY = this.baseY - this.currentHeight;
+    this.vx = 0; this.vy = 0;
+    
+    this.windOffset = Math.random() * Math.PI * 2;
+    this.individualSwaySpeed = 0.001 + Math.random() * 0.0015;
+    this.individualSwayAmount = 0.05 + Math.random() * 0.12;
+    this.depth = Math.random();
+    this.state = 'healthy'; 
+    
+    // Adaptive Memory Retentive Matrix
+    this.adaptationLog = { cut: 0, burn: 0, bug: 0 };
+    this.resistance = { cut: 1.0, burn: 1.0 }; 
+    
+    this.mutationType = 'none'; // 'none', 'metal', 'superLarge', 'fat', 'monster', 'fire', 'ice', 'lightning', 'earth', 'acid', 'solar', 'zombie'
+    this.mutationCount = 0; // Hard ceiling limit at 3
+    this.isAlive = false;       
+    this.canWalk = false;
+    this.walkDirection = Math.random() > 0.5 ? 1 : -1;
+    this.overwatered = false;
+    this.procreationTimer = 1000 + Math.random() * 1000;
+    
+    this.isFlower = Math.random() < 0.20; 
+    this.flowerVariety = 'default'; 
+    this.flowerColor = `hsl(${Math.random() * 360}, 100%, 65%)`;
+    this.flowerPetalRadius = Math.random() * 5 + 6;
+
+    this.sporeTimer = 800 + Math.random() * 500; 
+    this.speechTimer = Math.random() * 150 + 50;
+
+    this.assignColors();
+  }
+
+  attackedLog(type) {
+    if (this.adaptationLog[type] !== undefined) {
+      this.adaptationLog[type]++;
+      if (this.adaptationLog[type] > 4) {
+        if (type === 'cut') this.resistance.cut = Math.max(0.15, this.resistance.cut - 0.2);
+        if (type === 'burn') this.resistance.burn = Math.max(0.15, this.resistance.burn - 0.2);
+        if (this.isAlive && Math.random() < 0.2) triggerSpeech(this, "My cells are hardening against this damage!");
+        this.adaptationLog[type] = 0;
+      }
+    }
+  }
+
+  assignColors() {
+    if (this.state === 'burnt') { this.colorStart = '#111'; this.colorEnd = '#333'; return; }
+    if (this.state === 'decayed') { this.colorStart = '#2b2311'; this.colorEnd = '#4d3d18'; return; } 
+    if (this.overwatered && this.mutationType === 'none') { this.colorStart = '#4a5317'; this.colorEnd = '#d1d638'; return; }
+    
+    switch(this.mutationType) {
+      case 'metal': this.colorStart = '#333'; this.colorEnd = '#ccc'; break;
+      case 'monster': this.colorStart = '#1a0000'; this.colorEnd = '#ff0033'; break;
+      case 'fire': this.colorStart = '#661100'; this.colorEnd = '#ff3300'; break;
+      case 'ice': this.colorStart = '#114466'; this.colorEnd = '#00ccff'; break;
+      case 'lightning': this.colorStart = '#555500'; this.colorEnd = '#ffff33'; break;
+      case 'earth': this.colorStart = '#2a1a0a'; this.colorEnd = '#8b5a2b'; break;
+      case 'acid': this.colorStart = '#003311'; this.colorEnd = '#33ff33'; break;
+      case 'solar': this.colorStart = '#552200'; this.colorEnd = '#ffcc00'; break;
+      case 'zombie': this.colorStart = '#152418'; this.colorEnd = '#611c82'; break;
+      default:
+        if (this.isAlive) { this.colorStart = '#20003b'; this.colorEnd = '#d400ff'; }
+        else {
+          let v = this.depth * 80;
+          this.colorStart = `rgb(15, ${35 + v*0.3}, 10)`;
+          this.colorEnd = `rgb(30, ${110 + v}, 20)`;
+        }
+    }
+  }
+
+  mutate(type) {
+    if (this.state !== 'healthy') return;
+    if (this.mutationCount >= 3) {
+      if (this.isAlive) triggerSpeech(this, "Stop! My cellular bounds cannot withstand more genetic rewrites!");
+      return;
+    }
+    this.mutationCount++;
+
+    if (type === 'alive') {
+      this.isAlive = true; this.canWalk = true;
+      triggerSpeech(this, "I... think? I feel the spark of consciousness!");
+    } else {
+      this.mutationType = type;
+      if (this.isAlive) {
+        const shapeShifts = ["My cellular matrix is shifting!", "Reallocating genetic strands!", "Warping... structural evolution completed!"];
+        triggerSpeech(this, shapeShifts[Math.floor(Math.random() * shapeShifts.length)]);
+      }
+    }
+    
+    if (this.isFlower) {
+      const varieties = ['rose', 'lily', 'poppy', 'fern'];
+      this.flowerVariety = varieties[Math.floor(Math.random() * varieties.length)];
+      if (this.flowerVariety === 'rose') this.flowerColor = '#ff0044';
+      else if (this.flowerVariety === 'lily') this.flowerColor = '#ffffff';
+      else if (this.flowerVariety === 'poppy') this.flowerColor = '#ff5500';
+      else if (this.flowerVariety === 'fern') this.flowerColor = '#11aa44';
+    }
+
+    this.assignColors();
+
+    if (type === 'metal') { this.baseWidth += 3; this.growthRate *= 0.3; }
+    else if (type === 'superLarge') { this.maxHeight *= 1.4; } 
+    else if (type === 'fat') { this.baseWidth *= 1.8; }        
+    else if (type === 'monster') { this.canWalk = true; this.maxHeight += 40; this.baseWidth += 1; }
+  }
+
+  getPointOnCurve(tRatio) {
+    let cpX = (this.baseX + this.tipX) / 2;
+    let cpY = (this.baseY + this.tipY) / 2;
+    let x = (1 - tRatio) * (1 - tRatio) * this.baseX + 2 * (1 - tRatio) * tRatio * cpX + tRatio * tRatio * this.tipX;
+    let y = (1 - tRatio) * (1 - tRatio) * this.baseY + 2 * (1 - tRatio) * tRatio * cpY + tRatio * tRatio * this.tipY;
+    return { x, y };
+  }
+  update(t) {
+    // 1. Sentient Autonomous Procreation
+    if (this.isAlive && this.state === 'healthy' && this.mutationType !== 'zombie' && --this.procreationTimer <= 0) {
+      this.procreationTimer = 1500 + Math.random() * 1500;
+      triggerSpeech(this, "Dropping my seeds to expand our forest...");
+      let spawnCount = Math.floor(Math.random() * 2) + 2; 
+      for (let k = 0; k < spawnCount; k++) {
+        particles.push(new Particle(this.tipX, this.tipY - 10, 'fallingSeed', { isFlowerSeed: Math.random() < 0.25 }));
+      }
+    }
+
+    // 2. Realistic Dialogue Subtitles Engine (Context Aware)
+    if (this.isAlive && this.state === 'healthy' && --this.speechTimer <= 0) {
+      this.speechTimer = Math.random() * 300 + 400;
+      if (this.mutationType === 'zombie') {
+        const zombieGroans = ["*Groan*... Brains...", "Must... contaminate...", "Unnnf... cold...", "*Clicking jaw sounds*"];
+        triggerSpeech(this, zombieGroans[Math.floor(Math.random() * zombieGroans.length)]);
+      } else if (currentWeather === 'toxic') {
+        const toxicQuotes = ["EEGGHH!!! THE ACID IS MELTING MY FLESH!!! HELP!!!", "This chemical rain is burning through my cuticles!", "My cells are liquefying! Ahhh!"];
+        triggerSpeech(this, toxicQuotes[Math.floor(Math.random() * toxicQuotes.length)]);
+      } else {
+        const ambientQuotes = ["Swaying silently under the laboratory light.", "I can sense my roots breathing in the soil.", "The atmosphere feels dense today."];
+        triggerSpeech(this, ambientQuotes[Math.floor(Math.random() * ambientQuotes.length)]);
+      }
+    }
+
+    // 3. Spore Outbreak Containment logic
+    if (this.mutationType === 'monster' && this.state === 'healthy' && --this.sporeTimer <= 0) {
+      this.sporeTimer = 1400 + Math.random() * 600; 
+      particles.push(new Particle(this.tipX, this.tipY, 'plasma'));
+      blades.forEach(other => {
+        if (other !== this && other.mutationType !== 'monster' && other.state === 'healthy') {
+          if (Math.abs(other.baseX - this.baseX) < 80 && Math.random() > 0.65) other.mutate('monster');
+        }
+      });
+    }
+
+    if (this.canWalk && this.state === 'healthy' && mouse.grabbedBlade !== this && activeTornado === null) {
+      this.baseX += this.walkDirection * 0.3;
+      if (this.baseX < 30 || this.baseX > width - 30) this.walkDirection *= -1;
+    }
+
+    if (this.state === 'burnt' || this.state === 'decayed') {
+      if (this.currentHeight > 6) {
+        this.currentHeight -= 0.8;
+        if (this.state === 'burnt' && Math.random() > 0.7) particles.push(new Particle(this.tipX, this.tipY, 'fire'));
+      }
+      this.maxHeight = Math.max(6, this.maxHeight - 0.8);
+    } else if (this.currentHeight < this.maxHeight) {
+      this.currentHeight += this.growthRate * fastGrowthMultiplier;
+    }
+
+    // 4. ADVANCED TENTACLE / OCTOPUS PHYSICS ENGINE
+    if (mouse.grabbedBlade === this) {
+      // FREEZE COLD INTERACTION: If frozen, grabbing immediately shatters the stem into crystal particles!
+      if (this.mutationType === 'ice') {
+        for(let f=0; f<15; f++) particles.push(new Particle(this.tipX, this.tipY, 'iceShard'));
+        this.currentHeight = 0; this.state = 'burnt';
+        mouse.grabbedBlade = null; mouse.isDown = false; return;
+      }
+
+      let targetTipX = this.baseX + (mouse.x - this.baseX) / mouse.grabRatio;
+      let targetTipY = this.baseY - (this.baseY - mouse.y) / mouse.grabRatio;
+
+      let snapX = Math.abs(targetTipX - this.tipX); let snapY = Math.abs(targetTipY - this.tipY);
+      if (snapX > 140 || snapY > 140 || this.currentHeight > 450) {
+        if (this.isAlive && this.state === 'healthy') triggerSpeech(this, "GAAAAHHH!!! MY STEM STRANDS SNAPPED!");
+        particles.push(new Particle(mouse.x, mouse.y, 'clipping', { color: this.colorEnd, width: this.baseWidth }));
+        let brokenH = this.baseY - mouse.y; this.currentHeight = Math.max(20, brokenH); this.maxHeight = this.currentHeight;
+        mouse.grabbedBlade = null; mouse.isDown = false;
+      } else {
+        this.vx = (targetTipX - this.tipX) * 0.25; this.vy = (targetTipY - this.tipY) * 0.25;
+        this.tipX += this.vx; this.tipY += this.vy;
+        if (this.maxHeight < 450 && this.state === 'healthy') { this.maxHeight += 1.2; this.currentHeight += 1.2; }
+      }
+    } else if (activeTornado !== null) {
+      let tornadoDx = activeTornado.x - this.baseX; let distToFunnel = Math.abs(tornadoDx);
+      if (distToFunnel < 190) {
+        // FREEZE COLD INTERACTION: Cyclone shatters ice plants
+        if (this.mutationType === 'ice') {
+          for(let f=0; f<10; f++) particles.push(new Particle(this.tipX, this.tipY, 'iceShard'));
+          this.currentHeight = 0; this.state = 'burnt'; return;
+        }
+
+        let liftFactor = (190 - distToFunnel) / 190;
+        let pullForceX = (tornadoDx * 0.45) * liftFactor;
+        let liftForceY = -(this.currentHeight * 0.6) * liftFactor;
+        this.vx = (this.vx + (this.baseX + pullForceX - this.tipX) * 0.1) * 0.82;
+        this.vy = (this.vy + (this.baseY + liftForceY - this.tipY) * 0.1) * 0.82;
+        this.tipX += this.vx; this.tipY += this.vy;
+
+        if (this.isAlive && this.state === 'healthy' && Math.random() < 0.015) {
+          triggerSpeech(this, "THE VORTEX IS RIPPING ME OUT OF THE SOIL! AAHH!");
+        }
+        if (distToFunnel < 45 && Math.random() < 0.008 * weatherSeverity && this.currentHeight > 25) {
+          particles.push(new Particle(this.tipX, this.tipY, 'clipping', { color: this.colorEnd, width: this.baseWidth }));
+          this.currentHeight = 25; this.maxHeight = 25; this.tipY = this.baseY - 25;
+        }
+      } else { this.applyBiomorphicSway(t); }
+    } else {
+      this.applyBiomorphicSway(t);
+    }
+    this.controlX = (this.baseX + this.tipX) / 2; this.controlY = (this.baseY + this.tipY) / 2;
+  }
+
+  applyBiomorphicSway(t) {
+    let windTime = t * 0.0006;
+    let personalSwayTime = t * this.individualSwaySpeed + this.windOffset;
+    let baseWave = Math.sin(windTime + (this.baseX * 0.0018)) * 0.20;
+    
+    // --- OCTOPUS TENTACLE TWIRL AND EXTENSION MATRIX ---
+    let octoTwirl = 0;
+    if (this.isAlive && this.state === 'healthy') {
+      octoTwirl = Math.sin(t * 0.003 + this.windOffset) * 0.35;
+      this.currentHeight = this.maxHeight + Math.sin(t * 0.002 + this.windOffset) * 12;
+    }
+
+    let finalAngle = (baseWave + Math.sin(personalSwayTime) * this.individualSwayAmount + octoTwirl) * (this.state !== 'healthy' ? 0.04 : 1.0);
+    let targetTipX = this.baseX + (Math.sin(finalAngle) * this.currentHeight);
+    let targetTipY = this.baseY - (Math.cos(finalAngle) * this.currentHeight);
+
+    this.vx = (this.vx + (targetTipX - this.tipX) * 0.04) * 0.86;
+    this.vy = (this.vy + (targetTipY - this.tipY) * 0.04) * 0.86;
+    this.tipX += this.vx; this.tipY += this.vy;
+  }
+  draw() {
+    let sw = this.baseWidth * (0.5 + this.depth * 0.5);
+    ctx.save();
+    let grad = ctx.createLinearGradient(this.baseX, this.baseY, this.tipX, this.tipY);
+    grad.addColorStop(0, this.colorStart); grad.addColorStop(1, this.colorEnd);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.moveTo(this.baseX - sw/2, this.baseY);
+    ctx.quadraticCurveTo(this.controlX - sw/4, this.controlY, this.tipX, this.tipY);
+    ctx.quadraticCurveTo(this.controlX + sw/4, this.controlY, this.baseX + sw/2, this.baseY);
+    ctx.closePath(); ctx.fill();
+
+    // Specific flower overrides
+    if (this.isFlower && this.state === 'healthy' && this.currentHeight > 35) {
+      ctx.translate(this.tipX, this.tipY);
+      let r = this.flowerPetalRadius;
+
+      if (this.flowerVariety === 'rose') {
+        ctx.fillStyle = this.flowerColor;
+        for (let i = 0; i < 6; i++) {
+          ctx.rotate(Math.PI / 3); ctx.beginPath(); ctx.arc(r * 0.6, 0, r * 0.7, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = '#990022'; ctx.beginPath(); ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2); ctx.fill();
+      } 
+      else if (this.flowerVariety === 'lily') {
+        ctx.fillStyle = this.flowerColor;
+        for (let i = 0; i < 4; i++) {
+          ctx.rotate(Math.PI / 2); ctx.beginPath(); ctx.ellipse(r, 0, r, r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2); ctx.fill();
+      } 
+      else if (this.flowerVariety === 'poppy') {
+        ctx.fillStyle = this.flowerColor;
+        ctx.beginPath(); ctx.arc(-r * 0.4, -r * 0.4, r * 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(r * 0.4, -r * 0.4, r * 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-r * 0.4, r * 0.4, r * 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(r * 0.4, r * 0.4, r * 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#111111'; ctx.beginPath(); ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2); ctx.fill();
+      } 
+      else if (this.flowerVariety === 'fern') {
+        ctx.fillStyle = this.flowerColor;
+        for (let i = 0; i < 5; i++) { ctx.rotate(Math.PI / 2.5); ctx.fillRect(0, -2, r * 1.8, 4); }
+      } 
+      else {
+        ctx.fillStyle = this.flowerColor;
+        for (let i = 0; i < 5; i++) {
+          ctx.rotate((Math.PI * 2) / 5); ctx.beginPath(); ctx.arc(r, 0, r * 0.6, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(0, 0, r * 0.5, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+}
+function checkAdvancedSelection(mx, my) {
+  let chosen = null, minD = 40, chosenRatio = 1.0;
+  for (let i = blades.length - 1; i >= 0; i--) {
+    let b = blades[i];
+    for (let j = 1; j <= 10; j++) {
+      let ratio = j / 10; let pt = b.getPointOnCurve(ratio);
+      let d = Math.sqrt((mx - pt.x)**2 + (my - pt.y)**2);
+      if (d < minD) { minD = d; chosen = b; chosenRatio = ratio; }
+    }
+  }
+  return { blade: chosen, ratio: chosenRatio };
+}
+
+function applyContinuousToolAction() {
+  let isWater = (currentTool === 'water'); let radius = isWater ? waterRadius : 50;
+  if (isWater) particles.push(new Particle(mouse.x + (Math.random() - 0.5) * radius, mouse.y, 'water'));
+
+  blades.forEach(b => {
+    for (let i = 1; i <= 10; i++) {
+      let ratio = i / 10; let pt = b.getPointOnCurve(ratio);
+      let hDist = Math.abs(mouse.x - pt.x);
+      let hit = isWater ? (mouse.y <= b.baseY && hDist < radius) : (Math.sqrt((mouse.x - pt.x)**2 + (mouse.y - pt.y)**2) < radius);
+
+      if (hit) {
+        // ✂️ DYNAMIC SLICE: Slices at the exact contact height with real-time screaming
+        if (currentTool === 'cut') {
+          b.attackedLog('cut');
+          
+          if (b.mutationType === 'lightning' && b.state === 'healthy') {
+            b.currentHeight = 0; b.state = 'decayed';
+            blades.forEach(other => {
+              if (other !== b && Math.abs(other.baseX - b.baseX) < 130 && other.state === 'healthy') {
+                other.currentHeight = Math.max(10, other.currentHeight * 0.3);
+                for(let s=0; s<4; s++) particles.push(new Particle(other.tipX, other.tipY, 'spark'));
+              }
+            });
+            return;
+          }
+          
+          let cutH = (b.baseY - mouse.y) * b.resistance.cut; 
+          if (cutH > 20 && cutH < b.currentHeight - 5) {
+            if (b.state === 'healthy' && b.isAlive) {
+              triggerSpeech(b, "FUCK!!! SPLIT IN HALF!!! MY ARMS ARE GONE!!!");
+            }
+            particles.push(new Particle(pt.x, pt.y, 'clipping', { color: b.colorEnd, width: b.baseWidth }));
+            b.currentHeight = cutH; b.maxHeight = cutH; b.tipY = mouse.y;
+          }
+        } 
+        // 🔥 INCINERATOR LAYER
+        else if (currentTool === 'burn') {
+          if (b.mutationType === 'metal') return;
+          b.attackedLog('burn'); 
+
+          if (b.mutationType === 'ice' && b.state === 'healthy') {
+            b.currentHeight = 0; b.state = 'burnt';
+            blades.forEach(other => {
+              if (other !== b && Math.abs(other.baseX - b.baseX) < 140) {
+                other.vx = 0; other.vy = 0; 
+                for(let f=0; f<3; f++) particles.push(new Particle(other.tipX, other.tipY, 'iceShard'));
+              }
+            });
+            return;
+          }
+          
+          if (b.state === 'healthy' && b.isAlive) {
+            triggerSpeech(b, "GAAAAHHH!!! THE INFERNO IS CONSUMING MY CELLS!!!");
+          }
+          b.state = 'burnt';
+        } 
+        // 💧 HYDRATION WATER MODULE
+        else if (currentTool === 'water') {
+          if (b.mutationType === 'fire' && b.state === 'healthy') {
+            b.currentHeight = 0; b.state = 'decayed';
+            for(let s=0; s<25; s++) particles.push(new Particle(b.tipX+(Math.random()-0.5)*100, b.tipY+(Math.random()-0.5)*100, 'plasma'));
+            return;
+          }
+          
+          if (b.state === 'healthy') {
+            b.maxHeight = Math.min(450, b.maxHeight + 1.2); b.baseWidth += 0.03;
+            if (b.baseWidth > 11) { b.overwatered = true; b.assignColors(); }
+          }
+        } 
+        // ❄️ DEEP FREEZE MODULE (Turns plant into an ice structure)
+        else if (currentTool === 'freeze' && b.state === 'healthy') {
+          if (b.mutationType !== 'ice') {
+            b.mutate('ice');
+            if (b.isAlive) triggerSpeech(b, "C-COLD... MY FLUIDS ARE CRYSTALLIZING...");
+          }
+        }
+        // 💊 BIOLOGICAL FERTILIZER AGENT
+        else if (currentTool === 'fertilizer' && b.state === 'healthy') {
+          b.maxHeight = Math.min(500, b.maxHeight + 35);
+          b.growthRate += 0.15;
+          for(let p=0; p<2; p++) particles.push(new Particle(b.tipX, b.tipY, 'plasma'));
+        }
+        // ⚡ ELECTRICAL SHOCKWAVE TRIGGER
+        else if (currentTool === 'shockwave' && b.state === 'healthy') {
+          b.vx += (Math.random()-0.5)*35;
+          if(Math.random() < 0.20) b.mutate('lightning');
+        }
+        // 🧹 MOLECULAR BIO PURGE WIPE
+        else if (currentTool === 'purge') {
+          if (b.mutationType === 'monster' || b.mutationType === 'zombie') { 
+            b.state = 'burnt'; b.mutationType = 'none'; b.isAlive = false; b.init(); 
+          }
+        }
+        break; 
+      }
+    }
+  });
+}
+function triggerTacticalBomb() {
+  let blastRadius = 220;
+  for(let i=0; i<30; i++) particles.push(new Particle(mouse.x + (Math.random()-0.5)*80, mouse.y + (Math.random()-0.5)*80, 'fire'));
+
+  for (let i = blades.length - 1; i >= 0; i--) {
+    let b = blades[i]; let dx = b.baseX - mouse.x; let dy = (b.baseY - b.currentHeight/2) - mouse.y;
+    if (Math.sqrt(dx*dx + dy*dy) < blastRadius) {
+      // ❄️ ICE INTERACTION: Shocks shatter ice structures completely into flying particles
+      if (b.mutationType === 'ice') {
+        for(let f=0; f<15; f++) particles.push(new Particle(b.tipX, b.tipY, 'iceShard'));
+        blades.splice(i, 1); continue;
+      }
+      // 🪨 EARTH INTERACTION: Shocks break rocky bones instantly
+      if (b.mutationType === 'earth') { blades.splice(i, 1); continue; }
+      
+      if (b.isAlive && b.state === 'healthy') triggerSpeech(b, "NOOO!!! THE SHOCKWAVE IS VAPORIZING ME!!!");
+      particles.push(new Particle(b.tipX, b.tipY, 'clipping', { color: b.colorEnd, width: b.baseWidth }));
+      blades.splice(i, 1);
+    }
+  }
+}
+
+function animate(t) {
+  // Day & Night Simulation Clock Calculations
+  dayTimeClock = (dayTimeClock + 0.5) % 1440;
+  let hrs = Math.floor(dayTimeClock / 60); let mins = Math.floor(dayTimeClock % 60);
+  document.getElementById('timeDisplay').innerText = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}`;
+  
+  let skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+  if (hrs >= 6 && hrs < 18) { skyGrad.addColorStop(0, '#051126'); skyGrad.addColorStop(1, '#1b1226'); } 
+  else { skyGrad.addColorStop(0, '#010307'); skyGrad.addColorStop(1, '#080512'); }
+  ctx.fillStyle = skyGrad; ctx.fillRect(0,0,width,height);
+
+  let creditGain = 0.03;
+  blades.forEach(b => { if(b.mutationType === 'solar' && b.state === 'healthy') creditGain += 0.01; });
+  bioCredits += creditGain; document.getElementById('creditDisplay').innerText = Math.floor(bioCredits);
+
+  // 🌧️ TOXIC ACID RAIN MELTDOWN CONTROLLER
+  if (currentWeather === 'toxic') {
+    for(let w=0; w < weatherSeverity * 2; w++) particles.push(new Particle(Math.random() * width, 0, 'toxicRain'));
+    
+    // Scan backwards to safely delete melted elements from array storage
+    for (let i = blades.length - 1; i >= 0; i--) {
+      let b = blades[i];
+      if (b.state === 'healthy' && b.mutationType === 'none' && Math.random() < 0.003 * weatherSeverity) {
+        if (b.isAlive) triggerSpeech(b, "EGGHH!!! THE ACID IS MELTING MY FLESH!!! HELP!!!");
+        b.state = 'decayed';
+        b.assignColors();
+      }
+      // If fully corroded by acid, slowly shrink down and disappear completely
+      if (b.state === 'decayed') {
+        b.currentHeight -= 0.3;
+        if (b.currentHeight <= 5) blades.splice(i, 1);
+      }
+    }
+  }
+
+  // Pathogen slime vectors updates (Correctly locked to PathogenSlime class definition)
+  if (alienSeedsUnlocked && Math.random() > 0.99) slimes.push(new PathogenSlime());
+  slimes.forEach((enemy, index) => {
+    enemy.update(); enemy.draw();
+    if (droneActive && Math.random() > 0.985) slimes.splice(index, 1); 
+  });
+
+  // Hostile locust bugs tracker engine
+  if (bugsUnlocked && Math.random() > 0.985 && bugs.length < 8) bugs.push(new HostileBug());
+  bugs.forEach((bug, index) => {
+    bug.update(); bug.draw();
+    if (droneActive && Math.random() > 0.98) { bugs.splice(index, 1); return; }
+    
+    blades.forEach(b => {
+      if (b.state === 'healthy' && (b.isAlive || b.mutationType !== 'none')) {
+        let d = Math.sqrt((b.tipX - bug.x)**2 + (b.tipY - bug.y)**2);
+        if (d < 35) {
+          bug.hp -= b.mutationType === 'acid' ? 4 : 1.5; 
+          if (b.mutationType === 'fire') particles.push(new Particle(bug.x, bug.y, 'fire'));
+          if (bug.hp <= 0) { bugs.splice(index, 1); bioCredits += 5; } 
+        }
+      }
+    });
+  });
+  if (activeTornado !== null) {
+    activeTornado.x += activeTornado.vx;
+    for(let m=0; m<3; m++) particles.push(new Particle(activeTornado.x + (Math.random()-0.5)*40, height - Math.random()*250, 'plasma'));
+    if (activeTornado.x < 50 || activeTornado.x > width - 50) activeTornado.vx *= -1;
+  }
+
+  blades.sort((a,b) => a.depth - b.depth);
+  blades.forEach(b => { if (b && typeof b.update === 'function') { b.update(t); b.draw(); } });
+
+  if (activeTornado !== null) {
+    ctx.save(); ctx.fillStyle = 'rgba(230, 230, 230, 0.08)'; ctx.beginPath();
+    ctx.moveTo(activeTornado.x - 15, height); ctx.lineTo(activeTornado.x - 70, 0);
+    ctx.lineTo(activeTornado.x + 70, 0); ctx.lineTo(activeTornado.x + 15, height);
+    ctx.closePath(); ctx.fill(); ctx.restore();
+  }
+
+  // Bypass continuous click trackers for single-tap elements
+  if (mouse.isDown && currentTool !== 'bomb' && currentTool !== 'tornado' && currentTool !== 'mutate' && currentTool !== 'freeze') {
+    applyContinuousToolAction();
+  }
+
+  // LONG-CLICK HOLD GENERATOR: Feeds cascades of seeds or rapid chaotic mutations per frame
+  if (mouse.isDown) {
+    if (currentTool === 'seed') {
+      particles.push(new Particle(mouse.x + (Math.random()-0.5)*30, mouse.y, 'fallingSeed', { isFlowerSeed: Math.random() < 0.25 }));
+    }
+    else if (currentTool === 'mutate' && Math.random() > 0.7) {
+      let aoeRadius = 95;
+      blades.forEach(b => {
+        let d = Math.sqrt((mouse.x - b.tipX)**2 + (mouse.y - b.tipY)**2);
+        if (d < aoeRadius && b.state === 'healthy') {
+          const genes = ['metal', 'superLarge', 'fat', 'alive', 'monster', 'fire', 'ice', 'lightning', 'earth', 'acid', 'solar', 'zombie'];
+          let rolled = genes[Math.floor(Math.random() * genes.length)];
+          if (rolled === 'monster' && !alienSeedsUnlocked) rolled = 'superLarge';
+          b.mutate(rolled);
+        }
+      });
+      particles.push(new Particle(mouse.x+(Math.random()-0.5)*20, mouse.y+(Math.random()-0.5)*20, 'plasma'));
+    }
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    if (particles[i].life <= 0 || particles[i].y < -40 || particles[i].x < -40 || particles[i].x > width + 40) particles.splice(i, 1);
+    else particles[i].draw();
+  }
+
+  for (let i = chatBubbles.length - 1; i >= 0; i--) {
+    let cb = chatBubbles[i]; cb.life--;
+    if (cb.life <= 0 || !blades.includes(cb.owner)) { chatBubbles.splice(i, 1); } 
+    else {
+      cb.x = cb.owner.tipX; cb.y = cb.owner.tipY - 20;
+      ctx.save(); ctx.font = 'bold 11px monospace';
+      let tw = ctx.measureText(cb.text).width;
+      ctx.fillStyle = 'rgba(0,0,0,0.88)'; 
+      ctx.strokeStyle = (hrs < 6 || hrs >= 18) ? '#0f0' : '#444'; // Bioluminescent night neon border stroke
+      ctx.fillRect(cb.x - tw/2 - 6, cb.y - 12, tw + 12, 18);
+      ctx.strokeRect(cb.x - tw/2 - 6, cb.y - 12, tw + 12, 18);
+      ctx.fillStyle = '#0f0'; ctx.fillText(cb.text, cb.x - tw/2, cb.y + 1); ctx.restore();
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener('mousedown', e => {
+  if (e.target.closest('.draggable-panel')) return;
+  mouse.isDown = true; mouse.x = e.clientX; mouse.y = e.clientY;
+
+  if (currentTool === 'seed') {
+    let initialDrop = Math.floor(Math.random() * 12) + 5; 
+    for(let i=0; i<initialDrop; i++) {
+      particles.push(new Particle(mouse.x, mouse.y, 'fallingSeed', { isFlowerSeed: Math.random() < 0.25 }));
+    }
+  } 
+  else if (currentTool === 'bomb') triggerTacticalBomb();
+  else if (currentTool === 'shockwave') {
+    blades.forEach(b => {
+      b.vx += (Math.random()-0.5)*30;
+      if (Math.random() < 0.15 && b.state === 'healthy') b.mutate('lightning');
+    });
+    for(let k=0; k<40; k++) particles.push(new Particle(Math.random()*width, Math.random()*height, 'spark'));
+  }
+  else if (currentTool === 'purge') {
+    let purgeRadius = 150;
+    for (let i = slimes.length - 1; i >= 0; i--) {
+      if (Math.sqrt((slimes[i].x - mouse.x)**2 + (slimes[i].y - mouse.y)**2) < purgeRadius) slimes.splice(i, 1);
+    }
+    for (let i = bugs.length - 1; i >= 0; i--) {
+      if (Math.sqrt((bugs[i].x - mouse.x)**2 + (bugs[i].y - mouse.y)**2) < purgeRadius) bugs.splice(i, 1);
+    }
+    for(let p=0; p<15; p++) particles.push(new Particle(mouse.x+(Math.random()-0.5)*60, mouse.y+(Math.random()-0.5)*60, 'plasma'));
+  }
+  else if (currentTool === 'grab') {
+    let res = checkAdvancedSelection(mouse.x, mouse.y);
+    if (res.blade && res.blade.state === 'healthy') {
+      // ICE FREEZE BREAK CHANNEL: Pulling/Grabbing a completely frozen element shatters its crystalline core instantly
+      if (res.blade.mutationType === 'ice') {
+        for(let f=0; f<15; f++) particles.push(new Particle(res.blade.tipX, res.blade.tipY, 'iceShard'));
+        blades.splice(blades.indexOf(res.blade), 1);
+        mouse.grabbedBlade = null; mouse.isDown = false; return;
+      }
+      mouse.grabbedBlade = res.blade; mouse.grabRatio = res.ratio;
+      if (res.blade.isAlive) triggerSpeech(res.blade, "STOP WEARING OUT MY FIBERS!! UNHAND ME!");
+    }
+  }
+});
+
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('mouseup', () => { mouse.isDown = false; mouse.grabbedBlade = null; });
+window.addEventListener('resize', () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; blades.forEach(b => b.baseY = height+10); });
+
+for (let i = 0; i < 55; i++) blades.push(new GrassBlade());
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
