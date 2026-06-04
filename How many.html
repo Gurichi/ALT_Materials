@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Counting Game</title>
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --accent: #ff6b6b;
+            --success: #1dd1a1;
+            --neutral: #718096;
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --panel-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #game-container {
+            width: 90vw;
+            max-width: 1000px;
+            height: 70vh;
+            max-height: 600px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            border: 8px solid #fff;
+        }
+
+        #control-panel {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: var(--panel-bg);
+            padding: 16px 28px;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .speed-control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #edf2f7;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        .speed-control-group input[type="range"] {
+            cursor: pointer;
+            accent-color: var(--primary);
+            width: 100px;
+        }
+
+        button, select {
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        select {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-neutral { background: var(--neutral); color: white; }
+        .btn-accent { background: var(--accent); color: white; }
+
+        button:hover, select:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: translateY(0); }
+        .stage { width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+        .stage.active { opacity: 1; pointer-events: auto; }
+
+        .answer-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 5; }
+        .answer-overlay.show { opacity: 1; pointer-events: auto; }
+        .answer-card { background: white; padding: 30px 60px; border-radius: 20px; text-align: center; transform: scale(0.7); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 30px rgba(0,0,0,0.2); }
+        .answer-overlay.show .answer-card { transform: scale(1); }
+        .answer-title { font-size: 20px; color: #718096; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .answer-number { font-size: 80px; font-weight: 800; color: var(--success); line-height: 1; }
+
+        /* --- SCENE 1: DOGS --- */
+        #stage-dogs { background: linear-gradient(#b3e5fc, #e1f5fe); }
+        .dog-ground { position: absolute; bottom: 0; width: 100%; height: 25%; background: #81c784; }
+        .handmade-dog { position: absolute; width: 75px; height: 45px; left: -100px; animation: run linear forwards; }
+        .dog-body { position: absolute; width: 50px; height: 30px; background: #d7ccc8; border-radius: 6px; top: 10px; left: 10px;}
+        .dog-head { position: absolute; width: 22px; height: 22px; background: #d7ccc8; border-radius: 4px; top: -5px; right: -5px; }
+        .dog-ear { position: absolute; width: 6px; height: 14px; background: #8d6e63; border-radius: 3px; top: -3px; left: 4px; }
+        .dog-tail { position: absolute; width: 14px; height: 6px; background: #8d6e63; border-radius: 3px; top: 14px; left: -10px; transform: rotate(20deg); animation: wag 0.15s infinite alternate; transform-origin: right;}
+        .dog-leg { position: absolute; width: 6px; height: 15px; background: #8d6e63; bottom: -12px; border-radius: 3px; }
+        .dog-leg.f1 { left: 8px; animation: leg-swing 0.2s infinite alternate; }
+        .dog-leg.f2 { left: 36px; animation: leg-swing 0.2s infinite alternate-reverse; }
+        @keyframes run { 0% { left: -100px; } 100% { left: 110%; } }
+        @keyframes wag { 0% { transform: rotate(15deg); } 100% { transform: rotate(45deg); } }
+        @keyframes leg-swing { 0% { transform: rotate(-25deg); } 100% { transform: rotate(25deg); } }
+
+        /* --- SCENE 2: APPLES --- */
+        #stage-apples { background: linear-gradient(#ffe0b2, #fff3e0); }
+        .tree-trunk { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 60px; height: 200px; background: #8d6e63; border-radius: 10px 10px 0 0; }
+        .tree-leaves { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); width: 450px; height: 350px; background: #4caf50; border-radius: 50%; box-shadow: inset -20px -20px 0 rgba(0,0,0,0.08); }
+        .handmade-apple { position: absolute; width: 30px; height: 30px; background: #e53935; border-radius: 50%; box-shadow: inset -3px -3px 0 rgba(0,0,0,0.1); animation: fall cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards; }
+        .handmade-apple::before { content: ''; position: absolute; width: 4px; height: 8px; background: #5d4037; top: -6px; left: 13px; border-radius: 2px; }
+        .handmade-apple::after { content: ''; position: absolute; width: 8px; height: 5px; background: #81c784; top: -6px; left: 16px; border-radius: 0 50% 50% 50%; }
+        @keyframes fall { 0% { transform: translateY(0); } 100% { transform: translateY(380px); } }
+
+        /* --- SCENE 3: FISH --- */
+        #stage-fish { background: linear-gradient(#e0f7fa, #b2ebf2); }
+        .water { position: absolute; bottom: 0; width: 100%; height: 35%; background: rgba(3, 169, 244, 0.8); backdrop-filter: blur(2px); z-index: 3; }
+        .water-back { position: absolute; bottom: 0; width: 100%; height: 40%; background: #0288d1; z-index: 1; }
+        .handmade-fish { position: absolute; width: 50px; height: 26px; z-index: 2; animation: jump cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .fish-body { width: 100%; height: 100%; background: #ffb74d; border-radius: 50% 50%; position: absolute; }
+        .fish-tail { position: absolute; left: -12px; top: 3px; width: 0; height: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-right: 18px solid #ffa726; }
+        .fish-eye { position: absolute; right: 10px; top: 6px; width: 5px; height: 5px; background: #333; border-radius: 50%; }
+        @keyframes jump { 0% { transform: translateY(150px) rotate(-40deg); } 50% { transform: translateY(-100px) rotate(0deg); } 100% { transform: translateY(150px) rotate(40deg); } }
+
+        /* --- SCENE 4: VENDING MACHINE --- */
+        #stage-vending { background: #34495e; }
+        .vending-machine { position: absolute; top: 5%; left: 50%; transform: translateX(-50%); width: 320px; height: 90%; background: #e74c3c; border-radius: 12px; border: 6px solid #c0392b; box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+        .vending-glass { position: absolute; top: 8%; left: 8%; width: 84%; height: 50%; background: #a5d6a7; border-radius: 6px; border: 4px solid #2e7d32; overflow: hidden; opacity: 0.85; }
+        .vending-flap { position: absolute; bottom: 8%; left: 25%; width: 50%; height: 15%; background: #2c3e50; border-radius: 6px; border: 4px solid #1a252f; }
+        .handmade-bottle { position: absolute; width: 24px; height: 55px; background: #29b6f6; border-radius: 4px 4px 6px 6px; top: 15%; z-index: 2; box-shadow: 0 4px 6px rgba(0,0,0,0.15); animation: vending-drop cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards; }
+        .bottle-cap { position: absolute; top: -6px; left: 6px; width: 12px; height: 6px; background: #e53935; border-radius: 2px 2px 0 0; }
+        .bottle-label { position: absolute; top: 20px; left: 0; width: 100%; height: 16px; background: #ffffff; }
+        @keyframes vending-drop { 0% { transform: translateY(0) scaleY(1); } 85% { transform: translateY(330px) scaleY(1); } 90% { transform: translateY(342px) scaleY(0.85); } 95% { transform: translateY(335px) scaleY(1.05); } 100% { transform: translateY(338px) scaleY(1); } }
+        /* --- SCENE 5: FLOWERS SPROUTING --- */
+        #stage-flowers { background: linear-gradient(#e0f2f1, #b2dfdb); }
+        .flower-dirt { position: absolute; bottom: 0; width: 100%; height: 15%; background: #5d4037; }
+        .handmade-flower { position: absolute; width: 40px; height: 80px; transform-origin: bottom center; animation: sprout cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .flower-stem { position: absolute; bottom: 0; left: 18px; width: 4px; height: 50px; background: #4caf50; }
+        .flower-head { position: absolute; top: 6px; left: 0; width: 40px; height: 40px; }
+        .flower-center { position: absolute; top: 12px; left: 12px; width: 16px; height: 16px; background: #ffeb3b; border-radius: 50%; z-index: 2; }
+        .flower-petal { position: absolute; width: 14px; height: 14px; background: #e91e63; border-radius: 50%; }
+        .flower-petal.p1 { top: 0; left: 13px; }
+        .flower-petal.p2 { top: 13px; left: 26px; }
+        .flower-petal.p3 { top: 26px; left: 13px; }
+        .flower-petal.p4 { top: 13px; left: 0; }
+        @keyframes sprout { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        /* --- SCENE 6: CATS ON FENCE --- */
+        #stage-cats { background: linear-gradient(#f3e5f5, #e1bee7); }
+        .wooden-fence { position: absolute; bottom: 0; width: 100%; height: 35%; display: flex; justify-content: space-around; align-items: flex-end; padding: 0 20px; z-index: 1; }
+        .fence-post { width: 45px; height: 100%; background: #d7ccc8; border: 3px solid #bcaaa4; border-radius: 4px 4px 0 0; position: relative; }
+        .fence-post::before { content: ''; position: absolute; top: -15px; left: -3px; width: 0; height: 0; border-left: 22.5px solid transparent; border-right: 22.5px solid transparent; border-bottom: 15px solid #d7ccc8; }
+        .handmade-cat { position: absolute; width: 44px; height: 44px; animation: fence-jump ease-in forwards; }
+        .cat-body { position: absolute; width: 34px; height: 26px; background: #424242; border-radius: 12px; bottom: 0; left: 5px; }
+        .cat-head { position: absolute; width: 22px; height: 22px; background: #424242; border-radius: 50%; top: 4px; right: 2px; }
+        .cat-ear { position: absolute; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid #424242; top: -5px; }
+        .cat-ear.l { left: 2px; transform: rotate(-15deg); }
+        .cat-ear.r { right: 2px; transform: rotate(15deg); }
+        .cat-tail { position: absolute; width: 6px; height: 20px; background: #212121; border-radius: 3px; bottom: 12px; left: 0; transform-origin: bottom center; transform: rotate(-30deg); }
+        @keyframes fence-jump { 0% { transform: translateY(150px) scale(0.8); opacity: 0; } 15% { opacity: 1; } 45% { transform: translateY(-55px) scale(1); } 100% { transform: translateY(-55px) scale(1); opacity: 1; } }
+
+        /* --- SCENE 7: CARS PASSING --- */
+        #stage-cars { background: linear-gradient(#fffde7, #fff9c4); }
+        .road-surface { position: absolute; bottom: 0; width: 100%; height: 35%; background: #455a64; display: flex; align-items: center; }
+        .road-line { width: 100%; height: 6px; border-top: 6px dashed #ffeb3b; opacity: 0.7; }
+        .handmade-car { position: absolute; width: 130px; height: 55px; left: -150px; animation: car-drive linear forwards; }
+        .car-body { position: absolute; bottom: 12px; width: 130px; height: 26px; background: #ab47bc; border-radius: 6px; }
+        .car-top { position: absolute; top: 4px; left: 25px; width: 75px; height: 22px; background: #ab47bc; border-radius: 12px 12px 0 0; }
+        .car-top::before { content: ''; position: absolute; top: 4px; left: 8px; width: 25px; height: 14px; background: #b3e5fc; border-radius: 6px 0 0 0; }
+        .car-top::after { content: ''; position: absolute; top: 4px; right: 8px; width: 20px; height: 14px; background: #b3e5fc; border-radius: 0 4px 0 0; }
+        .car-wheel { position: absolute; bottom: 2px; width: 24px; height: 24px; background: #263238; border: 4px solid #cfd8dc; border-radius: 50%; z-index: 2; }
+        .car-wheel.w1 { left: 20px; }
+        .car-wheel.w2 { right: 20px; }
+        @keyframes car-drive { 0% { left: -150px; } 100% { left: 110%; } }
+
+        /* --- SCENE 8: BIRDS ON WIRE --- */
+        #stage-birds { background: linear-gradient(#e3f2fd, #bbdefb); }
+        .telephone-pole { position: absolute; left: 5%; top: 0; width: 20px; height: 100%; background: #795548; }
+        .power-wire { position: absolute; top: 30%; left: 0; width: 100%; height: 4px; background: #37474f; }
+        .handmade-bird { position: absolute; width: 34px; height: 24px; transform-origin: center; animation: bird-fly-in cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+        .bird-body { position: absolute; width: 34px; height: 22px; background: #26a69a; border-radius: 12px 16px 8px 8px; }
+        .bird-wing { position: absolute; top: 4px; left: 8px; width: 14px; height: 10px; background: #00897b; border-radius: 6px 6px 0 10px; }
+        .bird-beak { position: absolute; top: 6px; right: -6px; width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 7px solid #ffb300; }
+        @keyframes bird-fly-in { 0% { transform: translateY(-150px) translateX(-60px) scale(0.5); opacity: 0; } 35% { transform: translateY(0) translateX(0) scale(1); opacity: 1; } 100% { transform: translateY(0) translateX(0) scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="stage-dogs" class="stage active"><div class="dog-ground"></div></div>
+        <div id="stage-apples" class="stage"><div class="tree-trunk"></div><div class="tree-leaves"></div></div>
+        <div id="stage-fish" class="stage"><div class="water-back"></div><div class="water"></div></div>
+        <div id="stage-vending" class="stage"><div class="vending-machine"><div class="vending-glass"></div><div class="vending-flap"></div></div></div>
+        <div id="stage-flowers" class="stage"><div class="flower-dirt"></div></div>
+        <div id="stage-cats" class="stage"><div class="wooden-fence"><div class="fence-post"></div><div class="fence-post"></div><div class="fence-post"></div><div class="fence-post"></div><div class="fence-post"></div></div></div>
+        <div id="stage-cars" class="stage"><div class="road-surface"><div class="road-line"></div></div></div>
+        <div id="stage-birds" class="stage"><div class="telephone-pole"></div><div class="power-wire"></div></div>
+
+        <div id="answer-overlay" class="answer-overlay">
+            <div class="answer-card">
+                <div class="answer-title">Total Count</div>
+                <div id="answer-number" class="answer-number">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interface Control Dashboard -->
+    <div id="control-panel">
+        <select id="scene-selector">
+            <option value="dogs">Running Dogs</option>
+            <option value="apples">Falling Apples</option>
+            <option value="fish">Jumping Fish</option>
+            <option value="vending">Vending Drinks</option>
+            <option value="flowers">Sprouting Flowers</option>
+            <option value="cats">Fence Jumping Cats</option>
+            <option value="cars">Passing Cars</option>
+            <option value="birds">Birds on a Wire</option>
+        </select>
+        
+        <!-- 追加：スピード調整用のスライダーコントロール -->
+        <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #4a5568;">
+            <label for="speed-control">Speed:</label>
+            <input type="range" id="speed-control" min="0.4" max="2.0" step="0.1" value="1.0" style="cursor: pointer; accent-color: var(--primary);">
+        </div>
+
+        <button class="btn-primary" id="btn-start">Spawn Objects</button>
+        <button class="btn-primary" id="btn-replay" style="background: #a4b0be;">Replay Scene</button>
+        <button class="btn-accent" id="btn-reveal">Reveal Answer</button>
+    </div>
+    <script>
+        // --- 1. Core Engine Configurations ---
+        const config = {
+            dogs: { min: 1, max: 20 },
+            apples: { min: 1, max: 20 },
+            fish: { min: 1, max: 20 },
+            vending: { min: 1, max: 20 },
+            flowers: { min: 1, max: 20 },
+            cats: { min: 1, max: 20 },
+            cars: { min: 1, max: 20 },
+            birds: { min: 1, max: 20 }
+        };
+
+        let currentScene = 'dogs';
+        let currentTargetCount = 0;
+        let activeTimers = [];
+        let occupiedTracks = []; 
+
+        // Gets the id from the html section
+        const sceneSelector = document.getElementById('scene-selector');
+        const btnStart = document.getElementById('btn-start');
+        const btnReveal = document.getElementById('btn-reveal');
+        const btnReplay = document.getElementById('btn-replay');
+        const speedControl = document.getElementById('speed-control');
+        const answerOverlay = document.getElementById('answer-overlay');
+        const answerNumber = document.getElementById('answer-number');
+
+        function createHandmadeDog() {
+            const container = document.createElement('div'); container.className = 'handmade-dog';
+            const body = document.createElement('div'); body.className = 'dog-body';
+            const head = document.createElement('div'); head.className = 'dog-head';
+            const ear = document.createElement('div'); ear.className = 'dog-ear';
+            const tail = document.createElement('div'); tail.className = 'dog-tail';
+            const leg1 = document.createElement('div'); leg1.className = 'dog-leg f1';
+            const leg2 = document.createElement('div'); leg2.className = 'dog-leg f2';
+            head.appendChild(ear); body.appendChild(head); body.appendChild(tail); body.appendChild(leg1); body.appendChild(leg2); container.appendChild(body);
+            return container;
+        }
+
+        function createHandmadeApple() {
+            const apple = document.createElement('div'); apple.className = 'handmade-apple'; return apple;
+        }
+
+        function createHandmadeFish() {
+            const container = document.createElement('div'); container.className = 'handmade-fish';
+            const body = document.createElement('div'); body.className = 'fish-body';
+            const tail = document.createElement('div'); tail.className = 'fish-tail';
+            const eye = document.createElement('div'); eye.className = 'fish-eye';
+            container.appendChild(body); container.appendChild(tail); container.appendChild(eye);
+            return container;
+        }
+
+        function createHandmadeBottle() {
+            const container = document.createElement('div'); container.className = 'handmade-bottle';
+            const cap = document.createElement('div'); cap.className = 'bottle-cap';
+            const label = document.createElement('div'); label.className = 'bottle-label';
+            container.appendChild(cap); container.appendChild(label);
+            return container;
+        }
+
+        function createHandmadeFlower() {
+            const container = document.createElement('div'); container.className = 'handmade-flower';
+            const stem = document.createElement('div'); stem.className = 'flower-stem';
+            const head = document.createElement('div'); head.className = 'flower-head';
+            const center = document.createElement('div'); center.className = 'flower-center';
+            for (let i = 0; i < 4; i++) {
+                const petal = document.createElement('div'); petal.className = `flower-petal p${i+1}`; head.appendChild(petal);
+            }
+            head.appendChild(center); container.appendChild(stem); container.appendChild(head);
+            return container;
+        }
+
+        function createHandmadeCat() {
+            const container = document.createElement('div'); container.className = 'handmade-cat';
+            const body = document.createElement('div'); body.className = 'cat-body';
+            const head = document.createElement('div'); head.className = 'cat-head';
+            const tail = document.createElement('div'); tail.className = 'cat-tail';
+            const earL = document.createElement('div'); earL.className = 'cat-ear l';
+            const earR = document.createElement('div'); earR.className = 'cat-ear r';
+            head.appendChild(earL); head.appendChild(earR); container.appendChild(body); container.appendChild(head); container.appendChild(tail);
+            return container;
+        }
+
+        function createHandmadeCar() {
+            const container = document.createElement('div'); container.className = 'handmade-car';
+            const body = document.createElement('div'); body.className = 'car-body';
+            const top = document.createElement('div'); top.className = 'car-top';
+            const wheel1 = document.createElement('div'); wheel1.className = 'car-wheel w1';
+            const wheel2 = document.createElement('div'); wheel2.className = 'car-wheel w2';
+            container.appendChild(top); container.appendChild(body); container.appendChild(wheel1); container.appendChild(wheel2);
+            return container;
+        }
+
+        function createHandmadeBird() {
+            const container = document.createElement('div'); container.className = 'handmade-bird';
+            const body = document.createElement('div'); body.className = 'bird-body';
+            const wing = document.createElement('div'); wing.className = 'bird-wing';
+            const beak = document.createElement('div'); beak.className = 'bird-beak';
+            container.appendChild(body); container.appendChild(wing); container.appendChild(beak);
+            return container;
+        }
+        // --- 3. Anti-Overlap Alignment Logic ---
+        function getNonOverlappingCoordinate(min, max, separationDistance) {
+            let safetyAttempts = 0;
+            let chosenPoint;
+            let isOverlapping;
+
+            do {
+                chosenPoint = Math.floor(Math.random() * (max - min + 1)) + min;
+                isOverlapping = occupiedTracks.some(track => Math.abs(track - chosenPoint) < separationDistance);
+                safetyAttempts++;
+            } while (isOverlapping && safetyAttempts < 150);
+
+            occupiedTracks.push(chosenPoint);
+            return chosenPoint;
+        }
+
+        // --- 4. Canvas Cleaning Systems ---
+        function clearActiveSceneElements() {
+            activeTimers.forEach(clearTimeout);
+            activeTimers = [];
+            occupiedTracks = [];
+            document.querySelectorAll(
+                '.handmade-dog, .handmade-apple, .handmade-fish, .handmade-bottle, ' +
+                '.handmade-flower, .handmade-cat, .handmade-car, .handmade-bird'
+            ).forEach(el => el.remove());
+            answerOverlay.classList.remove('show');
+        }
+
+        // --- 5. Main Animation Loop Engine ---
+        function startSimulation(isReplay = false) {
+            clearActiveSceneElements();
+            
+            const bounds = config[currentScene];
+            
+            // Replay mode locks the existing number; Start mode rolls a fresh target value
+            if (!isReplay) {
+                currentTargetCount = Math.floor(Math.random() * (bounds.max - bounds.min + 1)) + bounds.min;
+            }
+            
+            const activeStage = document.getElementById(`stage-${currentScene}`);
+            const baseSpeedModifier = parseFloat(speedControl.value);
+
+            // Stagger items across a wide timing window to limit clusters
+            for (let i = 0; i < currentTargetCount; i++) {
+                const staggerDelay = Math.random() * 5000 * baseSpeedModifier; 
+                
+                const timer = setTimeout(() => {
+                    let element;
+                    
+                    if (currentScene === 'dogs') {
+                        element = createHandmadeDog();
+                        const lane = getNonOverlappingCoordinate(5, 20, 4); // Enforces custom track bounds
+                        element.style.bottom = `${lane}%`; 
+                        element.style.animationDuration = `${1.6 * baseSpeedModifier}s`; 
+                    } 
+                    else if (currentScene === 'apples') {
+                        element = createHandmadeApple();
+                        const horizontalPosition = getNonOverlappingCoordinate(32, 68, 4);
+                        element.style.left = `${horizontalPosition}%`;
+                        element.style.top = `${110 + (Math.random() * 90)}px`;
+                        element.style.animationDuration = `${0.8 * baseSpeedModifier}s`;
+                    } 
+                    else if (currentScene === 'fish') {
+                        element = createHandmadeFish();
+                        const horizontalPosition = getNonOverlappingCoordinate(5, 80, 5);
+                        element.style.left = `${horizontalPosition}%`;
+                        element.style.bottom = `15%`;
+                        element.style.animationDuration = `${1.0 * baseSpeedModifier}s`;
+                    }
+                    else if (currentScene === 'vending') {
+                        element = createHandmadeBottle();
+                        const slot = getNonOverlappingCoordinate(38, 62, 3.5);
+                        element.style.left = `${slot}%`;
+                        element.style.animationDuration = `${0.5 * baseSpeedModifier}s`;
+                    }
+                    else if (currentScene === 'flowers') {
+                        element = createHandmadeFlower();
+                        const structuralPlot = getNonOverlappingCoordinate(5, 92, 4.5);
+                        element.style.left = `${structuralPlot}%`;
+                        element.style.bottom = `${11 + (Math.random() * 6)}%`;
+                        element.style.animationDuration = `${1.0 * baseSpeedModifier}s`;
+                    }
+                    else if (currentScene === 'cats') {
+                        element = createHandmadeCat();
+                        const postIndex = getNonOverlappingCoordinate(10, 80, 6);
+                        element.style.left = `${postIndex}%`;
+                        element.style.bottom = `30%`;
+                        element.style.animationDuration = `${3.0 * baseSpeedModifier}s`;
+                    }
+                    else if (currentScene === 'cars') {
+                        element = createHandmadeCar();
+                        const roadLane = getNonOverlappingCoordinate(4, 20, 5);
+                        element.style.bottom = `${roadLane}%`;
+                        element.style.animationDuration = `${1.5 * baseSpeedModifier}s`;
+                    }
+                    else if (currentScene === 'birds') {
+                        element = createHandmadeBird();
+                        const wireSeat = getNonOverlappingCoordinate(15, 85, 4.5);
+                        element.style.left = `${wireSeat}%`;
+                        element.style.top = `23%`;
+                        element.style.animationDuration = `${3.5 * baseSpeedModifier}s`;
+                    }
+
+                    activeStage.appendChild(element);
+
+                    // Auto-cleanup dynamic runtime nodes from the DOM to avoid leak loops
+                    if (currentScene !== 'apples' && currentScene !== 'flowers' && currentScene !== 'vending') {
+                        setTimeout(() => element.remove(), 7500 * baseSpeedModifier);
+                    }
+                }, staggerDelay);
+
+                activeTimers.push(timer);
+            }
+        }
+
+        // --- 6. Interface State Handlers & Control Listeners ---
+        sceneSelector.addEventListener('change', (e) => {
+            currentScene = e.target.value;
+            document.querySelectorAll('.stage').forEach(s => s.classList.remove('active'));
+            document.getElementById(`stage-${currentScene}`).classList.add('active');
+            clearActiveSceneElements();
+            currentTargetCount = 0; // Clear target value on level change
+        });
+
+        btnStart.addEventListener('click', () => startSimulation(false));
+        
+        btnReplay.addEventListener('click', () => {
+            if (currentTargetCount > 0) {
+                startSimulation(true); // Replay current count
+            } else {
+                startSimulation(false); // Fallback if user hits replay before spawning once
+            }
+        });
+
+        btnReveal.addEventListener('click', () => {
+            answerNumber.textContent = currentTargetCount;
+            answerOverlay.classList.toggle('show');
+        });
+    </script>
+</body>
+</html>
