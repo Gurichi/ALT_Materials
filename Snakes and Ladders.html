@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snakes &amp; Ladders: Amazonian Quest Ultimate SPA</title>
+    <title>Snakes &amp; Ladders</title>
     <style>
         :root {
             --jungle-dark: #0f1f11;
@@ -32,7 +32,7 @@
             overflow: hidden; color: #f0f5f1; position: relative;
         }
 
-        /* 🚨 TITLE RELOCATED: Fixed at top-left so it never interferes with the board size */
+        /*  TITLE RELOCATED: Fixed at top-left so it never interferes with the board size */
         h1 { 
             position: fixed; top: 15px; left: 15px; 
             font-size: calc(10px + 0.6vh); font-weight: bold;
@@ -42,9 +42,9 @@
             text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7); z-index: 20; pointer-events: none;
         }
 
-        /* 🚨 TOP NAVIGATION BUTTONS */
+        /*  TOP NAVIGATION BUTTONS */
         .top-nav {
-            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 5%; left: 90%; transform: translateX(-50%);
             display: flex; gap: 10px; z-index: 100;
         }
         .nav-btn {
@@ -55,7 +55,7 @@
         }
         .nav-btn:hover { background: var(--moss-green); transform: translateY(-1px); }
 
-        /* 🚨 MAXIMUM SCREEN COVERAGE: Board now stretches strictly 100% from top to bottom */
+        /*  MAXIMUM SCREEN COVERAGE: Board now stretches strictly 100% from top to bottom */
         .game-layout { 
             position: relative; display: flex; justify-content: center; align-items: center; 
             width: 100vh; height: 100vh; max-width: 100vw; max-height: 100vh;
@@ -136,7 +136,7 @@
         }
         .close-popup-btn { background: none!important; border: none!important; color: #ff5555!important; font-size: 14px!important; cursor: pointer; }
 
-        /* --- 🚨 QUIZ GAMEPLAY MODAL OVERLAY --- */
+        /* ---  QUIZ GAMEPLAY MODAL OVERLAY --- */
         .quiz-modal {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(5, 12, 6, 0.85); z-index: 300; display: flex;
@@ -155,7 +155,7 @@
         .quiz-opt-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); padding: 12px; text-align: left; font-size: 14px; color: #fff; cursor: pointer; border-radius: 6px; }
         .quiz-opt-btn:hover { background: var(--moss-green); color: #fff; }
 
-        /* --- 🚨 SEPARATE VIEW: SEPARATED SPA QUIZ CRUD MANAGER VIEW --- */
+        /* ---  SEPARATE VIEW: SEPARATED SPA QUIZ CRUD MANAGER VIEW --- */
         .quiz-crud-view {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: var(--jungle-dark); z-index: 250; padding: 60px 20px 20px 20px;
@@ -197,7 +197,7 @@
         .team-info { display: flex; align-items: center; gap: 6px; }
         .color-dot { width: 9px; height: 9px; border-radius: 50%; }
         
-        /* 🚨 GRID LINK COORDINATES MAX HEIGHT SET TO 300PX */
+        /*  GRID LINK COORDINATES MAX HEIGHT SET TO 300PX */
         .item-list { max-height: 300px; overflow-y: auto; }
 
         .dice-area { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
@@ -221,9 +221,9 @@
 </head>
 <body>
 
-    <h1>Amazonian Quest</h1>
+    <h1>Snakes & Ladders</h1>
     
-    <!-- 🚨 NAVIGATION BAR FOR VIEW CONTROLS -->
+    <!--  NAVIGATION BAR FOR VIEW CONTROLS -->
     <div class="top-nav">
         <button class="nav-btn" onclick="openQuizView()">📝 Manage Quizzes</button>
     </div>
@@ -251,6 +251,8 @@
                 </div>
             </div>
             <button id="roll-btn" style="width:100%; padding:6px; font-size:10px; background: linear-gradient(135deg, var(--bamboo-wood), #a07640); color: #fff;">Roll Bone</button>
+	    <button id="skip-player-btn" style="width:100%; padding:6px; font-size:10px; margin-top: 4px; background: linear-gradient(135deg, #6b2121, #421313); color: #fff; border: 1px solid rgba(255,85,85,0.4);">Skip Player</button>
+
         </div>
     </div>
 
@@ -263,7 +265,7 @@
         </div>
     </div>
 
-    <!-- 🚨 SEPARATE SPA VIEW VIEWPORT FOR FULL QUIZ CRUD MANAGEMENT -->
+    <!--  SEPARATE SPA VIEW VIEWPORT FOR FULL QUIZ CRUD MANAGEMENT -->
     <div class="quiz-crud-view" id="quiz-crud-viewport">
         <div class="crud-container">
             <div class="crud-header">
@@ -360,7 +362,7 @@
         </div>
     </div>
     <script>
-        // --- 🚨 SPA VIEW CONTROLLER: SWITCH BETWEEN BOARD AND QUIZ CORE MODES ---
+        // ---  SPA VIEW CONTROLLER: SWITCH BETWEEN BOARD AND QUIZ CORE MODES ---
         function openQuizView() {
             const viewport = document.getElementById('quiz-crud-viewport');
             viewport.classList.add('show');
@@ -758,7 +760,7 @@
             overlay.classList.add('show');
         }
 
-        // --- 🚨 SPA FULL CRUD RE-LOGIC OPERATIONS (READ, ADD, UPDATE, DELETE, SHUFFLE) ---
+        // ---  SPA FULL CRUD RE-LOGIC OPERATIONS (READ, ADD, UPDATE, DELETE, SHUFFLE) ---
         function renderCrudTableSync() {
             const listContainer = document.getElementById('crud-live-nodes-list');
             listContainer.innerHTML = '';
@@ -953,9 +955,23 @@
         window.addEventListener('resize', resizeAndRedrawCanvas);
         window.addEventListener('orientationchange', () => setTimeout(resizeAndRedrawCanvas, 250));
 
-        // System Core Init Launcher
+        //  【新規追加】手動でプレイヤーをスキップするボタンのイベント処理
+        document.getElementById('skip-player-btn').addEventListener('click', () => {
+            // サイコロが回転中、またはプレイヤーがいない時は処理しない
+            if (isRolling || teams.length === 0) return; 
+
+            const currentTeam = teams[currentTeamIndex];
+
+            currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+                
+                // 左上のステータステキスト表示を次の人に更新する
+            updateStatusText();
+        });
+
+        // System Core Init Launcher (既存の最下部コード)
         createBoard();
         renderTeamsUI();
+
     </script>
 </body>
 </html>
