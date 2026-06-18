@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Circus of Value</title>
+    <title>Circus of Value</title>
+    <!-- 外部ライブラリ：紙吹雪（canvas-confetti）の読み込み -->
     <style>
         :root {
-            --bg-color: #0b0b0d;
-            --surface-color: #16161c;
+            --bg-color: #121214;
+            --surface-color: #1e1e24;
             --primary-color: #6366f1;
             --primary-hover: #4f46e5;
             --text-color: #f3f4f6;
             --text-muted: #9ca3af;
-            --border-color: #2a2a35;
+            --border-color: #374151;
             --accent-color: #10b981;
             --danger-color: #ef4444;
-            --frenzy-color: #f59e0b;
             --font-sans: 'Helvetica Neue', Arial, sans-serif;
         }
 
@@ -31,31 +31,23 @@
             font-family: var(--font-sans);
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.75rem 1.5rem;
+            padding: 1rem 2rem;
             background-color: var(--surface-color);
             border-bottom: 1px solid var(--border-color);
-            z-index: 10;
-            flex-shrink: 0;
-            height: 60px;
         }
 
         h1 {
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            text-transform: uppercase;
-            background: linear-gradient(to right, #6366f1, #a855f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.05em;
         }
 
         .header-controls {
@@ -68,9 +60,8 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
             color: var(--text-muted);
-            user-select: none;
         }
 
         button {
@@ -81,170 +72,123 @@
             border-radius: 0.375rem;
             cursor: pointer;
             font-weight: 600;
-            font-size: 0.9rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
+            transition: background-color 0.2s, transform 0.1s;
         }
 
         button:hover {
             background-color: var(--primary-hover);
-            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
         }
 
-        button:active { transform: scale(0.96); }
-        button.secondary { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-color); }
-        button.secondary:hover { background-color: rgba(255, 255, 255, 0.05); border-color: var(--text-muted); box-shadow: none; }
-        button.danger { background-color: var(--danger-color); }
-        button.danger:hover { background-color: #dc2626; box-shadow: 0 0 12px rgba(239, 68, 68, 0.4); }
-        button.frenzy { background-color: var(--frenzy-color); color: #000; }
-        button.frenzy:hover { background-color: #d97706; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
-
-        .workspace-view {
-            flex: 1;
-            position: relative;
-            width: 100vw;
-            height: calc(100vh - 60px);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            background: radial-gradient(circle at center, #111115 0%, #050507 100%);
-            overflow: hidden;
-            padding-bottom: 80px; /* ボタン用の下部余白 */
+        button:active {
+            transform: scale(0.98);
         }
 
-        .wheels-canvas-grid {
-            width: 100%;
-            height: 100%;
+        button.secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        button.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        button.danger {
+            background-color: var(--danger-color);
+        }
+
+        button.danger:hover {
+            background-color: #dc2626;
+        }
+
+        .main-container {
             display: grid;
             grid-template-columns: 1fr;
-            grid-template-rows: 1fr;
-            gap: 1.5rem;
-            box-sizing: border-box;
-            justify-items: center;
-            align-items: center;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
         }
 
-        .single-wheel-frame {
-            position: relative;
-            width: 100%;
-            height: 100%;
+        @media (min-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr 500px;
+            }
+        }
+
+        .wheel-section {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            position: relative;
         }
 
-        .wheel-wrapper {
+        .wheel-container {
             position: relative;
             width: 100%;
-            height: 90%;
-            max-width: 100%;
-            max-height: 100%;
+            max-width: 600px;
             aspect-ratio: 1 / 1;
             cursor: grab;
             user-select: none;
             touch-action: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        .wheel-wrapper:active { cursor: grabbing; }
-
-        canvas.app-render-surface {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            aspect-ratio: 1 / 1;
-            border-radius: 50%;
-            display: block;
-            box-shadow: 0 10px 30px #f3f4f6;
+        .wheel-container:active {
+            cursor: grabbing;
         }
 
-        /* 常にホイール上部に固定される矢印 */
-        .wheel-ticker-pointer {
-            position: absolute;
-            width: 0;
-            height: 100%;
-            border-left: 16px solid transparent;
-            border-right: 16px solid transparent;
-            border-top: 28px solid var(--accent-color);
-            z-index: 5;
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.6));
-        }
-
-        .action-spin-trigger-pad {
-            position: absolute;
-            bottom: 1.5rem;
-            z-index: 8;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .huge-spin-btn {
-            padding: 0.85rem 2.5rem;
-            font-size: 1.15rem;
-            font-weight: 800;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            border-radius: 2rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .overlay-modal-viewport {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 1.5rem;
-        }
-
-        .overlay-modal-viewport.active { opacity: 1; pointer-events: auto; }
-
-        .modal-card {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 2rem;
-            max-width: 550px;
+        #wheelCanvas {
             width: 100%;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            transform: scale(0.92);
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            height: 100%;
+            border-radius: 50%;
         }
 
-        .overlay-modal-viewport.active .modal-card { transform: scale(1); }
-        .editor-modal-container { max-width: 750px; }
+        .wheel-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 35px solid var(--accent-color);
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+        }
 
-        .modal-scroll-pane {
+        .editor-section {
+            background-color: var(--surface-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-height: 85vh;
             overflow-y: auto;
-            flex: 1;
-            padding-right: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
         }
 
-        .item-row-card {
+        .section-title {
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            max-height: 400px;
+            padding-right: 0.5rem;
+        }
+
+        .item-row {
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 0.5rem;
@@ -252,230 +196,330 @@
             display: flex;
             flex-direction: column;
             gap: 0.75rem;
+            position: relative;
         }
 
-        .inputs-matrix-layout {
+        .item-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-inputs-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.5rem;
         }
 
-        .span-full-width { grid-column: span 2; }
-        .flex-row-input { display: flex; gap: 0.5rem; align-items: center; }
-
-        .mode-toggles-block {
-            display: flex;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            justify-content: space-around;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .frenzy-allocation-box {
-            border: 1px dashed var(--frenzy-color);
-            padding: 0.75rem;
-            border-radius: 0.375rem;
-            background: rgba(245, 158, 11, 0.03);
+        .input-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
 
-        .winner-headline { font-size: 2rem; font-weight: 900; color: #ffffff; text-align: center; }
-        .winner-media-frame { width: 100%; max-height: 260px; object-fit: contain; border-radius: 0.5rem; background: #000; border: 1px solid var(--border-color); }
-        .winner-paragraph { color: var(--text-muted); line-height: 1.6; font-size: 1.05rem; text-align: center; }
+        .input-group.full-width {
+            grid-column: span 2;
+        }
+
+        .input-group-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input[type="text"], input[type="color"], textarea {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+
+        input[type="color"] {
+            padding: 0;
+            height: 38px;
+            width: 50px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: 2px solid var(--primary-color);
+            border-color: transparent;
+        }
+
+        .io-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+
+        .hidden-file-input {
+            display: none;
+        }
+
+        /* ポップアップ UI モーダル */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-window {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .modal-overlay.active .modal-window {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .modal-img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .modal-description {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 1rem;
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
-
     <header>
-        <h1 id="app-title">The Circus of Value</h1>
+        <h1 id="app-title">Circus of Value</h1>
         <div class="header-controls">
-            <button id="open-settings-btn" class="secondary">⚙ Options / 管理</button>
+            <div class="toggle-container">
+                <label for="sound-toggle" id="lbl-sound">Sound FX</label>
+                <input type="checkbox" id="sound-toggle" checked style="width: 18px; height: 18px; cursor: pointer;">
+            </div>
             <button id="lang-btn" class="secondary">日本語</button>
         </div>
     </header>
 
-    <div class="workspace-view">
-        <div class="wheels-canvas-grid" id="wheels-grid"></div>
-        <div class="action-spin-trigger-pad">
-            <button id="global-spin-btn" class="huge-spin-btn">Spin Wheel</button>
+    <div class="main-container">
+        <!-- 左側：ホイール描画セクション -->
+        <div class="wheel-section">
+            <div class="wheel-pointer"></div>
+            <div class="wheel-container" id="wheel-container">
+                <canvas id="wheel-canvas" width="800" height="800"></canvas>
+            </div>
         </div>
-    </div>
 
-    <!-- オプション設定モーダル -->
-    <div class="overlay-modal-viewport" id="settings-modal">
-        <div class="modal-card editor-modal-container">
-
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
-                <h2 id="settings-modal-title" style="font-size: 1.25rem; font-weight: 700;">Configuration & Contents</h2>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button id="add-item-btn" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">+ Add Item</button>
-                    <button id="close-settings-btn" class="secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Close</button>
-                </div>
+        <!-- 右側：コンテンツ編集管理セクション -->
+        <div class="editor-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                <h2 id="editor-title" style="font-size: 1.2rem;">Manage Contents</h2>
+                <button id="add-item-btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">+ Add Item</button>
+            </div>
+            
+            <div class="items-list" id="items-list">
+                <!-- JavaScriptによって動的にアイテム行が挿入されます -->
             </div>
 
-            <div class="modal-scroll-pane">
-                <!-- System Rule Modes Block -->
-                <div class="mode-toggles-block">
-                    <div class="toggle-container">
-                        <input type="checkbox" id="elimination-toggle" style="width: 16px; height: 16px; cursor: pointer;">
-                        <label for="elimination-toggle" id="lbl-elimination" style="cursor: pointer;">Elimination Mode</label>
-                    </div>
-                    <div class="toggle-container">
-                        <input type="checkbox" id="sound-toggle" checked style="width: 16px; height: 16px; cursor: pointer;">
-                        <label for="sound-toggle" id="lbl-sound" style="cursor: pointer;">Sound FX & Music</label>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <button id="reset-eliminated-btn" class="secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Reset Eliminations</button>
-                    </div>
-                </div>
-
-                <!-- Manual Frenzy Allocation Setup -->
-                <div class="frenzy-allocation-box">
-                    <label id="lbl-frenzy-title" style="color: var(--frenzy-color); font-weight: 700;">Frenzy Mode Configuration (Manual Split)</label>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <span id="lbl-split-count" style="font-size: 0.8rem; color: var(--text-muted);">Number of Wheels:</span>
-                        <input type="number" id="frenzy-wheels-input" min="1" max="4" value="1" style="width: 60px; padding: 0.25rem; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 0.25rem;">
-                        <button id="apply-frenzy-btn" class="frenzy" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">Apply Split</button>
-                    </div>
-                </div>
-
-                <!-- Dynamic Reactive Content Segment Rows -->
-                <div class="items-list" id="items-list-container"></div>
-            </div>
-
-            <!-- IO Panel -->
             <div class="io-buttons">
                 <button id="export-btn" class="secondary">Export JSON</button>
                 <button id="import-btn" class="secondary">Import JSON</button>
             </div>
-            <input type="file" id="import-file-hidden" class="hidden-file-input" accept=".json">
+            <input type="file" id="import-file" class="hidden-file-input" accept=".json">
         </div>
     </div>
 
-    <!-- WINNER NOTIFICATION POPUP MODAL -->
-    <div class="overlay-modal-viewport" id="winner-modal">
-        <div class="modal-card">
-            <h2 class="winner-headline" id="winner-title">Chosen!</h2>
-            <img class="winner-media-frame" id="winner-img" src="" alt="Winner Visualization Data">
-            <p class="winner-paragraph" id="winner-desc"></p>
-            <button id="winner-close-btn" style="padding: 0.75rem; font-size: 1rem; width: 100%;">OK</button>
+    <!-- 勝者発表用ポップアップ UI モーダル -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-window">
+            <h2 class="modal-title" id="modal-title">Winner!</h2>
+            <img class="modal-img" id="modal-img" src="" alt="Winner Visual Presentation">
+            <p class="modal-description" id="modal-description"></p>
+            <button id="modal-close">OK</button>
         </div>
     </div>
 
     <script>
-    class CircusOfValueApp {
+    class WheelApp {
         constructor() {
-            // Core Config & State
+            // 設定値と初期言語
             this.settings = {
                 language: 'en',
-                soundEnabled: true,
-                eliminationMode: false
+                soundEnabled: true
             };
 
-	const initialWheels = JSON.parse("[1, 2, 3, 4]");
-
-            // Main Active Database Structure (Fixed wheels allocation syntax)
+            // 初期収録コンテンツデータ (2個以上を維持)
             this.items = [
-                { id: 1, text: { en: "Jackpot Prize", ja: "特賞ジャックポット" }, desc: { en: "Ultimate luxury rewards await!", ja: "超豪華なスペシャル限定景品をプレゼント！" }, image: "", color: "#eab308", wheels: initialWheels, eliminated: false },
-                { id: 2, text: { en: "Mystery Box", ja: "ミステリーボックス" }, desc: { en: "A random collection of unexpected goods.", ja: "開けるまで中身が分からない、お楽しみ秘密の箱。" }, image: "", color: "#ef4444", wheels: initialWheels, eliminated: false },
-                { id: 3, text: { en: "Token Package", ja: "プレミアムコイン" }, desc: { en: "In-game currency replenishment.", ja: "価値あるゲーム内コインを大量にチャージ！" }, image: "", color: "#3b82f6", wheels: initialWheels, eliminated: false },
-                { id: 4, text: { en: "Bonus Ticket", ja: "プレミアムチケット" }, desc: { en: "Allows one extra challenge or skip.", ja: "もう一度挑戦するか、スキップを選択できる権利。" }, image: "", color: "#10b981", wheels: initialWheels, eliminated: false }
+                {
+                    id: 1,
+                    text: { en: "Sushi Pack", ja: "特上寿司セット" },
+                    desc: { en: "Traditional premium choice from Japan.", ja: "最高級の新鮮なネタを贅沢に使用した大満足セット。" },
+                    image: "",
+                    color: "#eab308"
+                },
+                {
+                    id: 2,
+                    text: { en: "Burger Meal", ja: "ダブルチーズバーガー" },
+                    desc: { en: "Classic juicy double patty American fast food.", ja: "ジューシーな肉厚パティが2枚入った定番アメリカンフード。" },
+                    image: "",
+                    color: "#ef4444"
+                },
+                {
+                    id: 3,
+                    text: { en: "Ramen Bowl", ja: "特製醤油ラーメン" },
+                    desc: { en: "Savory slow-cooked rich bone broth soup.", ja: "じっくり煮込んだ特製コク深スープと自家製チャーシュー。" },
+                    image: "",
+                    color: "#3b82f6"
+                }
             ];
 
-            // Frenzy Configuration Tracking
-            this.wheelCount = 1;
-            this.wheelsState = []; // Holds physics datasets for each instantiated split-wheel
+            // 物理シミュレーション用変数群
+            this.currentAngle = 0;
+            this.angularVelocity = 0;
+            this.isDragging = false;
+            this.isSpinning = false;
+            this.lastAngle = 0;
+            this.lastMoveTime = 0;
+            this.velocitySamples = [];
+            
+            // キャンバス中心座標キャッシュ
+            this.centerX = 400;
+            this.centerY = 400;
 
-            // Global Web Audio Synthesis Setup
+            // 物理詳細設定
+            this.config = {
+                friction: 0.984  // 自然な減速を生む摩擦係数
+            };
+
+            // オーディオコンテキスト（Web Audio APIによる波形合成）
             this.audioCtx = null;
             this.synthTimeout = null;
 
+            // DOM要素の自動バインド
             this.initDOM();
-            this.loadSystemSettings();
-            this.bindCoreEvents();
-            this.rebuildFrenzyLayout();
-            this.updateLanguageUI();
+            this.init();
         }
 
         initDOM() {
             this.els = {
                 appTitle: document.getElementById('app-title'),
-                langBtn: document.getElementById('lang-btn'),
-                openSettingsBtn: document.getElementById('open-settings-btn'),
-                closeSettingsBtn: document.getElementById('close-settings-btn'),
-                settingsModal: document.getElementById('settings-modal'),
-                settingsModalTitle: document.getElementById('settings-modal-title'),
-                addItemBtn: document.getElementById('add-item-btn'),
-                itemsListContainer: document.getElementById('items-list-container'),
-                eliminationToggle: document.getElementById('elimination-toggle'),
-                lblElimination: document.getElementById('lbl-elimination'),
-                soundToggle: document.getElementById('sound-toggle'),
+                editorTitle: document.getElementById('editor-title'),
                 lblSound: document.getElementById('lbl-sound'),
-                resetEliminatedBtn: document.getElementById('reset-eliminated-btn'),
-                frenzyWheelsInput: document.getElementById('frenzy-wheels-input'),
-                lblFrenzyTitle: document.getElementById('lbl-frenzy-title'),
-                lblSplitCount: document.getElementById('lbl-split-count'),
-                applyFrenzyBtn: document.getElementById('apply-frenzy-btn'),
+                soundToggle: document.getElementById('sound-toggle'),
+                langBtn: document.getElementById('lang-btn'),
+                canvas: document.getElementById('wheel-canvas'),
+                ctx: document.getElementById('wheel-canvas').getContext('2d'),
+                wheelContainer: document.getElementById('wheel-container'),
+                itemsList: document.getElementById('items-list'),
+                addItemBtn: document.getElementById('add-item-btn'),
                 exportBtn: document.getElementById('export-btn'),
                 importBtn: document.getElementById('import-btn'),
-                importFileHidden: document.getElementById('import-file-hidden'),
-                globalSpinBtn: document.getElementById('global-spin-btn'),
-                wheelsGrid: document.getElementById('wheels-grid'),
-                winnerModal: document.getElementById('winner-modal'),
-                winnerTitle: document.getElementById('winner-title'),
-                winnerImg: document.getElementById('winner-img'),
-                winnerDesc: document.getElementById('winner-desc'),
-                winnerCloseBtn: document.getElementById('winner-close-btn')
+                importFile: document.getElementById('import-file'),
+                modal: document.getElementById('modal-overlay'),
+                modalTitle: document.getElementById('modal-title'),
+                modalImg: document.getElementById('modal-img'),
+                modalDesc: document.getElementById('modal-description'),
+                modalClose: document.getElementById('modal-close')
             };
         }
 
-        // --- WEB AUDIO API NODE GENERATORS ---
-        initAudioContext() {
+        // --- WEB AUDIO API シンセサイザー効果音エンジン ---
+        initAudio() {
             if (this.audioCtx) return;
             this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        playTickSound() {
+        playTick() {
             if (!this.settings.soundEnabled || !this.audioCtx) return;
             try {
                 const osc = this.audioCtx.createOscillator();
                 const gain = this.audioCtx.createGain();
+                
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(650, this.audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, this.audioCtx.currentTime + 0.035);
-                gain.gain.setValueAtTime(0.12, this.audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.035);
+                osc.frequency.setValueAtTime(580, this.audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, this.audioCtx.currentTime + 0.04);
+                
+                gain.gain.setValueAtTime(0.18, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.04);
+                
                 osc.connect(gain);
                 gain.connect(this.audioCtx.destination);
                 osc.start();
-                osc.stop(this.audioCtx.currentTime + 0.035);
-            } catch (e) {}
+                osc.stop(this.audioCtx.currentTime + 0.04);
+            } catch (e) {
+                console.error("Audio error", e);
+            }
         }
 
-        playFrenzyMusic() {
+        playMusic() {
             if (!this.settings.soundEnabled || !this.audioCtx) return;
-            this.stopFrenzyMusic();
+            this.stopMusic();
 
-            const playSequence = () => {
-                let anySpinning = this.wheelsState.some(w => w.isSpinning && !w.isDragging);
-                if (!anySpinning) return;
-
+            const playNote = () => {
+                if (!this.isSpinning || this.isDragging || Math.abs(this.angularVelocity) < 0.02) return;
+                
                 try {
                     const osc = this.audioCtx.createOscillator();
                     const gain = this.audioCtx.createGain();
                     
-                    const maxV = Math.max(...this.wheelsState.map(w => Math.abs(w.angularVelocity)));
-                    const pitchFreq = 220 + Math.min(maxV * 14, 320);
-
+                    // 回転の速度に応じて音楽のピッチ（周波数）を動的に変化させる
+                    const speedMultiplier = Math.min(Math.abs(this.angularVelocity) * 12, 280);
+                    const baseFrequency = 240 + speedMultiplier;
+                    
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(pitchFreq, this.audioCtx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(pitchFreq * 1.2, this.audioCtx.currentTime + 0.09);
-                    gain.gain.setValueAtTime(0.03, this.audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(baseFrequency, this.audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(baseFrequency * 1.15, this.audioCtx.currentTime + 0.08);
+                    
+                    gain.gain.setValueAtTime(0.04, this.audioCtx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.1);
                     
                     osc.connect(gain);
@@ -484,80 +528,57 @@
                     osc.stop(this.audioCtx.currentTime + 0.1);
                 } catch (e) {}
 
-                const nextBeats = Math.max(50, Math.min(300, 180 / (Math.max(...this.wheelsState.map(w => Math.abs(w.angularVelocity))) || 1)));
-                this.synthTimeout = setTimeout(playSequence, nextBeats);
+                // 回転速度に合わせて音が鳴るテンポ（間隔）も自動同期
+                const nextTempoInterval = Math.max(60, Math.min(320, 160 / Math.abs(this.angularVelocity)));
+                this.synthTimeout = setTimeout(playNote, nextTempoInterval);
             };
-            playSequence();
+            playNote();
         }
 
-        stopFrenzyMusic() {
+        stopMusic() {
             if (this.synthTimeout) {
                 clearTimeout(this.synthTimeout);
                 this.synthTimeout = null;
             }
         }
-
+        // --- 多言語ローカライズ・切り替え制御 ---
         toggleLanguage() {
             this.settings.language = this.settings.language === 'en' ? 'ja' : 'en';
             this.updateLanguageUI();
-            this.saveSystemSettings();
+            this.saveSettings();
         }
 
         updateLanguageUI() {
             const isJa = this.settings.language === 'ja';
             this.els.langBtn.textContent = isJa ? 'English' : '日本語';
-            this.els.appTitle.textContent = isJa ? '価値のサーカス' : 'The Circus of Value';
-            this.els.openSettingsBtn.textContent = isJa ? '⚙ オプション / 管理' : '⚙ Options / 管理';
-            this.els.settingsModalTitle.textContent = isJa ? '設定 ＆ コンテンツ管理' : 'Configuration & Contents';
+            this.els.appTitle.textContent = isJa ? '価値のサーカス' : 'Circus of Value';
+            this.els.editorTitle.textContent = isJa ? 'コンテンツの管理' : 'Manage Contents';
             this.els.addItemBtn.textContent = isJa ? '+ 項目を追加' : '+ Add Item';
-            this.els.closeSettingsBtn.textContent = isJa ? '閉じる' : 'Close';
-            this.els.lblElimination.textContent = isJa ? 'イリミネーションモード（当選した項目を自動除外）' : 'Elimination Mode';
-            this.els.lblSound.textContent = isJa ? '効果音 ＆ BGM' : 'Sound FX & Music';
-            this.els.resetEliminatedBtn.textContent = isJa ? '除外状態をリセット' : 'Reset Eliminations';
-            this.els.lblFrenzyTitle.textContent = isJa ? 'フレンジーモード設定（ホイールの手動分割）' : 'Frenzy Mode Configuration (Manual Split)';
-            this.els.lblSplitCount.textContent = isJa ? 'ホイールの分割数:' : 'Number of Wheels:';
-            this.els.applyFrenzyBtn.textContent = isJa ? '分割を適用' : 'Apply Split';
-            this.els.exportBtn.textContent = isJa ? 'JSONエクスポート' : 'Export JSON';
-            this.els.importBtn.textContent = isJa ? 'JSONインポート' : 'Import JSON';
-            this.els.globalSpinBtn.textContent = isJa ? 'ホイールを回す' : 'Spin Wheel';
-            this.els.winnerCloseBtn.textContent = isJa ? '確定' : 'OK';
-
-            this.renderContentsList();
-            this.drawAllWheels();
+            this.els.exportBtn.textContent = isJa ? 'JSON出力' : 'Export JSON';
+            this.els.importBtn.textContent = isJa ? 'JSON読み込み' : 'Import JSON';
+            this.els.lblSound.textContent = isJa ? '効果音・BGM' : 'Sound FX';
+            this.els.modalClose.textContent = isJa ? '閉じる' : 'OK';
+            
+            this.renderList();
+            this.drawWheel();
         }
 
-        renderContentsList() {
-            this.els.itemsListContainer.innerHTML = '';
+        // --- コンテンツ一覧（リスト）の動的HTML構築 ＆ 同期 ---
+        renderList() {
+            this.els.itemsList.innerHTML = '';
             const isJa = this.settings.language === 'ja';
 
             this.items.forEach((item) => {
                 const row = document.createElement('div');
-                row.className = 'item-row-card';
+                row.className = 'item-row';
                 row.dataset.id = item.id;
-                if (item.eliminated) {
-                    row.style.opacity = '0.4';
-                    row.style.background = 'rgba(239, 64, 64, 0.05)';
-                }
-
-                let wheelAllocationInputs = '';
-                for (let w = 1; w <= 4; w++) {
-                    const isChecked = item.wheels.includes(w) ? 'checked' : '';
-                    wheelAllocationInputs += `
-                        <label style="display:inline-flex; align-items:center; gap:0.25rem; font-size:0.75rem;">
-                            <input type="checkbox" class="route-wheel-chk" data-index="${w}" ${isChecked}> W${w}
-                        </label>
-                    `;
-                }
 
                 row.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-weight:700; font-size:0.85rem; color:${item.color};">
-                            ID: ${item.id} ${item.eliminated ? (isJa ? ' [除外済み]' : ' [Eliminated]') : ''}
-                        </span>
-                        <button class="danger delete-btn" style="padding:0.2rem 0.5rem; font-size:0.75rem;">${isJa ? '削除' : 'Delete'}</button>
-
+                    <div class="item-row-header">
+                        <span style="font-weight: 700; font-size: 0.85rem; color: ${item.color};">■ Segment ID: ${item.id}</span>
+                        <button class="danger delete-btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">${isJa ? '削除' : 'Delete'}</button>
                     </div>
-                    <div class="inputs-matrix-layout">
+                    <div class="item-inputs-grid">
                         <div class="input-group">
                             <label>${isJa ? 'ラベル (英語)' : 'Label (EN)'}</label>
                             <input type="text" class="input-en" value="${item.text.en || ''}">
@@ -566,381 +587,326 @@
                             <label>${isJa ? 'ラベル (日本語)' : 'Label (JA)'}</label>
                             <input type="text" class="input-ja" value="${item.text.ja || ''}">
                         </div>
-                        <div class="input-group span-full-width">
+                        <div class="input-group full-width">
                             <label>${isJa ? '説明文 (英語)' : 'Description (EN)'}</label>
                             <textarea class="desc-en" rows="1">${item.desc.en || ''}</textarea>
                         </div>
-                        <div class="input-group span-full-width">
+                        <div class="input-group full-width">
                             <label>${isJa ? '説明文 (日本語)' : 'Description (JA)'}</label>
                             <textarea class="desc-ja" rows="1">${item.desc.ja || ''}</textarea>
                         </div>
-                        <div class="input-group span-full-width">
-                            <label>${isJa ? 'メディア（画像URL、またはファイル）' : 'Media Link, URL, or Image'}</label>
-                            <div class="flex-row-input">
-                                <input type="text" class="input-link" placeholder="https://..." value="${item.image.startsWith('data:') ? '[Base64 Data]' : item.image}">
-                                <button class="secondary img-upload-btn" type="button" style="white-space:nowrap; font-size:0.75rem; padding:0.5rem 0.65rem;">File</button>
-                                <input type="file" class="item-file-input" accept="image/*" style="display:none;">
+                        <div class="input-group full-width">
+                            <label>${isJa ? 'メディア（画像URL、リンク、またはファイル）' : 'Media Link, URL, or Image Data'}</label>
+                            <div class="input-group-row">
+                                <input type="text" class="input-link" placeholder="https://... or data:image/..." value="${item.image.startsWith('data:') ? '[Base64 Image Data Encoded]' : item.image}">
+                                <button class="secondary img-upload-btn" type="button" style="white-space: nowrap; font-size: 0.8rem; padding: 0.55rem 0.75rem;">File</button>
+                                <input type="file" class="item-file-input" accept="image/*" style="display: none;">
                             </div>
                         </div>
                         <div class="input-group">
                             <label>${isJa ? 'セグメントの色' : 'Color'}</label>
                             <input type="color" class="input-color" value="${item.color}">
                         </div>
-                        <div class="input-group">
-                            <label>${isJa ? '配置するホイールを選択' : 'Target Wheels'}</label>
-                            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.25rem;">
-                                ${wheelAllocationInputs}
-                            </div>
-                        </div>
                     </div>
                 `;
-                this.els.itemsListContainer.appendChild(row);
+                this.els.itemsList.appendChild(row);
             });
         }
 
-        // --- データモデル変更制御群 ---
+        // --- データ更新・削除・追加のバックエンド処理 ---
         addNewItem() {
             const hue = Math.floor(Math.random() * 360);
+            const randomColor = `hsl(${hue}, 70%, 45%)`;
             const nextId = this.items.length > 0 ? Math.max(...this.items.map(i => i.id)) + 1 : 1;
-	    const fallbackWheels = JSON.parse("[1, 2, 3, 4]");
+            
             this.items.push({
                 id: nextId,
-                text: { en: `Prize ${nextId}`, ja: `景品 ${nextId}` },
-                desc: { en: "Details description here.", ja: "ここに詳細な説明文を入力します。" },
+                text: { en: `New Prize ${nextId}`, ja: `新しい景品 ${nextId}` },
+                desc: { en: "Description goes here.", ja: "ここに詳細な説明文が入ります。" },
                 image: "",
-                color: `hsl(${hue}, 70%, 45%)`,
-                wheels: fallbackWheels,
-                eliminated: false
+                color: randomColor
             });
-            this.renderContentsList();
-            this.drawAllWheels();
+            this.renderList();
+            this.drawWheel();
         }
 
-
         removeItem(id) {
+            if (this.items.length <= 1) {
+                alert(this.settings.language === 'ja' ? 'ルーレットには最低2つの項目が必要です。' : 'The wheel requires a minimum of 1 items.');
+                return;
+            }
             this.items = this.items.filter(i => i.id !== id);
-            this.renderContentsList();
-            this.drawAllWheels();
+            this.renderList();
+            this.drawWheel();
+        }
+
+        updateItemText(id, lang, value) {
+            const item = this.items.find(i => i.id === id);
+            if (item) {
+                item.text[lang] = value;
+                this.drawWheel();
+            }
+        }
+
+        updateItemDesc(id, lang, value) {
+            const item = this.items.find(i => i.id === id);
+            if (item) item.desc[lang] = value;
         }
 
         updateItemField(id, field, value) {
             const item = this.items.find(i => i.id === id);
             if (item) {
                 item[field] = value;
-                this.drawAllWheels();
+                this.drawWheel();
             }
         }
 
-        resetEliminations() {
-            this.items.forEach(i => i.eliminated = false);
-            this.renderContentsList();
-            this.drawAllWheels();
-            this.saveSystemSettings();
+        // --- HTML5 CANVAS ルーレット描画エンジン ---
+        resizeCanvas() {
+            // 親コンテナの大きさに追従
+            const size = Math.min(this.els.wheelContainer.clientWidth, 600);
+            this.els.canvas.style.width = size + 'px';
+            this.els.canvas.style.height = size + 'px';
+            this.centerX = 400;
+            this.centerY = 400;
         }
 
-        // --- MULTI-CANVAS DYNAMIC GRID ENGINE ---
-        rebuildFrenzyLayout() {
-            this.els.wheelsGrid.innerHTML = '';
-            
-            // Layout optimization for grid items based on active wheel split numbers
-            if (this.wheelCount === 1) this.els.wheelsGrid.style.gridTemplateColumns = "1fr";
-            else if (this.wheelCount === 2) this.els.wheelsGrid.style.gridTemplateColumns = "1fr 1fr";
-            else this.els.wheelsGrid.style.gridTemplateColumns = "1fr 1fr";
+        drawWheel() {
+            const ctx = this.els.ctx;
+            const totalSegments = this.items.length;
+            if (totalSegments === 0) return;
 
-            this.wheelsState = [];
-
-            for (let i = 1; i <= this.wheelCount; i++) {
-                const frame = document.createElement('div');
-                frame.className = 'single-wheel-frame';
-                frame.innerHTML = `
-                    <div class="wheel-wrapper">
-                        <div class="wheel-ticker-pointer"></div>
-                        <canvas id="surface-canvas-${i}" class="app-render-surface" width="800" height="800"></canvas>
-                    </div>
-                `;
-                this.els.wheelsGrid.appendChild(frame);
-
-                const canvas = document.getElementById(`surface-canvas-${i}`);
-                this.wheelsState.push({
-                    index: i,
-                    canvas: canvas,
-                    ctx: canvas.getContext('2d'),
-                    currentAngle: 0,
-                    angularVelocity: 0,
-                    isDragging: false,
-                    isSpinning: false,
-                    lastAngle: 0,
-                    lastMoveTime: 0,
-                    velocitySamples: []
-                });
-            }
-            this.drawAllWheels();
-        }
-
-        drawAllWheels() {
-            this.wheelsState.forEach(w => this.drawSingleWheelInstance(w));
-        }
-
-        drawSingleWheelInstance(wState) {
-            const ctx = wState.ctx;
             ctx.clearRect(0, 0, 800, 800);
-
-            const activeSegments = this.items.filter(item => item.wheels.includes(wState.index) && !item.eliminated);
-            const total = activeSegments.length;
-
-            if (total === 0) {
-                ctx.save();
-                ctx.fillStyle = "#16161c";
-                ctx.beginPath(); ctx.arc(400, 400, 380, 0, Math.PI * 2); ctx.fill();
-                ctx.textAlign = "center"; ctx.textBaseline = "middle";
-                ctx.fillStyle = "var(--text-muted)"; ctx.font = "bold 24px sans-serif";
-                ctx.fillText(this.settings.language === 'ja' ? "選択可能な項目がありません" : "No Items Available", 400, 400);
-                ctx.restore();
-                return;
-            }
-
-            const arcSize = (Math.PI * 2) / total;
             const radius = 380;
+            const arcSize = (Math.PI * 2) / totalSegments;
 
             ctx.save();
-            ctx.translate(400, 400);
-            ctx.rotate(wState.currentAngle);
+            ctx.translate(this.centerX, this.centerY);
+            ctx.rotate(this.currentAngle);
 
-            for (let i = 0; i < total; i++) {
-                const startAngle = i * arcSize;
-                const endAngle = startAngle + arcSize;
-                const item = activeSegments[i];
+            for (let i = 0; i < totalSegments; i++) {
+                const segmentStartAngle = i * arcSize;
+                const segmentEndAngle = segmentStartAngle + arcSize;
+                const item = this.items[i];
 
+                // セグメント扇形の描画
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.arc(0, 0, radius, startAngle, endAngle);
+                ctx.arc(0, 0, radius, segmentStartAngle, segmentEndAngle);
                 ctx.closePath();
                 ctx.fillStyle = item.color;
                 ctx.fill();
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(11,11,13,0.35)";
+                ctx.strokeStyle = "rgba(18,18,20,0.35)";
                 ctx.stroke();
 
+                // テキストの配置と回転マトリクス演算
                 ctx.save();
-                ctx.rotate(startAngle + arcSize / 2);
+                ctx.rotate(segmentStartAngle + arcSize / 2);
                 ctx.textAlign = "right";
                 ctx.textBaseline = "middle";
                 ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 22px var(--font-sans)";
+                ctx.font = "bold 24px var(--font-sans)";
                 
-                const txt = this.settings.language === 'ja' ? item.text.ja : item.text.en;
-                const truncated = txt.length > 14 ? txt.substring(0, 12) + "..." : txt;
-                ctx.fillText(truncated, radius - 35, 0);
+                const currentLabel = this.settings.language === 'ja' ? item.text.ja : item.text.en;
+                const truncatedLabel = currentLabel.length > 15 ? currentLabel.substring(0, 13) + "..." : currentLabel;
+                ctx.fillText(truncatedLabel, radius - 35, 0);
                 ctx.restore();
             }
             ctx.restore();
 
-            ctx.beginPath(); ctx.arc(400, 400, 32, 0, Math.PI * 2); ctx.fillStyle = "#16161c"; ctx.fill();
-            ctx.lineWidth = 4; ctx.strokeStyle = "var(--primary-color)"; ctx.stroke();
+            // センターキャップ・装飾ピンのオーバレイ描画
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, 35, 0, Math.PI * 2);
+            ctx.fillStyle = "#1e1e24";
+            ctx.fill();
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = "#6366f1";
+            ctx.stroke();
         }
+        // --- アニメーション ＆ 物理減速シミュレーションループ ---
+        animateLoop() {
+            const loop = () => {
+                if (this.isSpinning) {
+                    // 摩擦による速度の減衰
+                    this.angularVelocity *= this.config.friction;
+                    this.currentAngle += this.angularVelocity;
 
-        // --- 物理演算 ＆ 減速シミュレーションループ ---
-        startPhysicsLoop() {
-            const step = () => {
-                this.wheelsState.forEach(w => {
-                    if (!w.isDragging && Math.abs(w.angularVelocity) > 0) {
-                        const prevAngle = w.currentAngle;
-                        w.angularVelocity *= 0.984; // 摩擦係数
-                        w.currentAngle += w.angularVelocity;
+                    // ピンを通過するクリック音（Tick音）のシミュレーション計算
+                    const segmentAngle = (Math.PI * 2) / this.items.length;
+                    const lastTickIndex = Math.floor((this.currentAngle - this.angularVelocity) / segmentAngle);
+                    const currentTickIndex = Math.floor(this.currentAngle / segmentAngle);
 
-                        const activeSegments = this.items.filter(item => item.wheels.includes(w.index) && !item.eliminated);
-                        if (activeSegments.length > 0) {
-                            const arcSize = (Math.PI * 2) / activeSegments.length;
-                            if (Math.floor(prevAngle / arcSize) !== Math.floor(w.currentAngle / arcSize)) {
-                                this.playTickSound();
-                            }
-                        }
-
-                        if (Math.abs(w.angularVelocity) < 0.001) {
-                            w.isSpinning = false;
-                            w.angularVelocity = 0;
-                            
-                            // すべてのホイールが完全に停止したかチェック
-                            const stillSpinning = this.wheelsState.some(wheel => wheel.isSpinning);
-                            if (!stillSpinning) {
-                                this.stopFrenzyMusic();
-                                this.evaluateFrenzyWinners();
-                            }
-                        }
-                        this.drawSingleWheelInstance(w);
+                    if (lastTickIndex !== currentTickIndex && Math.abs(this.angularVelocity) > 0.01) {
+                        this.playTick();
                     }
-                });
-                requestAnimationFrame(step);
+
+                    // 完全静止時の終了判定と勝者決定
+                    if (Math.abs(this.angularVelocity) < 0.001) {
+                        this.isSpinning = false;
+                        this.angularVelocity = 0;
+                        this.stopMusic();
+
+                        // 針の位置（真上＝1.5 * Math.PI）にあるセグメントを逆算
+                        const normalizedAngle = ((1.5 * Math.PI - this.currentAngle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+                        const winningIndex = Math.floor(normalizedAngle / segmentAngle) % this.items.length;
+                        
+                        this.displayWinner(this.items[winningIndex]);
+                    }
+
+                    this.drawWheel();
+                }
+                requestAnimationFrame(loop);
             };
-            requestAnimationFrame(step);
+            requestAnimationFrame(loop);
         }
 
-        // --- 手動フリック（スワイプ）の可変速ポインター処理 ---
-        findTargetWheelState(e) {
-            const canvasEl = e.target.closest('canvas');
-            if (!canvasEl) return null;
-            return this.wheelsState.find(w => w.canvas === canvasEl);
+        // --- マウス ＆ タッチスクリーン操作の慣性速度キャプチャ ---
+        handlePointerDown(e) {
+            if (this.isSpinning && Math.abs(this.angularVelocity) > 0.05) return;
+            
+            this.isDragging = true;
+            this.isSpinning = false;
+            this.stopMusic();
+            
+            const coords = this.getPointerCoords(e);
+            this.lastAngle = Math.atan2(coords.y - this.centerY, coords.x - this.centerX);
+            this.angularVelocity = 0;
+            this.velocitySamples = [];
+            this.lastMoveTime = performance.now();
+
+            if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
         }
 
-        getPointerAngle(e, wState) {
-            const rect = wState.canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            return Math.atan2(clientY - cy, clientX - cx);
-        }
-
-        pointerDown(e) {
-            this.initAudioContext();
-            const w = this.findTargetWheelState(e);
-            if (!w || (w.isSpinning && Math.abs(w.angularVelocity) > 0.05)) return;
-
-            w.isDragging = true;
-            w.isSpinning = false;
-            w.angularVelocity = 0;
-            w.velocitySamples = [];
-            w.lastAngle = this.getPointerAngle(e, w);
-            w.lastMoveTime = performance.now();
-        }
-
-        pointerMove(e) {
-            const w = this.wheelsState.find(wheel => wheel.isDragging);
-            if (!w) return;
+        handlePointerMove(e) {
+            if (!this.isDragging) return;
             if (e.cancelable) e.preventDefault();
 
-            const currentAngle = this.getPointerAngle(e, w);
+            const coords = this.getPointerCoords(e);
+            const currentAngle = Math.atan2(coords.y - this.centerY, coords.x - this.centerX);
             const now = performance.now();
-            const dt = (now - w.lastMoveTime) / 1000;
+            const dt = now - this.lastMoveTime;
 
-            let deltaAngle = currentAngle - w.lastAngle;
+            let deltaAngle = currentAngle - this.lastAngle;
+            // 境界ポイント（-PIからPI）を跨いだ場合の補正
             if (deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
             if (deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
 
-            w.currentAngle += deltaAngle;
-            w.lastAngle = currentAngle;
-            w.lastMoveTime = now;
+            this.currentAngle += deltaAngle;
+            this.lastAngle = currentAngle;
 
             if (dt > 0) {
-                const instV = deltaAngle / dt;
-                w.velocitySamples.push({ v: instV, t: now });
-                if (w.velocitySamples.length > 5) w.velocitySamples.shift();
+                const instantVelocity = deltaAngle / (dt / 1000);
+                this.velocitySamples.push({ v: instantVelocity, t: now });
+                if (this.velocitySamples.length > 5) this.velocitySamples.shift();
             }
-            this.drawSingleWheelInstance(w);
+            this.lastMoveTime = now;
+            this.drawWheel();
         }
 
-        pointerUp() {
-            const w = this.wheelsState.find(wheel => wheel.isDragging);
-            if (!w) return;
-            w.isDragging = false;
+        handlePointerUp() {
+            if (!this.isDragging) return;
+            this.isDragging = false;
 
             const now = performance.now();
-            w.velocitySamples = w.velocitySamples.filter(s => now - s.t < 100);
+            // 離す直前の操作から時間が経ちすぎている場合は慣性を無効化
+            if (now - this.lastMoveTime > 100) {
+                this.angularVelocity = 0;
+                return;
+            }
 
-            if (w.velocitySamples.length > 0) {
+            // 直近のスワイプサンプルから平均初速を計算
+            if (this.velocitySamples.length > 0) {
                 let sum = 0;
-                w.velocitySamples.forEach(s => sum += s.v);
-                w.angularVelocity = sum / w.velocitySamples.length;
+                this.velocitySamples.forEach(s => sum += s.v);
+                this.angularVelocity = sum / this.velocitySamples.length;
             }
 
-            const absV = Math.abs(w.angularVelocity);
-            if (absV > 0.2) {
-                w.isSpinning = true;
-                if (absV > 35) w.angularVelocity = Math.sign(w.angularVelocity) * 35; // 最大速度制限
-                w.angularVelocity += Math.sign(w.angularVelocity) * (Math.random() * 0.5 + 0.1); // 完全ランダム用カオス要素
-                this.playFrenzyMusic();
+            const absoluteVelocity = Math.abs(this.angularVelocity);
+            if (absoluteVelocity > 0.15) {
+                this.isSpinning = true;
+                // 最大回転速度の上限キャップ
+                if (absoluteVelocity > 30) {
+                    this.angularVelocity = Math.sign(this.angularVelocity) * 30;
+                }
+                // 【重要】完全な予測不可能性を持たせるカオス要素（追加乱数エネルギー）を付与
+                this.angularVelocity += Math.sign(this.angularVelocity) * (Math.random() * 0.5 + 0.1);
+                
+                this.playMusic();
             } else {
-                w.angularVelocity = 0;
+                this.angularVelocity = 0;
             }
         }
 
-        // --- スピンボタンによる一斉トリガー ---
-        triggerGlobalSpin() {
-            this.initAudioContext();
-            this.wheelsState.forEach(w => {
-                w.isDragging = false;
-                w.isSpinning = true;
-                // 高速または低速をシミュレートする完全ランダムな初速を各ホイールに個別に注入
-                const randomPower = (Math.random() * 18 + 12) * (Math.random() > 0.5 ? 1 : -1);
-                w.angularVelocity = randomPower;
-            });
-            this.playFrenzyMusic();
+        getPointerCoords(e) {
+            const rect = this.els.canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: ((clientX - rect.left) / rect.width) * 800,
+                y: ((clientY - rect.top) / rect.height) * 800
+            };
         }
 
-        // --- 当選者判定 ＆ イリミネーションオート処理 ---
-        evaluateFrenzyWinners() {
-            const winners = [];
-            
-            this.wheelsState.forEach(w => {
-                const activeSegments = this.items.filter(item => item.wheels.includes(w.index) && !item.eliminated);
-                if (activeSegments.length === 0) return;
+        // --- 勝者判定・ポップアップ演出 ＆ 音声読み上げ ---
+        displayWinner(item) {
+            const lang = this.settings.language;
+            const title = item.text[lang] || item.text['en'];
+            const desc = item.desc[lang] || item.desc['en'] || '';
 
-                const arcSize = (Math.PI * 2) / activeSegments.length;
-                // 針の位置：真上 (12時方向 = 3*PI/2)
-                const pointerAngle = 3 * Math.PI / 2;
-                let offset = (pointerAngle - w.currentAngle) % (Math.PI * 2);
-                if (offset < 0) offset += Math.PI * 2;
+            this.els.modalTitle.textContent = title;
+            this.els.modalDesc.textContent = desc;
 
-                const idx = Math.floor(offset / arcSize) % activeSegments.length;
-                winners.push({ item: activeSegments[idx], wheelIndex: w.index });
-            });
-
-            if (winners.length === 0) return;
-
-            // 複数ある場合は最初の当選者をベースにしつつ、全当選情報をマージして発表
-            const primary = winners[0].item;
-            const isJa = this.settings.language === 'ja';
-            
-            let combinedTitle = winners.map(w => isJa ? w.item.text.ja : w.item.text.en).join(" + ");
-            let combinedDesc = winners.map(w => `[W${w.wheelIndex}] ` + (isJa ? w.item.desc.ja : w.item.desc.en)).join("\n\n");
-
-            this.els.winnerTitle.textContent = combinedTitle;
-            this.els.winnerDesc.innerHTML = combinedDesc.replace(/\n/g, "<br>");
-
-            if (primary.image && primary.image.trim() !== "") {
-                this.els.winnerImg.src = primary.image;
-                this.els.winnerImg.style.display = "block";
-            } else {
-                this.els.winnerImg.style.display = "none";
-            }
-
-            // イリミネーションモード（自動除外）がONの場合、当選した全アイテムを除外フラグに設定
-            if (this.settings.eliminationMode) {
-                winners.forEach(w => w.item.eliminated = true);
-                this.renderContentsList();
-                this.drawAllWheels();
-                this.saveSystemSettings();
+            // メディア（画像/リンク）表示の出し分け
+            this.els.modalImg.style.display = 'none';
+            if (item.image && item.image.trim() !== "") {
+                this.els.modalImg.src = item.image;
+                this.els.modalImg.style.display = 'block';
             }
 
             this.triggerConfetti();
-            this.els.winnerModal.classList.add('active');
+            this.els.modal.classList.add('active');
             
-            // Web Speech API による当選アイテム名のリアルタイム多言語音声読み上げ
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const textToSpeak = winners.map(w => isJa ? w.item.text.ja : w.item.text.en).join(", ");
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = isJa ? 'ja-JP' : 'en-US';
-                window.speechSynthesis.speak(utterance);
-            }
+            // Web Speech API による音声読み上げ（Text-to-Speech）
+            this.speakText(title);
         }
 
-        // --- 外部通信が発生しない超高速ネイティブ紙吹雪演出 ---
+        closeModal() {
+            this.els.modal.classList.remove('active');
+        }
+
+        speakText(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = this.settings.language === 'ja' ? 'ja-JP' : 'en-US';
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- 外部ライブラリ不要の軽量・高速紙吹雪システム ---
         triggerConfetti() {
             const colors = ['#6366f1', '#10b981', '#ef4444', '#eab308', '#ec4899', '#3b82f6'];
             const particles = [];
+            
+            // ポップアップの背景に干渉しないよう、動的にキャンバスを生成
             const canvas = document.createElement('canvas');
-            Object.assign(canvas.style, {
-                position: 'fixed', top: '0', left: '0', width: '100%', height: '100%',
-                pointerEvents: 'none', zIndex: '999'
-            });
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zindex = '999';
             document.body.appendChild(canvas);
             
             const ctx = canvas.getContext('2d');
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
 
-            for (let i = 0; i < 90; i++) {
+            // パーティクルの初期化
+            for (let i = 0; i < 100; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * -canvas.height - 20,
@@ -953,63 +919,73 @@
                 });
             }
 
-            const start = Date.now();
+            const startTime = Date.now();
+            const duration = 3000; // 3秒間アニメーション
+
             const run = () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                let active = false;
+                let hasActive = false;
+
                 particles.forEach(p => {
-                    p.y += p.speedY; p.x += p.speedX; p.rotation += p.rotSpeed;
-                    if (p.y < canvas.height) active = true;
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.rotation += p.rotSpeed;
+
+                    if (p.y < canvas.height) {
+                        hasActive = true;
+                    }
 
                     ctx.save();
                     ctx.translate(p.x, p.y);
                     ctx.rotate(p.rotation * Math.PI / 180);
                     ctx.fillStyle = p.color;
-                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
                     ctx.restore();
                 });
-                if (Date.now() - start < 3000 && active) requestAnimationFrame(run);
-                else canvas.remove();
+
+                if (Date.now() - startTime < duration && hasActive) {
+                    requestAnimationFrame(run);
+                } else {
+                    canvas.remove(); // アニメーション終了後にキャンバスを自動破棄
+                }
             };
             run();
         }
 
-        // --- LOCALSTORAGE 永続化ストレージ処理 ---
-        saveSystemSettings() {
-            localStorage.setItem('circus_wheel_items', JSON.stringify(this.items));
-            localStorage.setItem('circus_wheel_config', JSON.stringify(this.settings));
-            localStorage.setItem('circus_wheel_count', this.wheelCount);
+
+        // --- BROWSER LOCALSTORAGE 管理 ---
+        saveSettings() {
+            localStorage.setItem('fortune_wheel_app_items', JSON.stringify(this.items));
+            localStorage.setItem('fortune_wheel_app_config', JSON.stringify(this.settings));
         }
 
-        loadSystemSettings() {
-            const savedItems = localStorage.getItem('circus_wheel_items');
-            const savedConfig = localStorage.getItem('circus_wheel_config');
-            const savedCount = localStorage.getItem('circus_wheel_count');
-
-            if (savedItems) { try { this.items = JSON.parse(savedItems); } catch(e){} }
-            if (savedCount) { this.wheelCount = parseInt(savedCount) || 1; this.els.frenzyWheelsInput.value = this.wheelCount; }
+        loadSettings() {
+            const savedItems = localStorage.getItem('fortune_wheel_app_items');
+            const savedConfig = localStorage.getItem('fortune_wheel_app_config');
+            if (savedItems) {
+                try { this.items = JSON.parse(savedItems); } catch(e){}
+            }
             if (savedConfig) {
                 try {
                     this.settings = { ...this.settings, ...JSON.parse(savedConfig) };
-                    this.els.soundToggle.checked = this.settings.soundEnabled;
-                    this.els.eliminationToggle.checked = this.settings.eliminationMode;
+                    this.updateLanguageUI();
                 } catch (e) {}
             }
         }
 
-        // --- JSONデータインポート・エクスポート（画像Base64対応） ---
-        exportToJSON() {
-            const str = JSON.stringify(this.items, null, 2);
-            const blob = new Blob([str], { type: 'application/json' });
+        // --- JSONファイルのデータインポート ＆ エクスポート ---
+        exportJSON() {
+            const dataStr = JSON.stringify(this.items, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'circus_of_value_setup.json';
+            a.download = 'wheel_contents_setup.json';
             a.click();
             URL.revokeObjectURL(url);
         }
 
-        importFromJSON(event) {
+        importJSON(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -1019,22 +995,22 @@
                     const parsed = JSON.parse(e.target.result);
                     if (Array.isArray(parsed) && parsed.length >= 2) {
                         this.items = parsed;
-                        this.renderContentsList();
-                        this.drawAllWheels();
-                        this.saveSystemSettings();
-                        alert(this.settings.language === 'ja' ? 'データをインポートしました。' : 'Data imported successfully.');
+                        this.renderList();
+                        this.drawWheel();
+                        this.saveSettings();
+                        alert(this.settings.language === 'ja' ? '設定をインポートしました。' : 'Data loaded successfully.');
                     } else {
-                        alert(this.settings.language === 'ja' ? '無効な形式です。2項目以上必要です。' : 'Invalid data format. Minimum 2 items required.');
+                        alert(this.settings.language === 'ja' ? '無効なデータ形式です。最低2つのセグメントが必要です。' : 'Invalid data format. Minimum 2 items required.');
                     }
                 } catch (err) {
-                    alert('JSON Parse Error');
+                    alert(this.settings.language === 'ja' ? 'JSONファイルの解析に失敗しました。' : 'Failed to parse JSON file.');
                 }
             };
             reader.readAsText(file);
             event.target.value = '';
         }
 
-        handleImageConversion(event, callback) {
+        handleImageUpload(event, callback) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -1042,122 +1018,113 @@
             reader.readAsDataURL(file);
         }
 
-        // --- イベントの包括登録・デリゲーション管理 ---
-        bindCoreEvents() {
-            // グローバルスピンボタンの一斉ランダム起動
-            this.els.globalSpinBtn.addEventListener('click', () => this.triggerGlobalSpin());
+        // --- グローバルイベントバインディング群 ---
+        bindEvents() {
+            document.body.addEventListener('click', () => this.initAudio(), { once: true });
+            document.body.addEventListener('touchstart', () => this.initAudio(), { once: true });
 
-            // 各種ポップアップモーダルの表示・非表示切替
-            this.els.openSettingsBtn.addEventListener('click', () => this.els.settingsModal.classList.add('active'));
-            this.els.closeSettingsBtn.addEventListener('click', () => this.els.settingsModal.classList.remove('active'));
-            this.els.winnerCloseBtn.addEventListener('click', () => this.els.winnerModal.classList.remove('active'));
+            this.els.wheelContainer.addEventListener('mousedown', (e) => this.handlePointerDown(e));
+            window.addEventListener('mousemove', (e) => this.handlePointerMove(e));
+            window.addEventListener('mouseup', () => this.handlePointerUp());
 
-            // 環境設定切り替えトグル
-            this.els.eliminationToggle.addEventListener('change', (e) => {
-                this.settings.eliminationMode = e.target.checked;
-                this.saveSystemSettings();
-            });
-            this.els.soundToggle.addEventListener('change', (e) => {
-                this.settings.soundEnabled = e.target.checked;
-                this.saveSystemSettings();
-            });
-            this.els.resetEliminatedBtn.addEventListener('click', () => this.resetEliminations());
+            // タッチスクリーン用のドラッグ・フリック操作イベント
+            this.els.wheelContainer.addEventListener('touchstart', (e) => this.handlePointerDown(e), { passive: true });
+            window.addEventListener('touchmove', (e) => this.handlePointerMove(e), { passive: false });
+            window.addEventListener('touchend', () => this.handlePointerUp());
 
-            // フレンジーモードの分割数を動的に適用
-            this.els.applyFrenzyBtn.addEventListener('click', () => {
-                let val = parseInt(this.els.frenzyWheelsInput.value) || 1;
-                this.wheelCount = Math.max(1, Math.min(4, val));
-                this.saveSystemSettings();
-                this.rebuildFrenzyLayout();
-                this.renderContentsList();
-            });
-
-            // 単独の独立した言語切替処理
+            // 言語切り替えボタン
             this.els.langBtn.addEventListener('click', () => this.toggleLanguage());
 
-            // JSONファイルのローカル保存・読み込み
-            this.els.exportBtn.addEventListener('click', () => this.exportToJSON());
-            this.els.importBtn.addEventListener('click', () => this.els.importFileHidden.click());
-            this.els.importFileHidden.addEventListener('change', (e) => this.importFromJSON(e));
+            // オーディオのミュート・有効化切り替え
+            this.els.soundToggle.addEventListener('change', (e) => {
+                this.settings.soundEnabled = e.target.checked;
+                this.saveSettings();
+            });
 
-            // 分割された全キャンバスに対するマウス・タッチ操作のドラッグ委譲
-            this.els.wheelsGrid.addEventListener('mousedown', (e) => this.pointerDown(e));
-            window.addEventListener('mousemove', (e) => this.pointerMove(e));
-            window.addEventListener('mouseup', () => this.pointerUp());
+            // データ操作系（追加・エクスポート・インポート）
+            this.els.addItemBtn.addEventListener('click', () => { this.addNewItem(); this.saveSettings(); });
+            this.els.exportBtn.addEventListener('click', () => this.exportJSON());
+            this.els.importBtn.addEventListener('click', () => this.els.importFile.click());
+            this.els.importFile.addEventListener('change', (e) => this.importJSON(e));
 
-            this.els.wheelsGrid.addEventListener('touchstart', (e) => this.pointerDown(e), { passive: true });
-            window.addEventListener('touchmove', (e) => this.pointerMove(e), { passive: false });
-            window.addEventListener('touchend', () => this.pointerUp());
+            // ポップアップ（モーダル）のクローズ処理
+            this.els.modalClose.addEventListener('click', () => this.closeModal());
+            this.els.modal.addEventListener('click', (e) => {
+                if (e.target === this.els.modal) this.closeModal();
+            });
 
-            // 管理画面内のインプット要素群に対する動的変更デリゲーション
-            this.els.itemsListContainer.addEventListener('click', (e) => {
-                const card = e.target.closest('.item-row-card');
-                if (!card) return;
-                const id = parseInt(card.dataset.id);
+            // リスト内の各アイテム行に対するイベント委譲（クリック時：削除・ファイル選択）
+            this.els.itemsList.addEventListener('click', (e) => {
+                const itemEl = e.target.closest('.item-row');
+                if (!itemEl) return;
+                const id = parseInt(itemEl.dataset.id);
 
                 if (e.target.classList.contains('delete-btn')) {
                     this.removeItem(id);
-                    this.saveSystemSettings();
+                    this.saveSettings();
                 } else if (e.target.classList.contains('img-upload-btn')) {
-                    card.querySelector('.item-file-input').click();
+                    itemEl.querySelector('.item-file-input').click();
                 }
             });
 
-            this.els.itemsListContainer.addEventListener('change', (e) => {
-                const card = e.target.closest('.item-row-card');
-                if (!card) return;
-                const id = parseInt(card.dataset.id);
+            // リスト内のファイル選択時（ローカル画像をBase64に変換）
+            this.els.itemsList.addEventListener('change', (e) => {
+                const itemEl = e.target.closest('.item-row');
+                if (!itemEl) return;
+                const id = parseInt(itemEl.dataset.id);
 
                 if (e.target.classList.contains('item-file-input')) {
-                    this.handleImageConversion(e, (base64Str) => {
+                    this.handleImageUpload(e, (base64Str) => {
                         this.updateItemField(id, 'image', base64Str);
-                        card.querySelector('.input-link').value = "[Base64 Image Encoded]";
-                        this.saveSystemSettings();
+                        itemEl.querySelector('.input-link').value = "[Base64 Image Data Encoded]";
+                        this.saveSettings();
                     });
-                } else if (e.target.classList.contains('route-wheel-chk')) {
-                    // 各アイテムが割り当てられているホイール番号の配列をリアルタイム同期
-                    const chks = card.querySelectorAll('.route-wheel-chk');
-                    const assigned = [];
-                    chks.forEach(c => {
-                        if (c.checked) assigned.push(parseInt(c.dataset.index));
-                    });
-                    this.updateItemField(id, 'wheels', assigned);
-                    this.saveSystemSettings();
                 }
             });
 
-            this.els.itemsListContainer.addEventListener('input', (e) => {
-                const card = e.target.closest('.item-row-card');
-                if (!card) return;
-                const id = parseInt(card.dataset.id);
-                const item = this.items.find(i => i.id === id);
-                if (!item) return;
+            // リスト内のテキスト入力・カラー変更時のリアルタイム同期
+            this.els.itemsList.addEventListener('input', (e) => {
+                const itemEl = e.target.closest('.item-row');
+                if (!itemEl) return;
+                const id = parseInt(itemEl.dataset.id);
 
-                if (e.target.classList.contains('input-en')) item.text.en = e.target.value;
-                else if (e.target.classList.contains('input-ja')) item.text.ja = e.target.value;
-                else if (e.target.classList.contains('desc-en')) item.desc.en = e.target.value;
-                else if (e.target.classList.contains('desc-ja')) item.desc.ja = e.target.value;
-                else if (e.target.classList.contains('input-link')) item.image = e.target.value;
-                else if (e.target.classList.contains('input-color')) item.color = e.target.value;
-
-                this.drawAllWheels();
-                this.saveSystemSettings();
+                if (e.target.classList.contains('input-en')) {
+                    this.updateItemText(id, 'en', e.target.value);
+                } else if (e.target.classList.contains('input-ja')) {
+                    this.updateItemText(id, 'ja', e.target.value);
+                } else if (e.target.classList.contains('desc-en')) {
+                    this.updateItemDesc(id, 'en', e.target.value);
+                } else if (e.target.classList.contains('desc-ja')) {
+                    this.updateItemDesc(id, 'ja', e.target.value);
+                } else if (e.target.classList.contains('input-link')) {
+                    this.updateItemField(id, 'image', e.target.value);
+                } else if (e.target.classList.contains('input-color')) {
+                    this.updateItemField(id, 'color', e.target.value);
+                }
+                this.saveSettings();
             });
 
-            // ウィンドウサイズ変更時にぼやけを防ぐ自動再レンダリング
-            window.addEventListener('resize', () => this.drawAllWheels());
+            // ウィンドウサイズ変更時のリサイズ対応
+            window.addEventListener('resize', () => {
+                this.resizeCanvas();
+                this.drawWheel();
+            });
         }
 
-        // --- アプリケーション起動口 ---
+        // --- アプリケーションのエントリーポイント ---
         init() {
-            this.startPhysicsLoop();
+            this.loadSettings();
+            this.resizeCanvas();
+            this.renderList();
+            this.drawWheel();
+            this.bindEvents();
+            this.animateLoop();
         }
-    } // クラス (CircusOfValueApp) の終了
+    } // クラス (WheelApp) の終了
 
-    // ページのDOM構文解析が完了した時点でシステムを起動
+    // ページのDOM解析が完了したタイミングでアプリケーションインスタンスを生成・実行
     document.addEventListener('DOMContentLoaded', () => {
-        window.circusInstance = new CircusOfValueApp();
-        window.circusInstance.init();
+        window.wheelAppInstance = new WheelApp();
     });
     </script>
 </body>
