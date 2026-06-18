@@ -277,7 +277,6 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -384,6 +383,7 @@
             <h2 class="modal-title" id="modal-title">Winner!</h2>
             <img class="modal-img" id="modal-img" src="" alt="Winner Visual Presentation">
             <p class="modal-description" id="modal-description"></p>
+	    <button id="m-lang-btn" class="secondary">English</button>
             <button id="modal-close">OK</button>
         </div>
     </div>
@@ -467,6 +467,7 @@
                 modal: document.getElementById('modal-overlay'),
                 modalTitle: document.getElementById('modal-title'),
                 modalImg: document.getElementById('modal-img'),
+                modallangBtn: document.getElementById('m-lang-btn'),
                 modalDesc: document.getElementById('modal-description'),
                 modalClose: document.getElementById('modal-close')
             };
@@ -551,12 +552,12 @@
         updateLanguageUI() {
             const isJa = this.settings.language === 'ja';
             this.els.langBtn.textContent = isJa ? 'English' : '日本語';
+	    this.els.modallangBtn.textContent = isJa ? 'English' : '日本語';
             this.els.appTitle.textContent = isJa ? '価値のサーカス' : 'Circus of Value';
             this.els.editorTitle.textContent = isJa ? 'コンテンツの管理' : 'Manage Contents';
             this.els.addItemBtn.textContent = isJa ? '+ 項目を追加' : '+ Add Item';
             this.els.exportBtn.textContent = isJa ? 'JSON出力' : 'Export JSON';
             this.els.importBtn.textContent = isJa ? 'JSON読み込み' : 'Import JSON';
-            this.els.lblSound.textContent = isJa ? '効果音・BGM' : 'Sound FX';
             this.els.modalClose.textContent = isJa ? '閉じる' : 'OK';
             
             this.renderList();
@@ -752,6 +753,7 @@
                         const winningIndex = Math.floor(normalizedAngle / segmentAngle) % this.items.length;
                         
                         this.displayWinner(this.items[winningIndex]);
+			this.triggerConfetti();
                     }
 
                     this.drawWheel();
@@ -866,7 +868,7 @@
                 this.els.modalImg.style.display = 'block';
             }
 
-            this.triggerConfetti();
+            
             this.els.modal.classList.add('active');
             
             // Web Speech API による音声読み上げ（Text-to-Speech）
@@ -887,7 +889,7 @@
 
         // --- 外部ライブラリ不要の軽量・高速紙吹雪システム ---
         triggerConfetti() {
-            const colors = ['#6366f1', '#10b981', '#ef4444', '#eab308', '#ec4899', '#3b82f6'];
+            const colors = ['#6366f1', '#10b981', '#ef4444', '#eab308', '#ec4899', '#3b82f6', '#f97316', '#8b5cf6', '#14b8a6', '#f43f5e', '#22d3ee', '#f59e0b', '#636e72', '#84cc16'];
             const particles = [];
             
             // ポップアップの背景に干渉しないよう、動的にキャンバスを生成
@@ -920,7 +922,7 @@
             }
 
             const startTime = Date.now();
-            const duration = 3000; // 3秒間アニメーション
+            const duration = 7000; // 3秒間アニメーション
 
             const run = () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1048,6 +1050,7 @@
             this.els.importFile.addEventListener('change', (e) => this.importJSON(e));
 
             // ポップアップ（モーダル）のクローズ処理
+	    this.els.modallangBtn.addEventListener('click', () => this.toggleLanguage());
             this.els.modalClose.addEventListener('click', () => this.closeModal());
             this.els.modal.addEventListener('click', (e) => {
                 if (e.target === this.els.modal) this.closeModal();
