@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snakes &amp; Ladders: Amazonian Quest Ultimate SPA</title>
+    <title>Snakes &amp; Ladders</title>
     <style>
         :root {
             --jungle-dark: #0f1f11;
@@ -32,7 +32,7 @@
             overflow: hidden; color: #f0f5f1; position: relative;
         }
 
-        /* 🚨 TITLE RELOCATED: Fixed at top-left so it never interferes with the board size */
+        /*  TITLE RELOCATED: Fixed at top-left so it never interferes with the board size */
         h1 { 
             position: fixed; top: 15px; left: 15px; 
             font-size: calc(10px + 0.6vh); font-weight: bold;
@@ -42,9 +42,9 @@
             text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7); z-index: 20; pointer-events: none;
         }
 
-        /* 🚨 TOP NAVIGATION BUTTONS */
+        /*  TOP NAVIGATION BUTTONS */
         .top-nav {
-            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 5%; left: 90%; transform: translateX(-50%);
             display: flex; gap: 10px; z-index: 100;
         }
         .nav-btn {
@@ -55,7 +55,7 @@
         }
         .nav-btn:hover { background: var(--moss-green); transform: translateY(-1px); }
 
-        /* 🚨 MAXIMUM SCREEN COVERAGE: Board now stretches strictly 100% from top to bottom */
+        /*  MAXIMUM SCREEN COVERAGE: Board now stretches strictly 100% from top to bottom */
         .game-layout { 
             position: relative; display: flex; justify-content: center; align-items: center; 
             width: 100vh; height: 100vh; max-width: 100vw; max-height: 100vh;
@@ -124,19 +124,62 @@
         .sidebar.open { right: 0; }
 
         /* --- Moveable Popup Controls --- */
-        .dice-popup {
-            position: fixed; top: 70px; left: 15px; width: 160px; background: rgba(20, 35, 22, 0.96);
-            border: 2px solid var(--bamboo-wood); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            z-index: 100; backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; padding: 8px; touch-action: none;
-        }
-        .dice-popup-header {
-            width: 100%; display: flex; justify-content: space-between; align-items: center; cursor: move;
-            border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 6px;
-            font-size: 10px; font-weight: bold; color: var(--bamboo-wood); text-transform: uppercase; user-select: none;
-        }
-        .close-popup-btn { background: none!important; border: none!important; color: #ff5555!important; font-size: 14px!important; cursor: pointer; }
+.dice-popup {
+    position: fixed;
+    top: 70px;
+    left: 15px;
+    width: 160px;
+    background: rgba(20, 35, 22, 0.96);
+    border: 2px solid var(--bamboo-wood);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    touch-action: none;
+    overflow: hidden; /* Needed for resize handle */
+}
 
-        /* --- 🚨 QUIZ GAMEPLAY MODAL OVERLAY --- */
+.dice-popup-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--bamboo-wood);
+    text-transform: uppercase;
+    user-select: none;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #666;
+    right: 0;
+    bottom: 0;
+    cursor: se-resize;
+    border-radius: 2px;
+}
+
+.close-popup-btn {
+    background: none!important;
+    border: none!important;
+    color: #ff5555!important;
+    font-size: 14px!important;
+    cursor: pointer;
+}
+
+
+        /* ---  QUIZ GAMEPLAY MODAL OVERLAY --- */
         .quiz-modal {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(5, 12, 6, 0.85); z-index: 300; display: flex;
@@ -155,7 +198,7 @@
         .quiz-opt-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); padding: 12px; text-align: left; font-size: 14px; color: #fff; cursor: pointer; border-radius: 6px; }
         .quiz-opt-btn:hover { background: var(--moss-green); color: #fff; }
 
-        /* --- 🚨 SEPARATE VIEW: SEPARATED SPA QUIZ CRUD MANAGER VIEW --- */
+        /* ---  SEPARATE VIEW: SEPARATED SPA QUIZ CRUD MANAGER VIEW --- */
         .quiz-crud-view {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: var(--jungle-dark); z-index: 250; padding: 60px 20px 20px 20px;
@@ -197,10 +240,10 @@
         .team-info { display: flex; align-items: center; gap: 6px; }
         .color-dot { width: 9px; height: 9px; border-radius: 50%; }
         
-        /* 🚨 GRID LINK COORDINATES MAX HEIGHT SET TO 300PX */
+        /*  GRID LINK COORDINATES MAX HEIGHT SET TO 300PX */
         .item-list { max-height: 300px; overflow-y: auto; }
 
-        .dice-area { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+        .dice-area { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; resize: both; }
         #status { font-size: 10px; text-align: center; font-weight: bold; width: 100%; background: rgba(0,0,0,0.4); padding: 5px; border-radius: 6px; border-left: 3px solid var(--gold-accent); }
         .scene { width: 46px; height: 46px; perspective: 300px; margin: 2px 0; }
         .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -221,9 +264,9 @@
 </head>
 <body>
 
-    <h1>Amazonian Quest</h1>
+    <h1>Snakes & Ladders</h1>
     
-    <!-- 🚨 NAVIGATION BAR FOR VIEW CONTROLS -->
+    <!--  NAVIGATION BAR FOR VIEW CONTROLS -->
     <div class="top-nav">
         <button class="nav-btn" onclick="openQuizView()">📝 Manage Quizzes</button>
     </div>
@@ -250,24 +293,27 @@
                     <div class="cube-face face-6"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/1;"></span><span class="pip" style="grid-area: 2/3;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
                 </div>
             </div>
-            <button id="roll-btn" style="width:100%; padding:6px; font-size:10px; background: linear-gradient(135deg, var(--bamboo-wood), #a07640); color: #fff;">Roll Bone</button>
+            <button id="roll-btn" style="width:100%; padding:6px; font-size:10px; background: linear-gradient(135deg, var(--bamboo-wood), #a07640); color: #fff;">Roll Dice</button>
+	    <button id="skip-player-btn" style="width:100%; padding:6px; font-size:10px; margin-top: 4px; background: linear-gradient(135deg, #6b2121, #421313); color: #fff; border: 1px solid rgba(255,85,85,0.4);">Skip Player</button>
+<div id="dice-resize-handle" class="resize-handle"></div>
+
         </div>
     </div>
 
     <!-- Active Gameplay Quiz Modal Window Overlay -->
     <div class="quiz-modal" id="quiz-overlay">
         <div class="quiz-box">
-            <div class="quiz-title">⚠️ Ruins Encountered!</div>
+            <div class="quiz-title">⚠️ Question!</div>
             <div class="quiz-text" id="quiz-box-text">Question text goes here?</div>
             <div class="quiz-options" id="quiz-box-options"></div>
         </div>
     </div>
 
-    <!-- 🚨 SEPARATE SPA VIEW VIEWPORT FOR FULL QUIZ CRUD MANAGEMENT -->
+    <!--  SEPARATE SPA VIEW VIEWPORT FOR FULL QUIZ CRUD MANAGEMENT -->
     <div class="quiz-crud-view" id="quiz-crud-viewport">
         <div class="crud-container">
             <div class="crud-header">
-                <h2 style="color: var(--gold-accent);">📝 Ancient Quiz Codex Manager</h2>
+                <h2 style="color: var(--gold-accent);">Quiz Manager</h2>
                 <button class="nav-btn danger" onclick="closeQuizView()">✕ Return to Board</button>
             </div>
             
@@ -332,10 +378,10 @@
             </div>
 
             <div class="section">
-                <h3>👥 Explorers (Teams)</h3>
+                <h3>Teams</h3>
                 <div id="teams-list"></div>
                 <div class="btn-group">
-                    <input type="color" id="new-team-color" value="#ff5555" style="width:35px; padding:0; height:28px; border:none; cursor:pointer;">
+                    <input type="color" id="new-team-color" value="#000000" style="width:35px; padding:0; height:28px; border:none; cursor:pointer;">
                     <input type="text" id="new-team-name" placeholder="Name">
                     <button id="add-team-btn" style="padding:0 10px;">+</button>
                 </div>
@@ -360,7 +406,7 @@
         </div>
     </div>
     <script>
-        // --- 🚨 SPA VIEW CONTROLLER: SWITCH BETWEEN BOARD AND QUIZ CORE MODES ---
+        // ---  SPA VIEW CONTROLLER: SWITCH BETWEEN BOARD AND QUIZ CORE MODES ---
         function openQuizView() {
             const viewport = document.getElementById('quiz-crud-viewport');
             viewport.classList.add('show');
@@ -381,73 +427,115 @@
         }
 
         // --- Movable & Draggable Floating Pop-up UI Control Engine ---
-        const popup = document.getElementById('movable-dice-station');
-        const dragBar = document.getElementById('dice-drag-bar');
-        const summonBtn = document.getElementById('recall-dice-trigger');
-        
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
+const popup = document.getElementById('movable-dice-station');
+const dragBar = document.getElementById('dice-drag-bar');
+const summonBtn = document.getElementById('recall-dice-trigger');
+const resizeHandle = document.getElementById('dice-resize-handle'); // new handle element
 
-        dragBar.addEventListener('mousedown', dragStart);
-        dragBar.addEventListener('touchstart', dragStart, { passive: false });
+let isDragging = false;
+let isResizing = false;
+let startX, startY, initialLeft, initialTop, initialWidth, initialHeight;
 
-        function dragStart(e) {
-            isDragging = true;
-            const clientX = e.clientX || e.touches.clientX;
-            const clientY = e.clientY || e.touches.clientY;
-            startX = clientX;
-            startY = clientY;
-            const computedStyle = window.getComputedStyle(popup);
-            initialLeft = parseInt(computedStyle.left);
-            initialTop = parseInt(computedStyle.top);
-            
-            if (e.type === 'mousedown') {
-                document.addEventListener('mousemove', dragMove);
-                document.addEventListener('mouseup', dragEnd);
-            } else {
-                document.addEventListener('touchmove', dragMove, { passive: false });
-                document.addEventListener('touchend', dragEnd);
-            }
-            if (e.cancelable) e.preventDefault();
-        }
+// --- Dragging ---
+dragBar.addEventListener('mousedown', dragStart);
+dragBar.addEventListener('touchstart', dragStart, { passive: false });
 
-        function dragMove(e) {
-            if (!isDragging) return;
-            const clientX = e.clientX || e.touches.clientX;
-            const clientY = e.clientY || e.touches.clientY;
-            let deltaX = clientX - startX;
-            let deltaY = clientY - startY;
-            popup.style.left = (initialLeft + deltaX) + 'px';
-            popup.style.top = (initialTop + deltaY) + 'px';
-            if (e.cancelable) e.preventDefault();
-        }
+function dragStart(e) {
+    isDragging = true;
+    const clientX = e.clientX ?? e.touches[0].clientX;
+    const clientY = e.clientY ?? e.touches[0].clientY;
+    const btnSize = document.getElementById('roll-btn');
+    let currentPadding = parseInt(window.getComputedStyle(btnSize).padding, 10);
+    startX = clientX;
+    startY = clientY;
+    const computedStyle = window.getComputedStyle(popup);
+    initialLeft = parseInt(computedStyle.left);
+    initialTop = parseInt(computedStyle.top);
 
-        function dragEnd() {
-            isDragging = false;
-            document.removeEventListener('mousemove', dragMove);
-            document.removeEventListener('mouseup', dragEnd);
-            document.removeEventListener('touchmove', dragMove);
-            document.removeEventListener('touchend', dragEnd);
-        }
+    if (e.type === 'mousedown') {
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('mouseup', dragEnd);
+	btnSize.style.transform = 'scale(1.1)';
+	
+    } else {
+        document.addEventListener('touchmove', dragMove, { passive: false });
+        document.addEventListener('touchend', dragEnd);
+    }
+    if (e.cancelable) e.preventDefault();
+}
 
-        function minimizeDicePopup() {
-            popup.style.opacity = '0'; popup.style.transform = 'scale(0.8)';
-            setTimeout(() => { popup.style.visibility = 'hidden'; summonBtn.style.visibility = 'visible'; }, 300);
-        }
+function dragMove(e) {
+    if (!isDragging) return;
+    const clientX = e.clientX ?? e.touches[0].clientX;
+    const clientY = e.clientY ?? e.touches[0].clientY;
+    let deltaX = clientX - startX;
+    let deltaY = clientY - startY;
+    popup.style.left = (initialLeft + deltaX) + 'px';
+    popup.style.top = (initialTop + deltaY) + 'px';
+    if (e.cancelable) e.preventDefault();
+}
 
-        function maximizeDicePopup() {
-            popup.style.visibility = 'visible'; popup.style.opacity = '1'; popup.style.transform = 'scale(1)'; summonBtn.style.visibility = 'hidden';
-        }
+function dragEnd() {
+    isDragging = false;
+    document.removeEventListener('mousemove', dragMove);
+    document.removeEventListener('mouseup', dragEnd);
+    document.removeEventListener('touchmove', dragMove);
+    document.removeEventListener('touchend', dragEnd);
+}
+
+// --- Resizing ---
+resizeHandle.addEventListener('mousedown', resizeStart);
+resizeHandle.addEventListener('touchstart', resizeStart, { passive: false });
+
+function resizeStart(e) {
+    isResizing = true;
+    const clientX = e.clientX ?? e.touches[0].clientX;
+    const clientY = e.clientY ?? e.touches[0].clientY;
+    startX = clientX;
+    startY = clientY;
+    initialWidth = popup.offsetWidth;
+    initialHeight = popup.offsetHeight;
+
+    if (e.type === 'mousedown') {
+        document.addEventListener('mousemove', resizeMove);
+        document.addEventListener('mouseup', resizeEnd);
+    } else {
+        document.addEventListener('touchmove', resizeMove, { passive: false });
+        document.addEventListener('touchend', resizeEnd);
+    }
+    if (e.cancelable) e.preventDefault();
+}
+
+function resizeMove(e) {
+    if (!isResizing) return;
+    const clientX = e.clientX ?? e.touches[0].clientX;
+    const clientY = e.clientY ?? e.touches[0].clientY;
+    let deltaX = clientX - startX;
+    let deltaY = clientY - startY;
+    popup.style.width = (initialWidth + deltaX) + 'px';
+    popup.style.height = (initialHeight + deltaY) + 'px';
+    if (e.cancelable) e.preventDefault();
+}
+
+function resizeEnd() {
+    isResizing = false;
+    document.removeEventListener('mousemove', resizeMove);
+    document.removeEventListener('mouseup', resizeEnd);
+    document.removeEventListener('touchmove', resizeMove);
+    document.removeEventListener('touchend', resizeEnd);
+}
+
 
         // --- Core Game Architecture & Data State ---
         let teams = [
             { id: 1, name: "Explorer Red", color: "#ff4d6d", position: 1, currentX: 0, currentY: 0 },
             { id: 2, name: "Viper Blue", color: "#00f0ff", position: 1, currentX: 0, currentY: 0 },
-            { id: 3, name: "Orchid Green", color: "#a3e635", position: 1, currentX: 0, currentY: 0 }
+            { id: 3, name: "Orchid Green", color: "#a3e635", position: 1, currentX: 0, currentY: 0 },
+	    { id: 4, name: "Toxic Purple", color: "#800080", position: 1, currentX: 0, currentY: 0 }
         ];
         let currentTeamIndex = 0;
         let isRolling = false;
-        let snakeColors = ['#38b000', '#ff7b00', '#9d4edd', '#e63946', '#00b4d8'];
+        let snakeColors = ['#38b000', '#ff7b00', '#9d4edd', '#e63946', '#00b4d8', '#ffac33', '#6a4c93', '#00ffcc', '#ff00ff', '#ff6347'];
         let currentXRotation = 0; let currentYRotation = 0;
 
         let links = [
@@ -597,50 +685,73 @@
             updatePiecesDisplay();
         }
 
-        function updatePiecesDisplay() {
-            const layer = document.getElementById('animation-layer');
-            layer.innerHTML = '';
-            const cellOccupancy = {};
-            teams.forEach(team => {
-                if(!cellOccupancy[team.position]) cellOccupancy[team.position] = [];
-                cellOccupancy[team.position].push(team);
-            });
+function updatePiecesDisplay() {
+    const layer = document.getElementById('animation-layer');
+    layer.innerHTML = '';
+    const cellOccupancy = {};
+    teams.forEach(team => {
+        if(!cellOccupancy[team.position]) cellOccupancy[team.position] = [];
+        cellOccupancy[team.position].push(team);
+    });
 
-            teams.forEach(team => {
-                const piece = document.createElement('div');
-                piece.className = 'piece';
-                piece.style.backgroundColor = team.color;
-                piece.title = team.name;
-                piece.draggable = true;
-                piece.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', team.id));
+    teams.forEach(team => {
+        const piece = document.createElement('div');
+        piece.className = 'piece';
+        piece.style.backgroundColor = team.color;
+        piece.title = team.name;
+        piece.draggable = true;
+        piece.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', team.id));
 
-                let offsetX = 0; let offsetY = 0;
-                const occupants = cellOccupancy[team.position] || [];
-                if (occupants.length > 1) {
-                    const idx = occupants.indexOf(team);
-                    if (occupants.length === 2) {
-                        piece.classList.add('crowded-medium'); offsetX = (idx === 0 ? -6 : 6);
-                    } else {
-                        piece.classList.add('crowded-heavy');
-                        if (idx === 0) { offsetX = -5; offsetY = -5; }
-                        else if (idx === 1) { offsetX = 5; offsetY = -5; }
-                        else if (idx === 2) { offsetX = -5; offsetY = 5; }
-                        else { offsetX = 5; offsetY = 5; }
-                    }
-                }
-                piece.style.left = (team.currentX + offsetX) + 'px';
-                piece.style.top = (team.currentY + offsetY) + 'px';
-                layer.appendChild(piece);
-            });
-            updateStatusText();
+        let offsetX = 0; let offsetY = 0;
+        const occupants = cellOccupancy[team.position] || [];
+        const count = occupants.length;
+
+        if (count > 1) {
+            const idx = occupants.indexOf(team);
+
+            if (count === 2) {
+                // 1列に2個並ぶサイズ感
+                piece.classList.add('crowded-medium'); 
+                offsetX = (idx === 0 ? -6 : 6);
+            } 
+            else if (count <= 4) {
+                // 2x2 グリッド (最大4個)
+                piece.classList.add('crowded-medium');
+                offsetX = (idx % 2 === 0 ? -6 : 6);
+                offsetY = (idx < 2 ? -6 : 6);
+            } 
+            else if (count <= 9) {
+                // 3x3 グリッド (最大9個)
+                piece.classList.add('crowded-heavy');
+                const col = idx % 3;
+                const row = Math.floor(idx / 3);
+                offsetX = (col - 1) * 8; // -8, 0, 8
+                offsetY = (row - 1) * 8; // -8, 0, 8
+            } 
+            else {
+                // 4x4 グリッド (最大16個)
+                piece.classList.add('crowded-super-heavy');
+                const col = idx % 4;
+                const row = Math.floor(idx / 4);
+                // 4マスの中心に寄せるためのオフセット（例: 間隔6pxの場合）
+                offsetX = (col * 6) - 9; 
+                offsetY = (row * 6) - 9;
+            }
         }
+        piece.style.left = (team.currentX + offsetX) + 'px';
+        piece.style.top = (team.currentY + offsetY) + 'px';
+        layer.appendChild(piece);
+    });
+    updateStatusText();
+}
+
 
         function updateTeamPosition(teamId, newPos, autoCheckGimmick = false) {
             const team = teams.find(t => t.id === teamId);
             if (!team) return;
             
             if (newPos > 100) {
-                if(autoCheckGimmick) document.getElementById('status').innerText = `💥 ${team.name}: Overflow bounced!`;
+                if(autoCheckGimmick) document.getElementById('status').innerText = `${team.name}: Too Far, try again!`;
                 return; 
             }
 
@@ -718,7 +829,7 @@
         }
 
         function checkWinState(team) {
-            if(team.position === 100) alert(`🏆 EXPEDITION COMPLETE: ${team.name} breached tile 100!`);
+            if(team.position === 100) alert(`YOU MADE IT!: ${team.name} reached tile 100!`);
         }
 
         function triggerQuizPopupModal(team, tileNum) {
@@ -758,7 +869,7 @@
             overlay.classList.add('show');
         }
 
-        // --- 🚨 SPA FULL CRUD RE-LOGIC OPERATIONS (READ, ADD, UPDATE, DELETE, SHUFFLE) ---
+        // ---  SPA FULL CRUD RE-LOGIC OPERATIONS (READ, ADD, UPDATE, DELETE, SHUFFLE) ---
         function renderCrudTableSync() {
             const listContainer = document.getElementById('crud-live-nodes-list');
             listContainer.innerHTML = '';
@@ -901,6 +1012,12 @@
             }, 1400); 
         });
 
+function getRandomColor() {
+    return '#' + Math.floor(Math.random() * 16777215)
+        .toString(16)
+        .padStart(6, '0'); // Ensure 6 digits
+}
+
         function renderTeamsUI() {
             const list = document.getElementById('teams-list'); list.innerHTML = '';
             teams.forEach((team) => {
@@ -918,10 +1035,12 @@
         window.removeTeam = function(id) { teams = teams.filter(t => t.id !== id); renderTeamsUI(); };
 
         document.getElementById('add-team-btn').addEventListener('click', () => {
-            const nameInput = document.getElementById('new-team-name'); const colorInput = document.getElementById('new-team-color');
+            const nameInput = document.getElementById('new-team-name'); 
+	    const colorInput = document.getElementById('new-team-color');
             if(!nameInput.value.trim()) return;
             let coords = getCellCenterCoordinates(1);
             teams.push({ id: Date.now(), name: nameInput.value.trim(), color: colorInput.value, position: 1, currentX: coords.x, currentY: coords.y });
+	    colorInput.value = getRandomColor();
             nameInput.value = ''; renderTeamsUI();
         });
 
@@ -953,9 +1072,25 @@
         window.addEventListener('resize', resizeAndRedrawCanvas);
         window.addEventListener('orientationchange', () => setTimeout(resizeAndRedrawCanvas, 250));
 
-        // System Core Init Launcher
+        //  【新規追加】手動でプレイヤーをスキップするボタンのイベント処理
+        document.getElementById('skip-player-btn').addEventListener('click', () => {
+            // サイコロが回転中、またはプレイヤーがいない時は処理しない
+            if (isRolling || teams.length === 0) return; 
+
+            const currentTeam = teams[currentTeamIndex];
+
+            currentTeamIndex = (currentTeamIndex + 1) % teams.length;
+                
+                // 左上のステータステキスト表示を次の人に更新する
+            updateStatusText();
+        });
+
+        // System Core Init Launcher (既存の最下部コード)
+        document.getElementById('new-team-color').value = getRandomColor();
         createBoard();
         renderTeamsUI();
+	
+
     </script>
 </body>
 </html>
