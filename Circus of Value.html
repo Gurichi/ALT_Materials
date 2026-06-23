@@ -294,8 +294,8 @@
     <header>
         <h1 id="app-title">The Circus of Value</h1>
         <div class="header-controls">
-            <button id="open-settings-btn" class="secondary">⚙ Options / 管理</button>
             <button id="lang-btn" class="secondary">日本語</button>
+            <button id="open-settings-btn" class="secondary">⚙ Options / 管理</button>
         </div>
     </header>
 
@@ -303,6 +303,7 @@
         <div class="wheels-canvas-grid" id="wheels-grid"></div>
         <div class="action-spin-trigger-pad">
             <button id="global-spin-btn" class="huge-spin-btn">Spin Wheel</button>
+            <button id="global-stop-btn" class="huge-spin-btn danger" style="display:none;">Stop</button>
         </div>
     </div>
 
@@ -334,6 +335,13 @@
                     </div>
                 </div>
 
+                <!-- Label Font Size -->
+                <div style="display:flex; align-items:center; gap:0.75rem; background:var(--bg-color); border:1px solid var(--border-color); padding:0.75rem; border-radius:0.5rem; flex-wrap:wrap;">
+                    <label id="lbl-font-size" for="font-size-slider" style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap;">Wheel Label Size:</label>
+                    <input type="range" id="font-size-slider" min="10" max="48" value="22" style="flex:1; min-width:100px; cursor:pointer;">
+                    <span id="font-size-value" style="font-size:0.85rem; color:var(--text-color); min-width:2.5rem; text-align:right;">22px</span>
+                </div>
+
                 <!-- Manual Frenzy Allocation Setup -->
                 <div class="frenzy-allocation-box">
                     <label id="lbl-frenzy-title" style="color: var(--frenzy-color); font-weight: 700;">Frenzy Mode Configuration (Manual Split)</label>
@@ -360,6 +368,9 @@
     <!-- WINNER NOTIFICATION POPUP MODAL -->
     <div class="overlay-modal-viewport" id="winner-modal">
         <div class="modal-card">
+            <div style="display:flex; justify-content:flex-end;">
+                <button id="winner-lang-btn" class="secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">日本語</button>
+            </div>
             <h2 class="winner-headline" id="winner-title">Chosen!</h2>
             <img class="winner-media-frame" id="winner-img" src="" alt="Winner Visualization Data">
             <p class="winner-paragraph" id="winner-desc"></p>
@@ -374,7 +385,8 @@
             this.settings = {
                 language: 'en',
                 soundEnabled: true,
-                eliminationMode: false
+                eliminationMode: false,
+                labelFontSize: 22
             };
 
 	const initialWheels = JSON.parse("[1, 2, 3, 4]");
@@ -390,6 +402,7 @@
             // Frenzy Configuration Tracking
             this.wheelCount = 1;
             this.wheelsState = []; // Holds physics datasets for each instantiated split-wheel
+            this.lastWinners = []; // Store last winners for language re-render
 
             // Global Web Audio Synthesis Setup
             this.audioCtx = null;
@@ -421,16 +434,21 @@
                 lblFrenzyTitle: document.getElementById('lbl-frenzy-title'),
                 lblSplitCount: document.getElementById('lbl-split-count'),
                 applyFrenzyBtn: document.getElementById('apply-frenzy-btn'),
+                fontSizeSlider: document.getElementById('font-size-slider'),
+                fontSizeValue: document.getElementById('font-size-value'),
+                lblFontSize: document.getElementById('lbl-font-size'),
                 exportBtn: document.getElementById('export-btn'),
                 importBtn: document.getElementById('import-btn'),
                 importFileHidden: document.getElementById('import-file-hidden'),
                 globalSpinBtn: document.getElementById('global-spin-btn'),
+                globalStopBtn: document.getElementById('global-stop-btn'),
                 wheelsGrid: document.getElementById('wheels-grid'),
                 winnerModal: document.getElementById('winner-modal'),
                 winnerTitle: document.getElementById('winner-title'),
                 winnerImg: document.getElementById('winner-img'),
                 winnerDesc: document.getElementById('winner-desc'),
-                winnerCloseBtn: document.getElementById('winner-close-btn')
+                winnerCloseBtn: document.getElementById('winner-close-btn'),
+                winnerLangBtn: document.getElementById('winner-lang-btn')
             };
         }
 
@@ -501,11 +519,19 @@
             this.settings.language = this.settings.language === 'en' ? 'ja' : 'en';
             this.updateLanguageUI();
             this.saveSystemSettings();
+            // Re-render winner modal if it is currently visible
+            if (this.lastWinners && this.lastWinners.length > 0 && this.els.winnerModal.classList.contains('active')) {
+                const isJa = this.settings.language === 'ja';
+                this.els.winnerTitle.textContent = this.lastWinners.map(w => isJa ? w.item.text.ja : w.item.text.en).join(" + ");
+                const combinedDesc = this.lastWinners.map(w => `[W${w.wheelIndex}] ` + (isJa ? w.item.desc.ja : w.item.desc.en)).join("\n\n");
+                this.els.winnerDesc.innerHTML = combinedDesc.replace(/\n/g, "<br>");
+            }
         }
 
         updateLanguageUI() {
             const isJa = this.settings.language === 'ja';
             this.els.langBtn.textContent = isJa ? 'English' : '日本語';
+            this.els.winnerLangBtn.textContent = isJa ? 'English' : '日本語';
             this.els.appTitle.textContent = isJa ? '価値のサーカス' : 'The Circus of Value';
             this.els.openSettingsBtn.textContent = isJa ? '⚙ オプション / 管理' : '⚙ Options / 管理';
             this.els.settingsModalTitle.textContent = isJa ? '設定 ＆ コンテンツ管理' : 'Configuration & Contents';
@@ -517,9 +543,11 @@
             this.els.lblFrenzyTitle.textContent = isJa ? 'フレンジーモード設定（ホイールの手動分割）' : 'Frenzy Mode Configuration (Manual Split)';
             this.els.lblSplitCount.textContent = isJa ? 'ホイールの分割数:' : 'Number of Wheels:';
             this.els.applyFrenzyBtn.textContent = isJa ? '分割を適用' : 'Apply Split';
+            this.els.lblFontSize.textContent = isJa ? 'ラベル文字サイズ:' : 'Wheel Label Size:';
             this.els.exportBtn.textContent = isJa ? 'JSONエクスポート' : 'Export JSON';
             this.els.importBtn.textContent = isJa ? 'JSONインポート' : 'Import JSON';
             this.els.globalSpinBtn.textContent = isJa ? 'ホイールを回す' : 'Spin Wheel';
+            this.els.globalStopBtn.textContent = isJa ? '止める' : 'Stop';
             this.els.winnerCloseBtn.textContent = isJa ? '確定' : 'OK';
 
             this.renderContentsList();
@@ -726,7 +754,8 @@
                 ctx.textAlign = "right";
                 ctx.textBaseline = "middle";
                 ctx.fillStyle = "#ffffff";
-                ctx.font = "bold 22px var(--font-sans)";
+                const fs = parseInt(this.settings.labelFontSize) || 22;
+                ctx.font = `bold ${fs}px Helvetica Neue, Arial, sans-serif`;
                 
                 const txt = this.settings.language === 'ja' ? item.text.ja : item.text.en;
                 const truncated = txt.length > 14 ? txt.substring(0, 12) + "..." : txt;
@@ -764,6 +793,7 @@
                             const stillSpinning = this.wheelsState.some(wheel => wheel.isSpinning);
                             if (!stillSpinning) {
                                 this.stopFrenzyMusic();
+                                this.els.globalStopBtn.style.display = 'none';
                                 this.evaluateFrenzyWinners();
                             }
                         }
@@ -791,6 +821,12 @@
             return Math.atan2(clientY - cy, clientX - cx);
         }
 
+        getClientXY(e) {
+            if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            if (e.changedTouches && e.changedTouches.length > 0) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+            return { x: e.clientX, y: e.clientY };
+        }
+
         pointerDown(e) {
             this.initAudioContext();
             const w = this.findTargetWheelState(e);
@@ -809,10 +845,10 @@
             if (!w) return;
             if (e.cancelable) e.preventDefault();
 
-            const currentAngle = this.getPointerAngle(e, w);
             const now = performance.now();
             const dt = (now - w.lastMoveTime) / 1000;
 
+            const currentAngle = this.getPointerAngle(e, w);
             let deltaAngle = currentAngle - w.lastAngle;
             if (deltaAngle > Math.PI) deltaAngle -= Math.PI * 2;
             if (deltaAngle < -Math.PI) deltaAngle += Math.PI * 2;
@@ -821,34 +857,43 @@
             w.lastAngle = currentAngle;
             w.lastMoveTime = now;
 
-            if (dt > 0) {
-                const instV = deltaAngle / dt;
+            if (dt > 0 && dt < 0.1) {
+                // Scale angular velocity by canvas-to-screen ratio so fast swipes feel fast
+                const rect = w.canvas.getBoundingClientRect();
+                const scale = 800 / rect.width; // canvas is 800px internally
+                const instV = (deltaAngle / dt) * Math.min(scale * 0.4, 2.5);
                 w.velocitySamples.push({ v: instV, t: now });
-                if (w.velocitySamples.length > 5) w.velocitySamples.shift();
+                if (w.velocitySamples.length > 8) w.velocitySamples.shift();
             }
             this.drawSingleWheelInstance(w);
         }
 
-        pointerUp() {
+        pointerUp(e) {
             const w = this.wheelsState.find(wheel => wheel.isDragging);
             if (!w) return;
             w.isDragging = false;
 
             const now = performance.now();
-            w.velocitySamples = w.velocitySamples.filter(s => now - s.t < 100);
+            // Only use samples from the last 150ms — captures the flick gesture
+            const recent = w.velocitySamples.filter(s => now - s.t < 150);
 
-            if (w.velocitySamples.length > 0) {
-                let sum = 0;
-                w.velocitySamples.forEach(s => sum += s.v);
-                w.angularVelocity = sum / w.velocitySamples.length;
+            if (recent.length > 0) {
+                // Weight recent samples higher to match actual release velocity
+                let weightedSum = 0, totalWeight = 0;
+                recent.forEach((s, i) => {
+                    const weight = i + 1;
+                    weightedSum += s.v * weight;
+                    totalWeight += weight;
+                });
+                w.angularVelocity = weightedSum / totalWeight;
             }
 
             const absV = Math.abs(w.angularVelocity);
-            if (absV > 0.2) {
+            if (absV > 0.05) {
                 w.isSpinning = true;
-                if (absV > 35) w.angularVelocity = Math.sign(w.angularVelocity) * 35; // 最大速度制限
-                w.angularVelocity += Math.sign(w.angularVelocity) * (Math.random() * 0.5 + 0.1); // 完全ランダム用カオス要素
+                if (absV > 40) w.angularVelocity = Math.sign(w.angularVelocity) * 40;
                 this.playFrenzyMusic();
+                this.els.globalStopBtn.style.display = 'inline-flex';
             } else {
                 w.angularVelocity = 0;
             }
@@ -865,6 +910,18 @@
                 w.angularVelocity = randomPower;
             });
             this.playFrenzyMusic();
+            this.els.globalStopBtn.style.display = 'inline-flex';
+        }
+
+        // --- ストップボタンによる即時急減速 ---
+        triggerGlobalStop() {
+            this.wheelsState.forEach(w => {
+                if (w.isSpinning) {
+                    // Rapidly decelerate to near-zero
+                    w.angularVelocity *= 0.08;
+                }
+            });
+            this.els.globalStopBtn.style.display = 'none';
         }
 
         // --- 当選者判定 ＆ イリミネーションオート処理 ---
@@ -912,17 +969,11 @@
                 this.saveSystemSettings();
             }
 
+            this.lastWinners = winners;
             this.triggerConfetti();
             this.els.winnerModal.classList.add('active');
             
-            // Web Speech API による当選アイテム名のリアルタイム多言語音声読み上げ
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const textToSpeak = winners.map(w => isJa ? w.item.text.ja : w.item.text.en).join(", ");
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = isJa ? 'ja-JP' : 'en-US';
-                window.speechSynthesis.speak(utterance);
-            }
+            // Speech synthesis removed
         }
 
         // --- 外部通信が発生しない超高速ネイティブ紙吹雪演出 ---
@@ -991,8 +1042,11 @@
             if (savedConfig) {
                 try {
                     this.settings = { ...this.settings, ...JSON.parse(savedConfig) };
+                    if (!this.settings.labelFontSize || isNaN(this.settings.labelFontSize)) this.settings.labelFontSize = 22;
                     this.els.soundToggle.checked = this.settings.soundEnabled;
                     this.els.eliminationToggle.checked = this.settings.eliminationMode;
+                    this.els.fontSizeSlider.value = this.settings.labelFontSize;
+                    this.els.fontSizeValue.textContent = this.settings.labelFontSize + 'px';
                 } catch (e) {}
             }
         }
@@ -1046,6 +1100,7 @@
         bindCoreEvents() {
             // グローバルスピンボタンの一斉ランダム起動
             this.els.globalSpinBtn.addEventListener('click', () => this.triggerGlobalSpin());
+            this.els.globalStopBtn.addEventListener('click', () => this.triggerGlobalStop());
 
             // 各種ポップアップモーダルの表示・非表示切替
             this.els.openSettingsBtn.addEventListener('click', () => this.els.settingsModal.classList.add('active'));
@@ -1062,6 +1117,15 @@
                 this.saveSystemSettings();
             });
             this.els.resetEliminatedBtn.addEventListener('click', () => this.resetEliminations());
+            this.els.addItemBtn.addEventListener('click', () => { this.addNewItem(); this.saveSystemSettings(); });
+
+            // Font size slider
+            this.els.fontSizeSlider.addEventListener('input', (e) => {
+                this.settings.labelFontSize = parseInt(e.target.value);
+                this.els.fontSizeValue.textContent = `${this.settings.labelFontSize}px`;
+                this.drawAllWheels();
+                this.saveSystemSettings();
+            });
 
             // フレンジーモードの分割数を動的に適用
             this.els.applyFrenzyBtn.addEventListener('click', () => {
@@ -1072,8 +1136,9 @@
                 this.renderContentsList();
             });
 
-            // 単独の独立した言語切替処理
+            // 言語切替 — ヘッダーとウィナーモーダル両方に配置
             this.els.langBtn.addEventListener('click', () => this.toggleLanguage());
+            this.els.winnerLangBtn.addEventListener('click', () => this.toggleLanguage());
 
             // JSONファイルのローカル保存・読み込み
             this.els.exportBtn.addEventListener('click', () => this.exportToJSON());
