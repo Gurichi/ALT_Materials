@@ -298,5 +298,65 @@
       4
     ],
     "eliminated": false
+  },
+  {
+    "id": 16,
+    "text": {
+      "en": "Who is good at ____?",
+      "ja": "誰が____が得意ですか?"
+    },
+    "desc": {
+      "en": "___ is good at ____.",
+      "ja": "___は___が得意だ。"
+    },
+    "image": "",
+    "color": "#616161",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 17,
+    "text": {
+      "en": "How do you spell your name?",
+      "ja": "君の名前はどうやって綴るの？"
+    },
+    "desc": {
+      "en": "Spell your name.",
+      "ja": "名前をつづって。"
+    },
+    "image": "",
+    "color": "#610600",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 18,
+    "text": {
+      "en": "Who is this?",
+      "ja": "これ誰？"
+    },
+    "desc": {
+      "en": "",
+      "ja": ""
+    },
+    "image": "https://www.city.chichibu.lg.jp/secure/15071/migite_age_print.png",
+    "color": "#014700",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
   }
 ]
