@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1,
+    "text": {
+      "en": "What day is today?",
+      "ja": "今日は何曜日？"
+    },
+    "desc": {
+      "en": "Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday",
+      "ja": "月曜日、火曜日、水曜日、木曜日、金曜日、土曜日、日曜日"
+    },
+    "image": "",
+    "color": "#eab308",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 2,
+    "text": {
+      "en": "What is today's date?",
+      "ja": "今日の日付は何？"
+    },
+    "desc": {
+      "en": "Today is ____.",
+      "ja": "今日は____。"
+    },
+    "image": "",
+    "color": "#ef4444",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 3,
+    "text": {
+      "en": "When is your birthday?",
+      "ja": "あなたの誕生日はいつ？"
+    },
+    "desc": {
+      "en": "My birthday is _____.",
+      "ja": "私の誕生日は_____です。"
+    },
+    "image": "",
+    "color": "#3b82f6",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 4,
+    "text": {
+      "en": "What ____ do you like?",
+      "ja": "あなたはどの____が好きですか？"
+    },
+    "desc": {
+      "en": "I like _____.",
+      "ja": "私は_____が好きです。"
+    },
+    "image": "",
+    "color": "#10b981",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 5,
+    "text": {
+      "en": "What do you want?",
+      "ja": "何が欲しいの？"
+    },
+    "desc": {
+      "en": "I want ____.",
+      "ja": "私は____が欲しい。"
+    },
+    "image": "",
+    "color": "#95ff14",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 6,
+    "text": {
+      "en": "Who is your hero?",
+      "ja": "あなたのヒーローは誰？"
+    },
+    "desc": {
+      "en": "My hero is ____.",
+      "ja": "私のヒーローは____です。"
+    },
+    "image": "",
+    "color": "#00c7a6",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 7,
+    "text": {
+      "en": "What do you have in Tokyo?",
+      "ja": "東京には何があるの？"
+    },
+    "desc": {
+      "en": "We have ____ in Tokyo.",
+      "ja": "私たちは東京に____があります。"
+    },
+    "image": "",
+    "color": "hsl(149, 70%, 45%)",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 8,
+    "text": {
+      "en": "What do you have in Kyoto?",
+      "ja": "京都で何があるの？"
+    },
+    "desc": {
+      "en": "We have ____ in Kyoto.",
+      "ja": "私たちは京都に____があります。"
+    },
+    "image": "",
+    "color": "hsl(277, 70%, 45%)",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 9,
+    "text": {
+      "en": "What do you have in Osaka?",
+      "ja": "大阪で何があるの？"
+    },
+    "desc": {
+      "en": "We have ___ in Osaka.",
+      "ja": "私たちは大阪に___があります。"
+    },
+    "image": "",
+    "color": "#dd67fe",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 10,
+    "text": {
+      "en": "What do you have in Chichibu?",
+      "ja": "秩父で何があるの？"
+    },
+    "desc": {
+      "en": "We have ____ in Chichibu.",
+      "ja": "私たちは秩父に____があります。"
+    },
+    "image": "",
+    "color": "hsl(17, 70%, 45%)",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 11,
+    "text": {
+      "en": "What can you do?",
+      "ja": "何ができるの？"
+    },
+    "desc": {
+      "en": "I can ____.",
+      "ja": "私は____できる。"
+    },
+    "image": "",
+    "color": "hsl(49, 70%, 45%)",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 12,
+    "text": {
+      "en": "When is your special day?",
+      "ja": "あなたの特別な日はいつ？"
+    },
+    "desc": {
+      "en": "My special day is ____.",
+      "ja": "私の特別な日は____です。"
+    },
+    "image": "",
+    "color": "#ff0000",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 13,
+    "text": {
+      "en": "What time is it?",
+      "ja": "今何時？"
+    },
+    "desc": {
+      "en": "It's ____.",
+      "ja": "今___."
+    },
+    "image": "",
+    "color": "#003180",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 14,
+    "text": {
+      "en": "What do you want to be?",
+      "ja": "何になりたいの？"
+    },
+    "desc": {
+      "en": "I want to be _____.",
+      "ja": "私は_____になりたい。"
+    },
+    "image": "",
+    "color": "#ffea00",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 15,
+    "text": {
+      "en": "Where is your favorite place?",
+      "ja": "お気に入りの場所はどこですか?"
+    },
+    "desc": {
+      "en": "My favorite place is ____.",
+      "ja": "私の好きな場所は____です。"
+    },
+    "image": "",
+    "color": "#ff00bb",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 16,
+    "text": {
+      "en": "Who is good at ____?",
+      "ja": "誰が____が得意ですか?"
+    },
+    "desc": {
+      "en": "___ is good at ____.",
+      "ja": "___は___が得意だ。"
+    },
+    "image": "",
+    "color": "#616161",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 17,
+    "text": {
+      "en": "How do you spell your name?",
+      "ja": "君の名前はどうやって綴るの？"
+    },
+    "desc": {
+      "en": "Spell your name.",
+      "ja": "名前をつづって。"
+    },
+    "image": "",
+    "color": "#610600",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  },
+  {
+    "id": 18,
+    "text": {
+      "en": "Who is this?",
+      "ja": "これ誰？"
+    },
+    "desc": {
+      "en": "",
+      "ja": ""
+    },
+    "image": "https://www.city.chichibu.lg.jp/secure/15071/migite_age_print.png",
+    "color": "#014700",
+    "wheels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "eliminated": false
+  }
+]
