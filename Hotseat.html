@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,606 +7,893 @@
 <style>
     :root {
         --fire-start: #ff1a00;
-        --fire-end: #00ccff;
-        --teamA-start: #ff3300;
-        --teamA-end: #00ccff;
-        --teamB-start: #0066ff;
-        --teamB-end: #00ff66;
+        --fire-end:   #00ccff;
     }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { width: 100%; height: 100%; overflow: hidden; }
 
     body {
-        margin: 0;
-        padding: 0;
-        background-color: #0d0d0d;
+        background: #0d0d0d;
         color: white;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        overflow-x: hidden;
-        min-height: 100vh;
-        display: flex;
+        display: flex; flex-direction: column; align-items: center;
+    }
+
+    /* ── Shared canvas behind everything ── */
+    #fire-canvas {
+        position: fixed; inset: 0;
+        width: 100%; height: 100%;
+        z-index: 0; pointer-events: none;
+    }
+
+    /* ── All UI above canvas ── */
+    .screen {
+        position: fixed; inset: 0;
+        display: none;
+        z-index: 5;
+    }
+    .screen.active { display: flex; }
+
+    /* ══════════════════════════════
+       MENU SCREEN
+    ══════════════════════════════ */
+    #menu-screen {
         flex-direction: column;
         align-items: center;
-        perspective: 1000px;
+        justify-content: center;
+        overflow-y: auto;
     }
 
-    h1 {
-        margin-top: 20px;
-        text-shadow: 0 0 10px var(--fire-start);
-        animation: pulse 2s infinite;
+    .menu-card {
+        display: flex; flex-direction: column; gap: 18px; align-items: center;
+        background: rgba(10,10,10,0.80);
+        padding: 44px 52px; border-radius: 20px;
+        box-shadow: 0 0 40px rgba(255,80,0,0.45), inset 0 0 60px rgba(255,40,0,0.06);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,80,0,0.2);
+        transform: rotateX(6deg); transform-style: preserve-3d; transition: transform 0.3s;
+    }
+    .menu-card:hover { transform: rotateX(0deg) translateZ(16px); }
+    .menu-card h1 {
+        font-size: 2.2rem;
+        text-shadow: 0 0 18px #ff6600, 0 0 40px #ff2200;
+        animation: pulse 2.2s infinite;
+        letter-spacing: 0.03em;
+    }
+    .menu-card h2 { font-size: 1.1rem; color: rgba(255,255,255,0.55); font-weight: 400; margin-top:-8px; }
+
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+
+    .menu-btn-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+    .file-row { display: flex; gap: 10px; justify-content: center; margin-top: 4px; flex-wrap: wrap; }
+
+    /* ── Language toggle ── */
+    .lang-toggle {
+        position: fixed; top: 16px; right: 20px; z-index: 9999;
+        display: flex; gap: 6px; align-items: center;
+    }
+    .lang-btn {
+        background: rgba(20,20,20,0.85); color: #aaa;
+        border: 1px solid #444; padding: 6px 14px;
+        font-size: 0.82rem; border-radius: 20px;
+        cursor: pointer; transition: 0.2s; font-weight: bold; box-shadow: none;
+    }
+    .lang-btn:hover { background: rgba(70,70,70,0.9); transform: none; box-shadow: none; }
+    .lang-btn.active {
+        background: linear-gradient(135deg,#ff5500,#ff1a00);
+        color: white; border-color: #ff5500;
+        box-shadow: 0 2px 12px rgba(255,85,0,0.6);
     }
 
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-
-    /* メニュー画面 */
-    .menu-container {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        align-items: center;
-        background: rgba(30, 30, 30, 0.8);
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 0 20px rgba(255, 50, 0, 0.5);
-        margin-top: 50px;
-        transform: rotateX(10deg);
-        transform-style: preserve-3d;
-        transition: all 0.3s;
-    }
-
-    .menu-container:hover {
-        transform: rotateX(0deg) translateZ(20px);
-    }
-
+    /* ── Shared button styles ── */
     button {
-        background: linear-gradient(135deg, #ff5500, #ff1a00);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        font-size: 1.2rem;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-        box-shadow: 0 4px 15px rgba(255, 50, 0, 0.4);
+        background: linear-gradient(135deg,#ff5500,#ff1a00);
+        color: white; border: none; padding: 14px 28px;
+        font-size: 1.1rem; border-radius: 10px; cursor: pointer;
+        font-weight: bold; transition: 0.25s;
+        box-shadow: 0 4px 16px rgba(255,50,0,0.4);
+        white-space: nowrap;
     }
-
     button:hover {
-        transform: scale(1.1) translateZ(10px);
-        box-shadow: 0 8px 25px rgba(255, 50, 0, 0.8);
-        background: linear-gradient(135deg, #ff7700, #ff3300);
+        transform: scale(1.07);
+        box-shadow: 0 8px 28px rgba(255,80,0,0.85);
+        background: linear-gradient(135deg,#ff7700,#ff3300);
     }
+    .btn-secondary { background: linear-gradient(135deg,#3a3a3a,#1a1a1a); box-shadow: 0 3px 10px rgba(0,0,0,0.5); }
+    .btn-secondary:hover { background: linear-gradient(135deg,#555,#333); box-shadow: 0 6px 18px rgba(0,0,0,0.7); }
+    .btn-danger { background: linear-gradient(135deg,#dd2200,#aa0000); }
+    .btn-danger:hover { background: linear-gradient(135deg,#ff4400,#dd0000); }
+    .btn-success { background: linear-gradient(135deg,#00bb44,#007722); }
+    .btn-success:hover { background: linear-gradient(135deg,#00ee55,#009933); }
+    .btn-img { background: linear-gradient(135deg,#6600cc,#3300aa); padding:5px 10px; font-size:0.82rem; }
+    .btn-img:hover { background: linear-gradient(135deg,#8800ff,#5500cc); }
 
-    .btn-secondary {
-        background: linear-gradient(135deg, #444, #222);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-    }
-    .btn-secondary:hover {
-        background: linear-gradient(135deg, #666, #444);
-    }
-
-    /* ゲーム画面全体 */
-    .game-screen {
-        display: none;
+    /* ══════════════════════════════
+       NORMAL GAME SCREEN
+    ══════════════════════════════ */
+    #game-screen {
         flex-direction: column;
         align-items: center;
-        width: 100%;
-        animation: fadeIn 0.5s ease-out;
+        justify-content: center;
+        gap: 24px;
     }
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* タイマー */
     .timer-bar-container {
-        width: 80%;
-        height: 30px;
-        background-color: #333;
-        border-radius: 15px;
-        overflow: hidden;
-        margin: 20px 0;
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        width: min(80vw, 600px); height: 28px;
+        background: rgba(40,40,40,0.75);
+        border-radius: 14px; overflow: hidden;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.7), 0 0 14px rgba(255,80,0,0.3);
     }
-
     .timer-bar {
-        height: 100%;
-        width: 100%;
-        background: linear-gradient(90deg, var(--fire-start), var(--fire-end));
+        height: 100%; width: 100%;
+        background: linear-gradient(90deg,#ff1a00,#ffcc00);
         transition: width 0.1s linear, background 0.1s linear;
+        border-radius: 14px;
     }
 
-    /* 単語表示エリア */
     .word-box {
-        background: rgba(20, 20, 20, 0.9);
-        border: 2px solid #ff5500;
-        padding: 40px 60px;
-        border-radius: 20px;
-        font-size: 3rem;
-        font-weight: bold;
-        text-shadow: 0 0 15px #ff5500;
-        box-shadow: 0 0 30px rgba(255, 85, 0, 0.5);
-        margin-bottom: 30px;
-        transform: rotateY(0deg) translateZ(50px);
-        transition: all 0.3s;
+        background: rgba(8,8,8,0.88);
+        border: 2px solid rgba(255,85,0,0.7);
+        padding: 32px 56px; border-radius: 22px;
+        font-size: 3rem; font-weight: bold;
+        text-shadow: 0 0 18px #ff6600;
+        box-shadow: 0 0 50px rgba(255,85,0,0.45), inset 0 0 30px rgba(255,40,0,0.07);
+        display: flex; flex-direction: column; align-items: center; gap: 16px;
+        min-width: 280px; text-align: center;
+        backdrop-filter: blur(6px);
+        transition: transform 0.3s;
+    }
+    .word-box:hover { transform: scale(1.02) rotateY(3deg); }
+    .word-box img {
+        max-width: 260px; max-height: 180px;
+        border-radius: 12px; object-fit: contain;
+        border: 2px solid rgba(255,85,0,0.5);
+        box-shadow: 0 0 20px rgba(255,85,0,0.4);
     }
 
-    .word-box:hover {
-        transform: rotateY(5deg) translateZ(60px);
+    .normal-controls { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+
+    /* ══════════════════════════════
+       TEAM SCREEN — full viewport, fixed, no scroll
+    ══════════════════════════════ */
+    #team-screen {
+        flex-direction: column;
+        overflow: hidden;
     }
 
-    /* チームモード */
-    .team-container {
-        display: none;
-        width: 100vw;
-        height: 100vh;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 10;
-    }
-
+    /* Two side-by-side panels filling the whole screen */
     .split-screen {
+        flex: 1;
         display: flex;
         width: 100%;
         height: 100%;
+        min-height: 0;         /* crucial: don't let flex children overflow */
+        overflow: hidden;
+        position: relative;
     }
 
     .team-side {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        transition: background 0.1s linear;
-        padding: 20px;
+        flex: 1; min-width: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 70px 24px 100px; /* top room for center timer, bottom for button bar */
+        position: relative;
+        overflow: hidden;
+        transition: background 0.12s linear;
     }
 
-    #team-left {
-        background: linear-gradient(135deg, var(--teamA-start), #9900ff);
+    /* Per-side fire canvas */
+    .side-fire-canvas {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        pointer-events: none; z-index: 0;
     }
 
-    #team-right {
-        background: linear-gradient(135deg, var(--teamB-start), var(--teamB-end));
+    /* Divider glow */
+    .team-side + .team-side::before {
+        content: '';
+        position: absolute; left: 0; top: 10%; bottom: 10%;
+        width: 2px;
+        background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.25), transparent);
+        z-index: 10;
     }
 
+    /* Content above the fire canvas */
+    .team-side > *:not(.side-fire-canvas) { position: relative; z-index: 2; }
+
+    /* Single centered timer — floats above the split-screen */
+    .team-timer-center {
+        position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+        width: min(340px, 44vw);
+        display: flex; flex-direction: column; align-items: center; gap: 5px;
+        z-index: 40; pointer-events: none;
+    }
+    .team-timer-label {
+        font-size: 0.7rem; font-weight: 700; letter-spacing: 0.14em;
+        color: rgba(255,255,255,0.9); text-transform: uppercase;
+        text-shadow: 0 1px 6px rgba(0,0,0,1), 0 0 12px rgba(255,140,0,0.6);
+    }
+    .team-timer-bar-container {
+        width: 100%; height: 14px;
+        background: rgba(0,0,0,0.55);
+        border-radius: 7px; overflow: hidden;
+        box-shadow: inset 0 1px 4px rgba(0,0,0,0.9), 0 0 14px rgba(255,140,0,0.4);
+    }
+    .team-timer-bar {
+        height: 100%; width: 100%; border-radius: 7px;
+        background: linear-gradient(90deg,#ff1a00,#ffcc00);
+        transition: width 0.1s linear, background 0.1s linear;
+    }
+
+    /* Word card on each side */
     .team-word {
-        font-size: 3.5rem;
-        font-weight: bold;
-        text-align: center;
-        text-shadow: 0 0 20px rgba(0,0,0,0.8);
-        background: rgba(0,0,0,0.4);
-        padding: 30px;
-        border-radius: 15px;
-        width: 80%;
-        margin-bottom: 20px;
+        font-size: clamp(1.6rem, 3.5vw, 3.2rem);
+        font-weight: bold; text-align: center;
+        text-shadow: 0 2px 12px rgba(0,0,0,1);
+        background: rgba(0,0,0,0.5);
+        padding: 22px 28px; border-radius: 16px;
+        width: 88%; max-width: 420px;
+        display: flex; flex-direction: column; align-items: center; gap: 12px;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .team-word img {
+        max-width: 180px; max-height: 140px;
+        border-radius: 10px; object-fit: contain;
+        border: 2px solid rgba(255,255,255,0.25);
+        box-shadow: 0 0 14px rgba(0,0,0,0.8);
     }
 
-    /* 単語管理画面 */
-    .crud-container {
-        display: none;
-        flex-direction: column;
-        background: rgba(30, 30, 30, 0.9);
-        padding: 30px;
-        border-radius: 15px;
-        width: 80%;
-        max-width: 600px;
-        box-shadow: 0 0 20px rgba(255, 50, 0, 0.3);
-        margin-top: 30px;
+    /* Team label (Team A / Team B) */
+    .team-label {
+        font-size: 0.75rem; font-weight: 700; letter-spacing: 0.14em;
+        text-transform: uppercase; color: rgba(255,255,255,0.65);
+        text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        margin-bottom: 8px;
     }
+
+    /* ── Bottom control bar — fixed inside team-screen ── */
+    .team-bottom-bar {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 84px;
+        z-index: 20;
+        display: flex; align-items: center;
+        padding: 0 28px;
+        background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%);
+        pointer-events: none; /* let children handle clicks */
+    }
+    .team-bottom-bar > * { pointer-events: auto; }
+
+    .tbb-left   { flex: 1; display: flex; justify-content: flex-start; }
+    .tbb-center { flex: 1; display: flex; justify-content: center; }
+    .tbb-right  { flex: 1; display: flex; justify-content: flex-end; }
+
+    .team-pull-btn {
+        font-size: 1.4rem; padding: 14px 48px;
+        border-radius: 50px;
+        box-shadow: 0 0 40px rgba(255,120,0,0.9), 0 0 0 3px rgba(0,0,0,0.5);
+        letter-spacing: 0.04em;
+    }
+    .team-menu-btn {
+        font-size: 0.85rem; padding: 10px 18px;
+        background: rgba(20,20,20,0.85);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 22px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    }
+    .team-menu-btn:hover { background: rgba(60,60,60,0.9); }
+
+    /* ══════════════════════════════
+       CRUD SCREEN
+    ══════════════════════════════ */
+    #crud-screen {
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        overflow-y: auto;
+        padding: 30px 16px 40px;
+    }
+
+    .crud-card {
+        display: flex; flex-direction: column;
+        background: rgba(10,10,10,0.88);
+        padding: 28px 30px; border-radius: 16px;
+        width: 100%; max-width: 680px;
+        box-shadow: 0 0 30px rgba(255,50,0,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,80,0,0.15);
+        gap: 14px;
+    }
+    .crud-card h2 { font-size: 1.4rem; }
 
     .word-list {
-        max-height: 200px;
-        overflow-y: auto;
-        margin: 15px 0;
-        padding: 10px;
-        border: 1px solid #444;
-        border-radius: 8px;
-        background: #111;
+        max-height: 300px; overflow-y: auto;
+        border: 1px solid #333; border-radius: 8px; background: #080808;
+        padding: 6px;
     }
-
     .word-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px;
-        border-bottom: 1px solid #333;
+        display: flex; align-items: center;
+        padding: 8px 6px; border-bottom: 1px solid #1e1e1e; gap: 8px; flex-wrap: wrap;
     }
+    .word-item-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px; }
+    .word-item input[type="text"] {
+        background: #151515; color: white; border: 1px solid #444;
+        padding: 6px 8px; border-radius: 4px; flex-grow: 1; min-width: 80px; font-size: 0.95rem;
+    }
+    .word-item-thumb {
+        width: 46px; height: 46px; border-radius: 6px;
+        border: 1px solid #444; background: #151515;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden; flex-shrink: 0; cursor: pointer; position: relative;
+    }
+    .word-item-thumb img { width:100%; height:100%; object-fit:cover; border-radius:5px; }
+    .word-item-thumb .thumb-placeholder { font-size:0.58rem; color:#666; text-align:center; padding:4px; line-height:1.3; }
+    .word-item-thumb input[type="file"] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .word-item-actions { display:flex; gap:4px; flex-shrink:0; }
+    .word-item-actions button { padding:5px 10px; font-size:0.85rem; }
 
-    .word-item input {
-        background: #222;
-        color: white;
-        border: 1px solid #555;
-        padding: 5px;
-        border-radius: 4px;
-        flex-grow: 1;
-        margin-right: 10px;
+    .input-group { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .input-group input[type="text"] {
+        flex-grow:1; padding:10px; border-radius:6px;
+        border:1px solid #444; background:#151515; color:white; font-size:1rem;
+        min-width: 120px;
     }
+    .file-row-crud { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
 
-    .word-item button {
-        padding: 5px 10px;
-        font-size: 1rem;
-        margin: 2px;
+    #new-word-img-input { display:none; }
+    .img-pick-btn {
+        background: linear-gradient(135deg,#6600cc,#3300aa);
+        padding: 10px 14px; border-radius: 6px; font-size: 0.88rem;
+        cursor: pointer; white-space: nowrap; font-weight: bold;
+        display: flex; align-items: center; gap: 5px; color: white;
+        border: none; transition: 0.25s; box-shadow: 0 2px 8px rgba(100,0,200,0.4);
     }
-
-    .input-group {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .input-group input {
-        flex-grow: 1;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #555;
-        background: #222;
-        color: white;
-    }
-
-    .file-io-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-        justify-content: center;
-    }
-
-    .controls {
-        display: flex;
-        gap: 20px;
-        margin-top: 20px;
-    }
-
-    .btn-danger {
-        background: linear-gradient(135deg, #ff3300, #cc0000);
-    }
-    .btn-danger:hover {
-        background: linear-gradient(135deg, #ff5500, #ff0000);
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #00cc44, #008822);
-    }
-    .btn-success:hover {
-        background: linear-gradient(135deg, #00ff66, #00aa33);
+    .img-pick-btn:hover { background: linear-gradient(135deg,#8800ff,#5500cc); transform: scale(1.05); }
+    #new-img-preview {
+        width: 36px; height: 36px; border-radius: 5px; object-fit: cover;
+        border: 1px solid #6600cc; display: none; flex-shrink: 0;
     }
 </style>
 </head>
 <body>
 
-<h1>Fiery Hotseat Game</h1>
+<!-- Shared fire canvas -->
+<canvas id="fire-canvas"></canvas>
 
-<!-- メニュー -->
-<div class="menu-container" id="menu">
-    <h2>メインメニュー</h2>
-    <button onclick="startGame()">通常ゲーム開始</button>
-    <button onclick="startTeamGame()">チームモード開始</button>
-    <button class="btn-secondary" onclick="showCrudScreen()">単語の管理 (CRUD)</button>
-    <div class="file-io-group">
-        <button class="btn-secondary" onclick="saveWordsToJson()">JSON保存</button>
-        <button class="btn-secondary" onclick="document.getElementById('file-input').click()">JSONロード</button>
-        <input type="file" id="file-input" style="display: none;" accept=".json" onchange="loadWordsFromJson(event)">
+<!-- Language toggle (always visible) -->
+<div class="lang-toggle">
+    <button class="lang-btn" id="btn-ja" onclick="setLang('ja')">日本語</button>
+    <button class="lang-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- ══════════ MENU SCREEN ══════════ -->
+<div class="screen" id="menu-screen">
+    <div class="menu-card">
+        <h1 data-i18n="title">Fiery Hotseat</h1>
+        <h2 data-i18n="mainMenu">Main Menu</h2>
+        <div class="menu-btn-group">
+            <button onclick="startGame()"     data-i18n="startNormal">Start Normal Game</button>
+            <button onclick="startTeamGame()" data-i18n="startTeam">Start Team Mode</button>
+            <button class="btn-secondary" onclick="showCrudScreen()" data-i18n="manageWords">Manage Words</button>
+        </div>
+        <div class="file-row">
+            <button class="btn-secondary" onclick="saveWordsToJson()" data-i18n="saveJson">Save JSON</button>
+            <button class="btn-secondary" onclick="document.getElementById('file-input').click()" data-i18n="loadJson">Load JSON</button>
+            <input type="file" id="file-input" style="display:none;" accept=".json" onchange="loadWordsFromJson(event)">
+        </div>
     </div>
 </div>
 
-<!-- 通常ゲーム画面 -->
-<div class="game-screen" id="game-screen">
+<!-- ══════════ NORMAL GAME SCREEN ══════════ -->
+<div class="screen" id="game-screen">
     <div class="timer-bar-container">
         <div class="timer-bar" id="timer-bar"></div>
     </div>
-    
-    <div class="word-box" id="current-word">単語を引いてください</div>
-    
-    <div class="controls">
-        <button onclick="pullWord()">Pull Word</button>
-        <button class="btn-secondary" onclick="resetToMenu()">メニューに戻る</button>
+    <div class="word-box" id="current-word-box">
+        <span id="current-word" data-i18n="pullPrompt">Pull a word to start</span>
+    </div>
+    <div class="normal-controls">
+        <button onclick="pullWord()"                  data-i18n="pullWord">Pull Word</button>
+        <button class="btn-secondary" onclick="resetToMenu()" data-i18n="backMenu">Back to Menu</button>
     </div>
 </div>
 
-<!-- チームモード画面 -->
-<div class="team-container" id="team-screen">
-    <div class="timer-bar-container">
-        <div class="timer-bar" id="timer-bar"></div>
-    </div>
+<!-- ══════════ TEAM SCREEN ══════════ -->
+<div class="screen" id="team-screen">
     <div class="split-screen">
+
+        <!-- Single centered timer overlaid on the divider -->
+        <div class="team-timer-center">
+            <div class="team-timer-label" data-i18n="timerLabel">TIME</div>
+            <div class="team-timer-bar-container">
+                <div class="team-timer-bar" id="team-timer-bar"></div>
+            </div>
+        </div>
+
+        <!-- Left panel -->
         <div class="team-side" id="team-left">
-            <div class="team-word" id="team-left-word">Pull a word</div>
+            <canvas class="side-fire-canvas" id="fire-left"></canvas>
+            <div class="team-label" data-i18n="teamA">TEAM A</div>
+            <div class="team-word" id="team-left-word">
+                <span id="team-left-text" data-i18n="pullPromptTeam">Pull a word to start</span>
+            </div>
         </div>
+
+        <!-- Right panel -->
         <div class="team-side" id="team-right">
-            <div class="team-word" id="team-right-word">Pull a word</div>
-            <button onclick="pullTeamWord()">Pull</button>
+            <canvas class="side-fire-canvas" id="fire-right"></canvas>
+            <div class="team-label" data-i18n="teamB">TEAM B</div>
+            <div class="team-word" id="team-right-word">
+                <span id="team-right-text" data-i18n="pullPromptTeam">Pull a word to start</span>
+            </div>
         </div>
+
+        <!-- Bottom bar -->
+        <div class="team-bottom-bar">
+            <div class="tbb-left">
+                <button class="team-menu-btn btn-secondary" onclick="resetToMenu()" data-i18n="backMenu">← Menu</button>
+            </div>
+            <div class="tbb-center">
+                <button class="team-pull-btn" onclick="pullTeamWord()" data-i18n="pull">Pull</button>
+            </div>
+            <div class="tbb-right"></div>
+        </div>
+
     </div>
-    <button class="btn-secondary" style="position: absolute; bottom: 20px; z-index: 20;" onclick="resetToMenu()">メニューに戻る</button>
 </div>
 
-<!-- 単語管理画面 -->
-<div class="crud-container" id="crud-screen">
-    <h2>単語の管理</h2>
-    <div class="input-group">
-        <input type="text" id="new-word-input" placeholder="新しい単語を追加...">
-        <button class="btn-success" onclick="addWord()">追加</button>
+<!-- ══════════ CRUD SCREEN ══════════ -->
+<div class="screen" id="crud-screen">
+    <div class="crud-card">
+        <h2 data-i18n="manageWordsTitle">Manage Words</h2>
+
+        <div class="input-group">
+            <input type="text" id="new-word-input" data-i18n-placeholder="addPlaceholder" placeholder="Add a new word...">
+            <label class="img-pick-btn" for="new-word-img-input" data-i18n="addImg">Image</label>
+            <input type="file" id="new-word-img-input" accept="image/*" onchange="previewNewImg(event)">
+            <img id="new-img-preview" src="" alt="">
+            <button class="btn-success" onclick="addWord()" data-i18n="add">Add</button>
+        </div>
+
+        <div class="word-list" id="word-list-box"></div>
+
+        <div class="file-row-crud">
+            <button class="btn-secondary" onclick="saveWordsToJson()" data-i18n="saveJson">Save JSON</button>
+            <button class="btn-secondary" onclick="document.getElementById('file-input-crud').click()" data-i18n="loadJson">Load JSON</button>
+            <input type="file" id="file-input-crud" style="display:none;" accept=".json" onchange="loadWordsFromJson(event)">
+            <button class="btn-secondary" onclick="hideCrudScreen()" data-i18n="backMenu">Back to Menu</button>
+        </div>
     </div>
-    <div class="word-list" id="word-list-box">
-        <!-- 単語一覧がJSから挿入されます -->
-    </div>
-    <button class="btn-secondary" onclick="hideCrudScreen()">メニューに戻る</button>
 </div>
 
 <script>
-    // 初期単語データ
-    let words = ["Fire", "Inferno", "Blaze", "Phoenix", "Magma", "Cinder", "Ember", "Scorch", "Flare", "Ignite"];
-    let history = []; // 過去のプル履歴
-    let teamMode = false;
-    let timeLimit = 30000; // 30秒
-    let timeLeft = timeLimit;
-    let timerInterval = null;
-    let isRunning = false;
+'use strict';
 
-    // --- 単語 管理 (CRUD) ---
-    function renderWordList() {
-        const listContainer = document.getElementById('word-list-box');
-        listContainer.innerHTML = '';
-        words.forEach((word, index) => {
-            const item = document.createElement('div');
-            item.className = 'word-item';
-            item.innerHTML = `
-                <input type="text" id="word-${index}" value="${word}" disabled>
-                <div>
-                    <button class="btn-secondary" id="edit-btn-${index}" onclick="enableEdit(${index})">編集</button>
-                    <button class="btn-danger" onclick="deleteWord(${index})">削除</button>
-                </div>
-            `;
-            listContainer.appendChild(item);
+// ══════════════════════════════════════════════
+// Helpers
+// ══════════════════════════════════════════════
+function lerp(a, b, t) { return a + (b - a) * t; }
+// ══════════════════════════════════════════════
+function createFireSystem(canvas, opts = {}) {
+    const ctx  = canvas.getContext('2d');
+    const MAX  = opts.max || 180;
+    // current hue range — mutable so timer can drive them
+    let hue1 = opts.hue1 ?? 0;
+    let hue2 = opts.hue2 ?? 45;
+    let W, H, particles = [], running = false, rafId = null;
+
+    function resize() {
+        W = canvas.width  = canvas.offsetWidth  || canvas.parentElement?.offsetWidth  || window.innerWidth;
+        H = canvas.height = canvas.offsetHeight || canvas.parentElement?.offsetHeight || window.innerHeight;
+    }
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+    function spawn() {
+        const size = rnd(5, 20);
+        particles.push({
+            x: rnd(0, W), y: H + size,
+            vx: rnd(-0.7, 0.7), vy: rnd(-2.4, -1.0),
+            size, life: 1, decay: rnd(0.007, 0.02),
+            hue: rnd(hue1, hue2),   // snapshot hue at birth
+            swing: rnd(0, Math.PI * 2),
         });
     }
-
-    function addWord() {
-        const input = document.getElementById('new-word-input');
-        const word = input.value.trim();
-        if (word) {
-            words.push(word);
-            input.value = '';
-            renderWordList();
+    function tick() {
+        if (!running) return;
+        ctx.clearRect(0, 0, W, H);
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.swing += 0.04;
+            p.x += p.vx + Math.sin(p.swing + p.y * 0.025) * 0.55;
+            p.y += p.vy; p.vy -= 0.006; p.life -= p.decay;
+            if (p.life <= 0) { particles.splice(i, 1); spawn(); continue; }
+            const a = Math.min(p.life * 1.3, 0.82);
+            const r = p.size * p.life;
+            const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+            g.addColorStop(0,    `hsla(${p.hue+38},100%,96%,${a})`);
+            g.addColorStop(0.28, `hsla(${p.hue+18},100%,72%,${a*0.9})`);
+            g.addColorStop(0.65, `hsla(${p.hue},   100%,44%,${a*0.5})`);
+            g.addColorStop(1,    `hsla(${p.hue-12},100%,18%,0)`);
+            ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI*2);
+            ctx.fillStyle = g; ctx.fill();
         }
+        while (particles.length < MAX) spawn();
+        rafId = requestAnimationFrame(tick);
     }
-
-
-    function enableEdit(index) {
-        const input = document.getElementById(`word-${index}`);
-        const btn = document.getElementById(`edit-btn-${index}`);
-        
-        if (input.disabled) {
-            input.disabled = false;
-            input.focus();
-            btn.textContent = "保存";
-        } else {
-            input.disabled = true;
-            words[index] = input.value.trim();
-            btn.textContent = "編集";
-            renderWordList();
-        }
-    }
-
-    function deleteWord(index) {
-        words.splice(index, 1);
-        renderWordList();
-    }
-
-    function showCrudScreen() {
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('crud-screen').style.display = 'flex';
-        renderWordList();
-    }
-
-    function hideCrudScreen() {
-        document.getElementById('crud-screen').style.display = 'none';
-        document.getElementById('menu').style.display = 'flex';
-    }
-
-    // --- JSONの保存と読み込み ---
-    function saveWordsToJson() {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(words));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "hotseat_words.json");
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-    }
-
-    function loadWordsFromJson(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const loadedWords = JSON.parse(e.target.result);
-                if (Array.isArray(loadedWords)) {
-                    words = loadedWords;
-                    if (document.getElementById('crud-screen').style.display === 'flex') {
-                        renderWordList();
-                    }
-                }
-            } catch (err) {
-                alert('JSONファイルの読み込みに失敗しました。');
+    return {
+        start() {
+            resize();
+            if (!running) {
+                running = true;
+                for (let i = 0; i < MAX; i++) spawn();
+                tick();
             }
-        };
-        reader.readAsText(file);
+        },
+        stop() {
+            running = false;
+            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+            ctx.clearRect(0, 0, W, H);
+            particles = [];
+        },
+        resize,
+        // Call from timer tick to shift fire colour
+        setHues(h1, h2) { hue1 = h1; hue2 = h2; },
+    };
+}
+
+// Instantiate fires
+// Main/solo: orange-red baseline
+const mainFire  = createFireSystem(document.getElementById('fire-canvas'), { max: 220, hue1: 0,   hue2: 40 });
+// Team A: red→blue  (hue 0 = red, 240 = blue)
+const leftFire  = createFireSystem(document.getElementById('fire-left'),   { max: 140, hue1: 0,   hue2: 30 });
+// Team B: blue→yellow  (hue 210 = blue, 55 = yellow)
+const rightFire = createFireSystem(document.getElementById('fire-right'),  { max: 140, hue1: 210, hue2: 55 });
+
+window.addEventListener('resize', () => { mainFire.resize(); leftFire.resize(); rightFire.resize(); });
+mainFire.start();
+
+
+// ══════════════════════════════════════════════
+// i18n
+// ══════════════════════════════════════════════
+const TR = {
+    en: {
+        title:'Fiery Hotseat', mainMenu:'Main Menu',
+        startNormal:'Start Normal Game', startTeam:'Start Team Mode',
+        manageWords:'Manage Words', saveJson:'Save JSON', loadJson:'Load JSON',
+        pullPrompt:'Pull a word to start', pullPromptTeam:'Pull a word to start',
+        pullWord:'Pull Word', pull:'Pull', backMenu:'Back to Menu',
+        manageWordsTitle:'Manage Words', addPlaceholder:'Add a new word...',
+        addImg:'Image', add:'Add', edit:'Edit', save:'Save', delete:'Delete',
+        removeImg:'✕ Img', timerLabel:'TIME',
+        jsonError:'Failed to load JSON file.', noWords:'No words available',
+        thumbHint:'+ image', teamA:'TEAM A', teamB:'TEAM B',
+    },
+    ja: {
+        title:'Fiery Hotseat', mainMenu:'メインメニュー',
+        startNormal:'通常ゲーム開始', startTeam:'チームモード開始',
+        manageWords:'単語の管理', saveJson:'JSON保存', loadJson:'JSONロード',
+        pullPrompt:'単語を引いてください', pullPromptTeam:'単語を引いてください',
+        pullWord:'単語を引く', pull:'引く', backMenu:'メニューへ',
+        manageWordsTitle:'単語の管理', addPlaceholder:'新しい単語を追加...',
+        addImg:'画像', add:'追加', edit:'編集', save:'保存', delete:'削除',
+        removeImg:'✕ 画像', timerLabel:'残り時間',
+        jsonError:'JSONファイルの読み込みに失敗しました。', noWords:'単語がありません',
+        thumbHint:'+ 画像', teamA:'チーム A', teamB:'チーム B',
+    },
+};
+
+let lang = 'en';
+function t(k) { return TR[lang][k] ?? TR.en[k] ?? k; }
+
+function setLang(l) {
+    lang = l;
+    document.getElementById('btn-en').classList.toggle('active', l === 'en');
+    document.getElementById('btn-ja').classList.toggle('active', l === 'ja');
+    document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+    if (document.getElementById('crud-screen').classList.contains('active')) renderWordList();
+}
+
+
+// ══════════════════════════════════════════════
+// Screen management
+// ══════════════════════════════════════════════
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+
+// ══════════════════════════════════════════════
+// State
+// ══════════════════════════════════════════════
+let words = [
+    {text:'Fire',image:null},{text:'Inferno',image:null},{text:'Blaze',image:null},
+    {text:'Phoenix',image:null},{text:'Magma',image:null},{text:'Cinder',image:null},
+    {text:'Ember',image:null},{text:'Scorch',image:null},{text:'Flare',image:null},
+    {text:'Ignite',image:null},
+];
+let history = [];
+let teamMode = false;
+let timeLimit = 30000;
+let timeLeft  = timeLimit;
+let timerInterval = null;
+let isRunning = false;
+let pendingNewImg = null;
+
+
+// ══════════════════════════════════════════════
+// CRUD
+// ══════════════════════════════════════════════
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function previewNewImg(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        pendingNewImg = ev.target.result;
+        const p = document.getElementById('new-img-preview');
+        p.src = pendingNewImg; p.style.display = 'block';
+    };
+    r.readAsDataURL(file);
+}
+
+function renderWordList() {
+    const box = document.getElementById('word-list-box');
+    box.innerHTML = '';
+    words.forEach((w, i) => {
+        const hasImg = !!w.image;
+        const thumb  = hasImg
+            ? `<img src="${w.image}" alt="">`
+            : `<span class="thumb-placeholder">${t('thumbHint')}</span>`;
+        const item = document.createElement('div');
+        item.className = 'word-item';
+        item.innerHTML = `
+            <div class="word-item-left">
+                <div class="word-item-thumb">
+                    ${thumb}
+                    <input type="file" accept="image/*" onchange="setWordImage(${i},event)">
+                </div>
+                <input type="text" id="word-${i}" value="${escHtml(w.text)}" disabled>
+            </div>
+            <div class="word-item-actions">
+                <button class="btn-secondary" id="edit-btn-${i}" onclick="enableEdit(${i})">${t('edit')}</button>
+                ${hasImg ? `<button class="btn-img" onclick="removeWordImage(${i})">${t('removeImg')}</button>` : ''}
+                <button class="btn-danger" onclick="deleteWord(${i})">${t('delete')}</button>
+            </div>`;
+        box.appendChild(item);
+    });
+}
+
+function setWordImage(i, e) {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => { words[i].image = ev.target.result; renderWordList(); };
+    r.readAsDataURL(file);
+}
+function removeWordImage(i) { words[i].image = null; renderWordList(); }
+
+function addWord() {
+    const inp = document.getElementById('new-word-input');
+    const txt = inp.value.trim(); if (!txt) return;
+    words.push({ text: txt, image: pendingNewImg });
+    inp.value = ''; pendingNewImg = null;
+    const p = document.getElementById('new-img-preview');
+    p.style.display = 'none'; p.src = '';
+    document.getElementById('new-word-img-input').value = '';
+    renderWordList();
+}
+
+function enableEdit(i) {
+    const inp = document.getElementById(`word-${i}`);
+    const btn = document.getElementById(`edit-btn-${i}`);
+    if (inp.disabled) { inp.disabled = false; inp.focus(); btn.textContent = t('save'); }
+    else { inp.disabled = true; words[i].text = inp.value.trim() || words[i].text; btn.textContent = t('edit'); renderWordList(); }
+}
+function deleteWord(i) { words.splice(i, 1); renderWordList(); }
+
+function showCrudScreen() {
+    showScreen('crud-screen');
+    renderWordList();
+    mainFire.start();
+    leftFire.stop(); rightFire.stop();
+}
+function hideCrudScreen() {
+    showScreen('menu-screen');
+    mainFire.start();
+}
+
+
+// ══════════════════════════════════════════════
+// JSON I/O
+// ══════════════════════════════════════════════
+function saveWordsToJson() {
+    const s = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(words, null, 2));
+    const a = Object.assign(document.createElement('a'), { href: s, download: 'hotseat_words.json' });
+    document.body.appendChild(a); a.click(); a.remove();
+}
+function loadWordsFromJson(e) {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        try {
+            const loaded = JSON.parse(ev.target.result);
+            if (!Array.isArray(loaded)) throw new Error();
+            words = loaded.map(it => typeof it === 'string' ? { text: it, image: null } : { text: it.text||'', image: it.image||null });
+            if (document.getElementById('crud-screen').classList.contains('active')) renderWordList();
+        } catch { alert(t('jsonError')); }
+    };
+    r.readAsText(file);
+    e.target.value = '';
+}
+
+
+// ══════════════════════════════════════════════
+// Navigation
+// ══════════════════════════════════════════════
+function startGame() {
+    showScreen('game-screen');
+    teamMode = false;
+    document.getElementById('current-word').textContent = t('pullPrompt');
+    const img = document.getElementById('current-word-box').querySelector('img');
+    if (img) img.remove();
+    const bar = document.getElementById('timer-bar');
+    bar.style.width = '100%'; bar.style.background = 'linear-gradient(90deg,#ff1a00,#ffcc00)';
+    clearInterval(timerInterval); isRunning = false;
+    mainFire.start(); leftFire.stop(); rightFire.stop();
+}
+
+function startTeamGame() {
+    showScreen('team-screen');
+    teamMode = true;
+    setTeamWordDisplay('left',  null, t('pullPromptTeam'));
+    setTeamWordDisplay('right', null, t('pullPromptTeam'));
+    const tb = document.getElementById('team-timer-bar');
+    tb.style.width = '100%'; tb.style.background = 'linear-gradient(90deg,#ff1a00,#ffcc00)';
+    clearInterval(timerInterval); isRunning = false;
+    // Resize side canvases (they may not have been laid out before)
+    requestAnimationFrame(() => { leftFire.resize(); rightFire.resize(); });
+    mainFire.stop();
+    leftFire.start(); rightFire.start();
+}
+
+function resetToMenu() {
+    clearInterval(timerInterval); isRunning = false; teamMode = false;
+    leftFire.stop(); rightFire.stop();
+    showScreen('menu-screen');
+    mainFire.start();
+}
+
+
+// ══════════════════════════════════════════════
+// Timer — Normal  (fire shifts orange→blue as time drains)
+// ══════════════════════════════════════════════
+function resetGameTimer() {
+    timeLeft = timeLimit; isRunning = true;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!isRunning) return;
+        let sf = 1;
+        if (timeLeft < timeLimit * 0.3) sf = 2.5;
+        else if (timeLeft < timeLimit * 0.6) sf = 1.5;
+        timeLeft -= 100 * sf; if (timeLeft < 0) timeLeft = 0;
+        const pct = timeLeft / timeLimit;          // 1 = full, 0 = empty
+
+        // Timer bar: green(full) → orange → red(empty)
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = `${pct * 100}%`;
+        const r = Math.floor(255 * Math.min(1, (1 - pct) * 2));
+        const g = Math.floor(255 * Math.min(1, pct * 2));
+        bar.style.background = `rgb(${r},${g},0)`;
+
+        // Fire: orange-yellow (full) → red-violet (empty)
+        // hue1: 30→0→300, hue2: 50→20→320
+        const h1 = pct > 0.5 ? lerp(0,  30, (pct-0.5)*2) : lerp(300, 0,  pct*2);
+        const h2 = pct > 0.5 ? lerp(20, 50, (pct-0.5)*2) : lerp(320, 20, pct*2);
+        mainFire.setHues(h1, h2);
+    }, 100);
+}
+
+
+// ══════════════════════════════════════════════
+// Timer — Team (single centered bar, fire hues driven per side)
+// Team A (left):  starts red→orange, drains toward blue
+// Team B (right): starts blue→purple, drains toward dark violet
+// ══════════════════════════════════════════════
+function resetTeamTimer() {
+    const bar = document.getElementById('team-timer-bar');
+    let ttl = timeLimit;
+    bar.style.width = '100%';
+    bar.style.background = 'linear-gradient(90deg,#ff1a00,#ffcc00)';
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        if (!teamMode) return;
+        let sf = 1;
+        if (ttl < timeLimit * 0.3) sf = 2.5;
+        else if (ttl < timeLimit * 0.6) sf = 1.5;
+        ttl -= 100 * sf; if (ttl < 0) ttl = 0;
+        const pct = ttl / timeLimit;
+
+        // Bar color: green → orange → red
+        bar.style.width = `${pct * 100}%`;
+        const r = Math.floor(255 * Math.min(1, (1 - pct) * 2));
+        const g = Math.floor(255 * Math.min(1, pct * 2));
+        bar.style.background = `rgb(${r},${g},0)`;
+
+        // Team A fire: red(0°)→orange(30°) full → blue(210°)→cyan(190°) empty
+        const aH1 = lerp(210, 0,   pct);
+        const aH2 = lerp(240, 30,  pct);
+        leftFire.setHues(aH1, aH2);
+
+        // Team B fire: blue(210°)→yellow(55°) full → deep cyan(190°)→gold(45°) empty
+        const bH1 = lerp(190, 210, pct);
+        const bH2 = lerp(45,  55,  pct);
+        rightFire.setHues(bH1, bH2);
+    }, 100);
+}
+
+
+// ══════════════════════════════════════════════
+// Word logic
+// ══════════════════════════════════════════════
+function getRandomEntry() {
+    if (!words.length) return { text: t('noWords'), image: null };
+    if (words.length >= 6) {
+        let avail = words.filter(w => !history.includes(w.text));
+        if (!avail.length) { history = []; avail = [...words]; }
+        const chosen = avail[Math.floor(Math.random() * avail.length)];
+        history.push(chosen.text); if (history.length > 3) history.shift();
+        return chosen;
     }
+    return words[Math.floor(Math.random() * words.length)];
+}
 
-    // --- ゲームの開始と終了 ---
-    function startGame() {
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'flex';
-        document.body.style.background = "linear-gradient(135deg, #2a080c, #000000)";
-        teamMode = false;
-        resetGameTimer();
-    }
+function pullWord() {
+    const entry = getRandomEntry();
+    const box   = document.getElementById('current-word-box');
+    const span  = document.getElementById('current-word');
+    box.style.transform = 'rotateY(0deg) scale(0.5)';
+    void box.offsetWidth;
+    box.style.transform = 'rotateY(360deg) scale(1)';
+    span.textContent = entry.text;
+    let img = box.querySelector('img');
+    if (entry.image) {
+        if (!img) { img = document.createElement('img'); box.appendChild(img); }
+        img.src = entry.image;
+    } else if (img) img.remove();
+    resetGameTimer();
+}
 
-    function startTeamGame() {
-        document.getElementById('menu').style.display = 'none';
-        document.getElementById('team-screen').style.display = 'block';
-        teamMode = true;
-        resetTeamTimer();
-    }
+function setTeamWordDisplay(side, image, text) {
+    const wrap   = document.getElementById(`team-${side}-word`);
+    const textEl = document.getElementById(`team-${side}-text`);
+    textEl.textContent = text;
+    let img = wrap.querySelector('img');
+    if (image) {
+        if (!img) { img = document.createElement('img'); wrap.insertBefore(img, textEl); }
+        img.src = image;
+    } else if (img) img.remove();
+}
 
-    function resetToMenu() {
-        clearInterval(timerInterval);
-        isRunning = false;
-        document.getElementById('game-screen').style.display = 'none';
-        document.getElementById('team-screen').style.display = 'none';
-        document.getElementById('crud-screen').style.display = 'none';
-        document.getElementById('menu').style.display = 'flex';
-        document.body.style.background = "#0d0d0d";
-    }
+function pullTeamWord() {
+    const eL = getRandomEntry(), eR = getRandomEntry();
+    const lw = document.getElementById('team-left-word');
+    const rw = document.getElementById('team-right-word');
+    lw.style.transform = rw.style.transform = 'rotateX(0deg)';
+    void lw.offsetWidth; void rw.offsetWidth;
+    lw.style.transform = rw.style.transform = 'rotateX(360deg)';
+    setTeamWordDisplay('left',  eL.image, eL.text);
+    setTeamWordDisplay('right', eR.image, eR.text);
+    resetTeamTimer();
+}
 
-    // --- タイマーと色変化 (通常) ---
-    function resetGameTimer() {
-        timeLeft = timeLimit;
-        document.getElementById('timer-bar').style.width = '100%';
-        document.getElementById('timer-bar').style.background = `linear-gradient(90deg, #ff1a00, #00ccff)`;
-        isRunning = true;
-        
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            if (!isRunning) return;
-            
-            // 残り時間が少なくなるにつれて減算速度を上げる（カラー変化とバー縮小の加速）
-            let speedFactor = 1;
-            if (timeLeft < timeLimit * 0.3) {
-                speedFactor = 2.5; // 残り30%未満で2.5倍速
-            } else if (timeLeft < timeLimit * 0.6) {
-                speedFactor = 1.5; // 残り60%未満で1.5倍速
-            }
-            
-            timeLeft -= (100 * speedFactor);
-            if (timeLeft < 0) timeLeft = 0;
-            
-            const percentage = timeLeft / timeLimit;
-            
-            // プログレスバーの長さ調整
-            document.getElementById('timer-bar').style.width = `${percentage * 100}%`;
-
-            // 色の変化 (赤から明るい水色へ)
-            const r = Math.floor(255 * percentage);
-            const g = Math.floor(26 + (204 - 26) * (1 - percentage));
-            const b = Math.floor(0 + (255 - 0) * (1 - percentage));
-            document.getElementById('timer-bar').style.background = `rgb(${r},${g},${b})`;
-
-            // 背景も合わせて燃えるような演出
-            const bgR = Math.floor(42 * percentage);
-            document.body.style.background = `linear-gradient(135deg, rgb(${bgR}, 8, 12), #000000)`;
-
-        }, 100);
-    }
-
-    // --- タイマーと色変化 (チームモード) ---
-    function resetTeamTimer() {
-        const leftSide = document.getElementById('team-left');
-        const rightSide = document.getElementById('team-right');
-        let teamTimeLeft = timeLimit;
-        
-        clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            if (!teamMode) return;
-            
-            // チームモードでも後半にかけて加速
-            let speedFactor = 1;
-            if (teamTimeLeft < timeLimit * 0.3) {
-                speedFactor = 2.5;
-            } else if (teamTimeLeft < timeLimit * 0.6) {
-                speedFactor = 1.5;
-            }
-            
-            teamTimeLeft -= (100 * speedFactor);
-            if (teamTimeLeft < 0) teamTimeLeft = 0;
-            
-            const percentage = teamTimeLeft / timeLimit;
-
-            // 左チーム: fiery red (#ff3300) から cool blue (#00ccff) へ
-            const leftR = Math.floor(255 * percentage);
-            const leftG = Math.floor(51 + (204 - 51) * (1 - percentage));
-            const leftB = Math.floor(0 + (255 - 0) * (1 - percentage));
-            
-            // 右チーム: fiery blue (#0066ff) から cool green (#00ff66) へ
-            const rightR = Math.floor(0 * percentage);
-            const rightG = Math.floor(102 + (255 - 102) * (1 - percentage));
-            const rightB = Math.floor(255 * percentage + 102 * (1 - percentage));
-
-            leftSide.style.background = `linear-gradient(135deg, rgb(${leftR},${leftG},${leftB}), #0d0d0d)`;
-            rightSide.style.background = `linear-gradient(135deg, rgb(${rightR},${rightG},${rightB}), #0d0d0d)`;
-
-
-        }, 100);
-    }
-
-    // --- プルロジック (過去2〜3回の重複を回避) ---
-    function getRandomWord() {
-        if (words.length === 0) return "単語がありません";
-        
-        if (words.length >= 6) {
-            // historyに含まれていない単語を抽出
-            let availableWords = words.filter(word => !history.includes(word));
-            
-            // すべての単語が履歴に入ってしまった場合は履歴をクリアして再取得
-            if (availableWords.length === 0) {
-                history = [];
-                availableWords = [...words];
-            }
-            
-            const randomIndex = Math.floor(Math.random() * availableWords.length);
-            const chosenWord = availableWords[randomIndex];
-            
-            // 履歴に追加し、直近3回分を超えたら古いものを削除
-            history.push(chosenWord);
-            if (history.length > 3) {
-                history.shift();
-            }
-            
-            return chosenWord;
-        } else {
-            // 6語未満の場合は単純なランダム
-            const randomIndex = Math.floor(Math.random() * words.length);
-            return words[randomIndex];
-        }
-    }
-
-    function pullWord() {
-
-        const wordEl = document.getElementById('current-word');
-        
-        // 3Dアニメーション効果の適用（Y軸の高速回転）
-        wordEl.style.transform = 'rotateY(0deg) scale(0.5)';
-        wordEl.textContent = getRandomWord();
-        
-        void wordEl.offsetWidth; // リフローを発生させてアニメーションを強制リセット
-        
-        wordEl.style.transform = 'rotateY(360deg) scale(1)';
-
-	resetGameTimer();
-    }
-
-    function pullTeamWord() {
-        const wordEl = document.getElementById(`team-left-word`);
-        const wordEr = document.getElementById(`team-right-word`);
-
-        // 3Dひっくり返りアニメーション効果
-        wordEl.style.transform = 'rotateX(0deg)';
-        wordEl.textContent = getRandomWord();
-	wordEr.style.transform = 'rotateX(0deg)';
-        wordEr.textContent = getRandomWord();
-        
-        void wordEl.offsetWidth;
-	void wordEr.offsetWidth;
-        
-        wordEl.style.transform = 'rotateX(360deg)';
-	wordEr.style.transform = 'rotateX(360deg)';
-
-	resetGameTimer();
-    }
+// ── Boot ──
+showScreen('menu-screen');
 </script>
 </body>
 </html>
