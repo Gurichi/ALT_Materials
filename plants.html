@@ -765,7 +765,7 @@ function applyContinuousToolAction() {
           let cutH = (b.baseY - mouse.y) * b.resistance.cut; 
           if (cutH > 20 && cutH < b.currentHeight - 5) {
             if (b.state === 'healthy' && b.isAlive) {
-              triggerSpeech(b, "FUCK!!! SPLIT IN HALF!!! MY ARMS ARE GONE!!!");
+              triggerSpeech(b, "DANG!!! SPLIT IN HALF!!! MY ARMS ARE GONE!!!");
             }
             particles.push(new Particle(pt.x, pt.y, 'clipping', { color: b.colorEnd, width: b.baseWidth }));
             b.currentHeight = cutH; b.maxHeight = cutH; b.tipY = mouse.y;
