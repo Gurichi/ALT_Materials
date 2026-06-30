@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>カラフル・ピクロス (12-Color Edition)</title>
+<style>
+    body {
+        font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', sans-serif;
+        background-color: #f0f4f8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px 20px;
+        color: #2c3e50;
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+    }
+    
+    h1 {
+        color: #2c3e50;
+        font-size: 28px;
+        margin-bottom: 5px;
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+    
+    p { margin-top: 0; color: #7f8c8d; font-size: 15px; margin-bottom: 25px; }
+    
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 35px;
+        background: white;
+        padding: 20px 35px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    
+    .controls-row {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .size-select-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: bold;
+    }
+    
+    .size-select {
+        padding: 8px 12px;
+        font-size: 14px;
+        border-radius: 8px;
+        border: 2px solid #bdc3c7;
+        background-color: white;
+        font-weight: bold;
+        color: #2c3e50;
+        cursor: pointer;
+    }
+    
+    input[type="file"] { display: none; }
+    
+    .btn {
+        background-color: #3498db;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 15px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
+    }
+    .btn:hover { background-color: #2980b9; transform: translateY(-1px); }
+    .btn-print { background-color: #2ecc71; box-shadow: 0 4px 6px rgba(46, 204, 113, 0.2); }
+    .btn-print:hover { background-color: #27ae60; }
+
+    .preview-container {
+        display: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 50px;
+        justify-content: center;
+        width: 100%;
+        max-width: 1400px;
+        margin-top: 10px;
+    }
+    
+    .preview-box {
+        background: white;
+        padding: 35px;
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
+        min-width: 580px;
+    }
+    
+    .preview-box h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-size: 22px;
+        font-weight: 700;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 8px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .name-line {
+        align-self: flex-end;
+        font-size: 15px;
+        margin-bottom: 20px;
+        color: #34495e;
+        font-weight: bold;
+    }
+
+    .legend-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        background: #f8f9fa;
+        padding: 12px 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px dashed #bdc3c7;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: bold;
+        background: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .legend-shape {
+        font-size: 16px;
+        font-weight: 900;
+        color: #2c3e50;
+        width: 20px;
+        text-align: center;
+    }
+    
+    .legend-color-box {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1px solid #7f8c8d;
+    }
+
+    .board-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .board-wrapper { display: grid; grid-template-columns: auto 1fr; }
+    
+    .row-hints {
+        display: grid;
+        gap: 0;
+        justify-content: end;
+        align-items: center;
+        padding-right: 10px;
+    }
+    
+    .col-hints {
+        display: grid;
+        gap: 0;
+        justify-content: center;
+        align-items: end;
+        padding-bottom: 10px;
+    }
+    
+    .grid {
+        display: grid;
+        gap: 0;
+        border: 2.5px solid #2c3e50;
+    }
+    
+    .cell {
+        background-color: #fff;
+        box-sizing: border-box;
+        border: 0.5px solid #bdc3c7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        color: #7f8c8d;
+        user-select: none;
+    }
+
+    .thick-right { border-right: 2.5px solid #2c3e50 !important; }
+    .thick-bottom { border-bottom: 2.5px solid #2c3e50 !important; }
+    
+    .hint { display: flex; gap: 2px; justify-content: flex-end; }
+    .hint-col { flex-direction: column; justify-content: flex-end; align-items: center; }
+    
+    .hint-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        border: 1px solid #cbd5e1;
+        padding: 2px;
+        border-radius: 5px;
+        background: #f8fafc;
+        box-sizing: border-box;
+    }
+    
+    .hint-num { font-weight: 800; color: #1e293b; }
+    .hint-shape { font-weight: 900; color: #475569; }
+
+    @media print {
+        body { background-color: white !important; padding: 0 !important; margin: 0 !important; }
+        .controls, h1, p { display: none !important; }
+        .preview-container { display: block !important; max-width: none !important; margin: 0 !important; }
+        
+        .preview-box {
+            display: block !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            page-break-after: always !important;
+            padding: 20mm 15mm !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: white !important;
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .preview-box h2 {
+            font-size: 28px !important;
+            border-bottom: 3px solid #000 !important;
+            margin-bottom: 25px !important;
+            color: #000 !important;
+        }
+        
+        .name-line { font-size: 18px !important; color: #000 !important; margin-bottom: 25px !important; }
+        .legend-container { border: 1.5px dashed #000 !important; background: #fff !important; }
+        .legend-item { border: 1px solid #000 !important; background: #fff !important; }
+
+        .board-container { margin-top: 30px !important; }
+        .grid { border: 3px solid #000 !important; background-color: #fff !important; }
+        .cell { border: 0.75px solid #000 !important; color: #000 !important; }
+        
+        .thick-right { border-right: 3px solid #000 !important; }
+        .thick-bottom { border-bottom: 3px solid #000 !important; }
+        
+        .hint-item { background: white !important; border: 1px solid #000 !important; }
+        .hint-num { color: #000 !important; }
+        .hint-shape { color: #000 !important; }
+    }
+</style>
+</head>
+<body>
+
+<h1>✨ 高品質・カラフルピクロス ✨</h1>
+<p>画像を選ぶと、学校の基本の12色に近い色へと自動的にまとめられ、問題と答えが同時に作られます。</p>
+
+<div class="controls">
+    <div class="controls-row">
+        <div class="size-select-container">
+            <span>マス目の数 (サイズ):</span>
+            <select id="gridSizeSelect" class="size-select">
+                <option value="15" selected>15 × 15 (ふつう)</option>
+                <option value="20">20 × 20 (むずかしい)</option>
+                <option value="25">25 × 25 (とてもむずかしい)</option>
+            </select>
+        </div>
+        
+        <label class="btn">
+            <input type="file" id="imageLoader" accept="image/*">
+            🖼️ 画像をえらぶ
+        </label>
+        <button class="btn btn-print" onclick="window.print()">🖨️ A4用紙に印刷する</button>
+    </div>
+</div>
+
+<div class="preview-container" id="previewContainer">
+    
+    <div class="preview-box" id="box-question">
+        <h2>🎨 カラフル・ピクロス (もんだい)</h2>
+        <div class="name-line">なまえ：______________________</div>
+        <div class="legend-container" id="legendQ"></div>
+        <div class="board-container">
+            <div class="col-hints" id="colHintsQ"></div>
+            <div class="board-wrapper">
+                <div class="row-hints" id="rowHintsQ"></div>
+                <div class="grid" id="gridQ"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-box" id="box-answer">
+        <h2>🌟 カラフル・ピクロス (こたえ)</h2>
+        <div class="name-line" style="visibility: hidden;">なまえ：</div>
+        <div class="legend-container" id="legendA"></div>
+        <div class="board-container">
+            <div class="col-hints" id="colHintsA"></div>
+            <div class="board-wrapper">
+                <div class="row-hints" id="rowHintsA"></div>
+                <div class="grid" id="gridA"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let GRID_SIZE = 15;
+    let solution = [];
+    let colorMap = {};
+    let currentImg = null;
+
+    // 定番の12色定義リスト (RGB値と子ども向け日本語名、および固定の割り当て記号)
+    const BASE_12_COLORS = [
+        { r: 230, g: 0,   b: 18,  name: 'あか',       hex: '#e60012', shape: '◯' },
+        { r: 243, g: 152, b: 156, name: 'ピンク',     hex: '#f3989c', shape: '△' },
+        { r: 252, g: 215, b: 175, name: 'うすだいだい',hex: '#fcd7af', shape: '□' },
+        { r: 243, g: 152, b: 0,   name: 'だいだい',   hex: '#f39800', shape: '☆' },
+        { r: 255, g: 251, b: 0,   name: 'きいろ',     hex: '#fffb00', shape: '◇' },
+        { r: 143, g: 195, b: 31,  name: 'きみどり',   hex: '#8fc31f', shape: '◎' },
+        { r: 0,   g: 153, b: 68,  name: 'みどり',     hex: '#009944', shape: '▽' },
+        { r: 0,   g: 160, b: 233, name: 'みずいろ',   hex: '#00a0e9', shape: '★' },
+        { r: 0,   g: 104, b: 183, name: 'あお',       hex: '#0068b7', shape: '◆' },
+        { r: 146, g: 7,   b: 131, name: 'むらさき',   hex: '#920783', shape: '田' },
+        { r: 109, g: 65,  b: 33,  name: 'ちゃいろ',   hex: '#6d4121', shape: '十' },
+        { r: 0,   g: 0,   b: 0,   name: 'くろ',       hex: '#000000', shape: '×' }
+    ];
+
+    document.getElementById('gridSizeSelect').addEventListener('change', function(e) {
+        GRID_SIZE = parseInt(e.target.value);
+        if (currentImg) generateFromImage(currentImg);
+    });
+
+    document.getElementById('imageLoader').addEventListener('change', handleImage, false);
+
+    function handleImage(e) {
+        // 👇 ここをこの1行に書き換えます（ファイルが選ばれていない場合は完全に処理をスキップ）
+        if (!e.target.files || e.target.files.length === 0) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                currentImg = img;
+                generateFromImage(img);
+            }
+            img.src = event.target.result;
+        }
+        reader.readAsDataURL(e.target.files[0]); // (エラーが起きないよう先頭のファイルを指定)
+    }
+
+
+    function generateFromImage(img) {
+        const canvas = document.createElement('canvas');
+        canvas.width = GRID_SIZE;
+        canvas.height = GRID_SIZE;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, 0, 0, GRID_SIZE, GRID_SIZE);
+        
+        const imgData = ctx.getImageData(0, 0, GRID_SIZE, GRID_SIZE);
+        processImage(imgData);
+    }
+
+    // 似ている色を12色から探す
+    function findClosestBaseColor(r, g, b) {
+        let minDistance = Infinity;
+        let closestColor = BASE_12_COLORS[0];
+
+        BASE_12_COLORS.forEach(base => {
+            const dist = Math.sqrt(
+                Math.pow(r - base.r, 2) + 
+                Math.pow(g - base.g, 2) + 
+                Math.pow(b - base.b, 2)
+            );
+            if (dist < minDistance) {
+                minDistance = dist;
+                closestColor = base;
+            }
+        });
+        return closestColor;
+    }
+
+    function processImage(imgData) {
+        solution = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill('#ffffff'));
+        colorMap = {}; 
+
+        for (let i = 0; i < imgData.data.length; i += 4) {
+            const r = imgData.data[i];
+            const g = imgData.data[i+1];
+            const b = imgData.data[i+2];
+            const a = imgData.data[i+3];
+
+            const index = i / 4;
+            const x = Math.floor(index % GRID_SIZE);
+            const y = Math.floor(index / GRID_SIZE);
+
+            if (a < 128 || (r > 238 && g > 238 && b > 238)) {
+                solution[y][x] = '#ffffff';
+            } else {
+                const match = findClosestBaseColor(r, g, b);
+                solution[y][x] = match.hex;
+                
+                if (!colorMap[match.hex]) {
+                    colorMap[match.hex] = { name: match.name, shape: match.shape };
+                }
+            }
+        }
+
+        document.getElementById('previewContainer').style.display = 'flex';
+
+        generateLegend('legendQ');
+        generateLegend('legendA');
+
+        generateBoard('gridQ', 'rowHintsQ', 'colHintsQ', false); 
+        generateBoard('gridA', 'rowHintsA', 'colHintsA', true);  
+    }
+
+    function generateLegend(targetId) {
+        const container = document.getElementById(targetId);
+        container.innerHTML = '';
+        
+        Object.keys(colorMap).forEach(hex => {
+            const item = document.createElement('div');
+            item.className = 'legend-item';
+            
+            const shape = document.createElement('span');
+            shape.className = 'legend-shape';
+            shape.innerText = colorMap[hex].shape;
+            
+            const box = document.createElement('div');
+            box.className = 'legend-color-box';
+            box.style.backgroundColor = hex;
+            
+            const name = document.createElement('span');
+            name.innerText = colorMap[hex].name;
+            name.style.fontSize = '12px';
+            name.style.color = '#555';
+
+            item.appendChild(shape);
+            item.appendChild(box);
+            item.appendChild(name);
+            container.appendChild(item);
+        });
+    }
+
+    function generateBoard(gridId, rowId, colId, showColors) {
+        const gridEl = document.getElementById(gridId);
+        const rowEl = document.getElementById(rowId);
+        const colEl = document.getElementById(colId);
+        
+        gridEl.innerHTML = '';
+        rowEl.innerHTML = '';
+        colEl.innerHTML = '';
+
+        let cellSize = 30;
+        let fontSize = 14;
+        let hintSize = 22;
+        if (GRID_SIZE === 20) { cellSize = 22; fontSize = 11; hintSize = 18; }
+        if (GRID_SIZE === 25) { cellSize = 18; fontSize = 9; hintSize = 15; }
+
+        gridEl.style.gridTemplateColumns = `repeat(${GRID_SIZE}, ${cellSize}px)`;
+        gridEl.style.gridTemplateRows = `repeat(${GRID_SIZE}, ${cellSize}px)`;
+        rowEl.style.gridTemplateRows = `repeat(${GRID_SIZE}, ${cellSize}px)`;
+        colEl.style.gridTemplateColumns = `repeat(${GRID_SIZE}, ${cellSize}px)`;
+
+        for (let r = 0; r < GRID_SIZE; r++) {
+            for (let c = 0; c < GRID_SIZE; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.width = `${cellSize}px`;
+                cell.style.height = `${cellSize}px`;
+                cell.style.fontSize = `${fontSize}px`;
+                
+                if ((c + 1) % 5 === 0 && (c + 1) !== GRID_SIZE) cell.classList.add('thick-right');
+                if ((r + 1) % 5 === 0 && (r + 1) !== GRID_SIZE) cell.classList.add('thick-bottom');
+                
+                const cellColor = solution[r][c];
+                if (cellColor !== '#ffffff') {
+                    cell.innerText = colorMap[cellColor].shape;
+                    if (showColors) {
+                        cell.style.backgroundColor = cellColor;
+                        const rgb = parseInt(cellColor.slice(1), 16);
+                        const brightness = 0.2126 * ((rgb >> 16) & 0xff) + 0.7152 * ((rgb >> 8) & 0xff) + 0.0722 * (rgb & 0xff);
+                        if (brightness < 120) cell.style.color = '#ffffff';
+                    }
+                }
+                gridEl.appendChild(cell);
+            }
+        }
+
+        // 横ヒント
+        for (let r = 0; r < GRID_SIZE; r++) {
+            const hintBox = document.createElement('div');
+            hintBox.className = 'hint';
+            const groups = getGroups(solution[r]);
+            groups.forEach(g => hintBox.appendChild(createHintElement(g.color, g.count, hintSize)));
+            rowEl.appendChild(hintBox);
+        }
+
+        // 縦ヒント
+        for (let c = 0; c < GRID_SIZE; c++) {
+            const hintBox = document.createElement('div');
+            hintBox.className = 'hint hint-col';
+            const colData = [];
+            for (let r = 0; r < GRID_SIZE; r++) { colData.push(solution[r][c]); }
+            const groups = getGroups(colData);
+            groups.forEach(g => hintBox.appendChild(createHintElement(g.color, g.count, hintSize)));
+            colEl.appendChild(hintBox);
+        }
+    }
+
+    function getGroups(dataArray) {
+        const groups = [];
+        let currentRun = 0;
+        let currentColor = '';
+
+        for (let i = 0; i < dataArray.length; i++) {
+            const color = dataArray[i];
+            if (color !== '#ffffff') {
+                if (color === currentColor || currentColor === '') {
+                    currentRun++;
+                    currentColor = color;
+                } else {
+                    groups.push({ color: currentColor, count: currentRun });
+                    currentRun = 1;
+                    currentColor = color;
+                }
+            } else {
+                if (currentColor !== '') {
+                    groups.push({ color: currentColor, count: currentRun });
+                    currentRun = 0;
+                    currentColor = '';
+                }
+            }
+        }
+        if (currentColor !== '') {
+            groups.push({ color: currentColor, count: currentRun });
+        }
+        return groups;
+    }
+
+    function createHintElement(color, count, size) {
+        const item = document.createElement('div');
+        item.className = 'hint-item';
+        item.style.minWidth = `${size}px`;
+        item.style.padding = GRID_SIZE >= 20 ? '1px' : '2px';
+
+        const num = document.createElement('span');
+        num.className = 'hint-num';
+        num.innerText = count;
+        num.style.fontSize = GRID_SIZE === 25 ? '10px' : (GRID_SIZE === 20 ? '12px' : '13px');
+
+        const shape = document.createElement('span');
+        shape.className = 'hint-shape';
+        shape.innerText = colorMap[color] ? colorMap[color].shape : '';
+        shape.style.fontSize = GRID_SIZE === 25 ? '8px' : (GRID_SIZE === 20 ? '9px' : '11px');
+
+        item.appendChild(num);
+        item.appendChild(shape);
+        return item;
+    }
+</script>
+</body>
+</html>
