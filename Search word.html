@@ -37,10 +37,41 @@
 
         /* パズル表示エリア */
         .preview-area { flex: 1; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; min-height: 800px; }
+.cell { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: bold; 
+    
+    /* ここを書き換えます */
+    font-family: 'Comic Sans MS', 'Comic Relief', 'Chalkboard SE', 'Comic Neue', sans-serif; 
+    
+    text-transform: uppercase; 
+    user-select: none; 
+}
+
         #puzzle-title { margin-top: 0; font-size: 3rem; letter-spacing: 4px; text-decoration: underline; font-family: fantasy; text-decoration-thickness: 9px;}
         
-        #grid { display: grid; margin: 30px auto; border: 2px solid #333; width: fit-content; background: #fff; }
-        .cell { display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: monospace; text-transform: uppercase; user-select: none; }
+#grid { 
+    display: grid; 
+    margin: 30px auto; 
+    border: 2px solid #333; 
+    width: fit-content; 
+    background: #fff; 
+    position: relative; /* SVGを正確に重ねるための基準点にします */
+}
+
+/* グリッドの真上に重なる透明な線引き用キャンバス */
+.answer-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 下にある文字の選択などを邪魔しないようにします */
+    z-index: 10;
+}
+
         
         .word-bank { margin-top: 40px; text-align: left; }
         .word-bank h3 { border-bottom: 2px solid #333; display: inline-block; margin-bottom: 15px; }
@@ -116,6 +147,11 @@
         <button class="btn btn-add" onclick="generatePuzzle()">
             🔄 Refresh Grid
         </button>
+
+	<button class="btn" id="btn-toggle-answer" style="background: #e74c3c; color: white;" onclick="toggleAnswerSheet()">
+    		👁️ Show Answer Sheet
+	</button>
+
         
         <button class="btn btn-print" onclick="window.print()">Print to A4 / PDF</button>
     </div>
@@ -132,7 +168,13 @@
 
 <script>
     let words = [];
-    let gridSize = 20;
+    let gridSize = 20; 
+    
+    // Global tracking array to track direction axis signature of each letter
+    let directionGrid = [];
+
+    let showAnswer = false;
+    let placedWordsData = []; 
 
     function updateGridSize(val) {
         gridSize = parseInt(val);
@@ -165,27 +207,20 @@
         updateUI();
         generatePuzzle();
     }
+    
     function updateTitle() {
-
-        const input =
-            document.getElementById('titleInput');
-
-        const title =
-            input.value.trim();
-
-        document.getElementById('puzzle-title').innerText =
-            title || 'WORD SEARCH';
+        const input = document.getElementById('titleInput');
+        const title = input.value.trim();
+        document.getElementById('puzzle-title').innerText = title || 'WORD SEARCH';
     }
 
     function updateUI() {
-        // Sidebar Tags
         const tagContainer = document.getElementById('wordTagContainer');
         tagContainer.innerHTML = '';
         words.forEach((word, i) => {
             tagContainer.innerHTML += `<div class="word-tag">${word} <span class="remove-tag" onclick="removeWord(${i})">×</span></div>`;
         });
 
-        // Puzzle Word Bank
         const bankList = document.getElementById('wordBankList');
         bankList.innerHTML = '';
         [...words].sort().forEach(word => {
@@ -195,112 +230,94 @@
 
 function getDirections() {
     const dirs = [];
-
     const horizontal = document.getElementById('allowHorizontal').checked;
     const vertical = document.getElementById('allowVertical').checked;
     const diagonal = document.getElementById('allowDiagonal').checked;
     const backward = document.getElementById('allowBackward').checked;
 
-    // Forward directions
-    if (horizontal) dirs.push([0, 1]);
-    if (vertical) dirs.push([1, 0]);
-    if (diagonal) dirs.push([1, 1]);
+    // Forward directions processed safely using strings
+    if (horizontal) dirs.push("0,1".split(",").map(Number));
+    if (vertical)   dirs.push("1,0".split(",").map(Number));
+    if (diagonal)   dirs.push("1,1".split(",").map(Number));
 
-    // Backward directions
+    // Backward directions processed safely using strings
     if (backward) {
-        if (horizontal) dirs.push([0, -1]);
-        if (vertical) dirs.push([-1, 0]);
+        if (horizontal) dirs.push("0,-1".split(",").map(Number));
+        if (vertical)   dirs.push("-1,0".split(",").map(Number));
         if (diagonal) {
-            dirs.push([-1, -1]);
-            dirs.push([1, -1]);
-            dirs.push([-1, 1]);
+            dirs.push("-1,-1".split(",").map(Number));
+            dirs.push("1,-1".split(",").map(Number));
+            dirs.push("-1,1".split(",").map(Number));
         }
     }
-
     return dirs;
 }
+
 
 function generatePuzzle() {
     const gridDiv = document.getElementById('grid');
     const cellSize = Math.min(550 / gridSize, 45);
 
-    gridDiv.style.gridTemplateColumns =
-        `repeat(${gridSize}, ${cellSize}px)`;
+    gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
 
     let grid = Array(gridSize)
         .fill()
         .map(() => Array(gridSize).fill(''));
 
-    const directions = getDirections();
+    // Initialize direction tracking map alongside character map
+    directionGrid = Array(gridSize)
+        .fill()
+        .map(() => Array(gridSize).fill(''));
 
-    // Longest words first
+    const directions = getDirections();
     const sortedWords = [...words].sort((a, b) => b.length - a.length);
 
+    // ==========================================
+    // ここからが、ご提示いただいた新しいコードの配置場所です
+    // ==========================================
+    placedWordsData = [];
+
+    // カラーパレット（単語ごとに異なるランダムな色を割り当てるため）
+    const colors = ["#ff7675", "#74b9ff", "#55efc4", "#ffeaa7", "#a29bfe", "#fd79a8", "#fdcb6e", "#00cec9"];
+
     sortedWords.forEach((word, wordIndex) => {
-
-        let bestPlacement = null;
-        let bestScore = -1;
-
-        // First word can go anywhere
-        const maxAttempts = wordIndex === 0 ? 200 : 3000;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-
-            const [dr, dc] =
-                directions[Math.floor(Math.random() * directions.length)];
-
-            const row = Math.floor(Math.random() * gridSize);
-            const col = Math.floor(Math.random() * gridSize);
-
-            if (!canPlace(grid, word, row, col, dr, dc)) {
-                continue;
-            }
-
-            // Count overlaps
-            let overlapScore = 0;
-
-            for (let i = 0; i < word.length; i++) {
-
-                const r = row + dr * i;
-                const c = col + dc * i;
-
-                if (grid[r][c] === word[i]) {
-                    overlapScore++;
-                }
-            }
-
-            // Prefer overlapping placements
-            if (overlapScore > bestScore) {
-                bestScore = overlapScore;
-
-                bestPlacement = {
-                    row,
-                    col,
-                    dr,
-                    dc
-                };
-
-                // Perfect overlap found
-                if (overlapScore >= Math.min(3, word.length)) {
-                    break;
+        let validPlacements = [];
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                for (let d = 0; d < directions.length; d++) {
+                    const [dr, dc] = directions[d];
+                    if (canPlace(grid, word, r, c, dr, dc)) {
+                        validPlacements.push(`${r},${c},${dr},${dc}`);
+                    }
                 }
             }
         }
 
-        // Place best found position
-        if (bestPlacement) {
-            placeWord(
-                grid,
-                word,
-                bestPlacement.row,
-                bestPlacement.col,
-                bestPlacement.dr,
-                bestPlacement.dc
-            );
+        if (validPlacements.length > 0) {
+            const randomIndex = Math.floor(Math.random() * validPlacements.length);
+            const [selectedRow, selectedCol, selectedDr, selectedDc] = validPlacements[randomIndex].split(",").map(Number);
+
+            placeWord(grid, word, selectedRow, selectedCol, selectedDr, selectedDc);
+
+            // 【新機能】単語の「開始マス」と「終了マス」、そして割り当てられた「色」を保存
+            const endRow = selectedRow + selectedDr * (word.length - 1);
+            const endCol = selectedCol + selectedDc * (word.length - 1);
+            const color = colors[wordIndex % colors.length]; // 色を順番に割り当て
+            
+            placedWordsData.push({
+                startR: selectedRow,
+                startC: selectedCol,
+                endR: endRow,
+                endC: endCol,
+                color: color
+            });
         } else {
             console.warn(`Could not place word: ${word}`);
         }
     });
+    // ==========================================
+    // ここまで
+    // ==========================================
 
     // Only show words actually placed in grid
     const validWords = extractWordsFromGrid(grid);
@@ -315,105 +332,183 @@ function generatePuzzle() {
 
     // Fill remaining cells
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
     gridDiv.innerHTML = '';
 
     for (let r = 0; r < gridSize; r++) {
         for (let c = 0; c < gridSize; c++) {
-
-            const char =
-                grid[r][c] ||
-                letters[Math.floor(Math.random() * letters.length)];
-
+            const char = grid[r][c] || letters[Math.floor(Math.random() * letters.length)];
             gridDiv.innerHTML += `
                 <div class="cell"
-                    style="
+                     style="
                         width:${cellSize}px;
                         height:${cellSize}px;
                         font-size:${cellSize * 0.6}px
-                    ">
+                     ">
                     ${char}
                 </div>
             `;
         }
     }
+
+    // 【重要】マスを出力し終わった直後に、透明なSVGキャンバスを重ねて追加します
+    const svgCanvas = document.createElementNS("http://w3.org", "svg");
+    svgCanvas.setAttribute("class", "answer-svg");
+    svgCanvas.setAttribute("id", "answerCanvas");
+    gridDiv.appendChild(svgCanvas);
+
+    // 解答表示モードの状態を画面に同期
+    syncAnswerDisplay();
 }
 
+
 function canPlace(grid, word, row, col, dr, dc) {
+    // Generate orientation key profile (e.g. '0,1' or '1,0')
+    const currentAxisKey = `${Math.abs(dr)},${Math.abs(dc)}`;
 
     for (let i = 0; i < word.length; i++) {
-
         const r = row + dr * i;
         const c = col + dc * i;
 
-        // Out of bounds
-        if (
-            r < 0 ||
-            c < 0 ||
-            r >= gridSize ||
-            c >= gridSize
-        ) {
+        if (r < 0 || c < 0 || r >= gridSize || c >= gridSize) {
             return false;
         }
 
-        // Allow overlap ONLY if same letter
-        if (
-            grid[r][c] !== '' &&
-            grid[r][c] !== word[i]
-        ) {
-            return false;
+        if (grid[r][c] !== '') {
+            // FIX: Block overlapping words if they share the exact same directional axis line
+            if (directionGrid[r][c] === currentAxisKey) {
+                return false;
+            }
+
+            // Allow intersection ONLY if crossing paths and letter matches perfectly
+            if (grid[r][c] !== word[i]) {
+                return false;
+            }
         }
     }
-
     return true;
 }
 
 function placeWord(grid, word, row, col, dr, dc) {
+    const currentAxisKey = `${Math.abs(dr)},${Math.abs(dc)}`;
 
     for (let i = 0; i < word.length; i++) {
-
         const r = row + dr * i;
         const c = col + dc * i;
 
         grid[r][c] = word[i];
+        directionGrid[r][c] = currentAxisKey; // Record axis profile signature to grid map
     }
 }
+
+function syncAnswerDisplay() {
+    // 1. Reset all cells back to normal layout styles
+    const cells = document.querySelectorAll('#grid .cell');
+    cells.forEach(cell => {
+        cell.style.backgroundColor = '';
+        cell.style.color = '';
+        cell.style.borderRadius = '';
+    });
+
+    // 2. If answer mode is disabled, simply update the toggle button and stop
+    if (!showAnswer) {
+        updateAnswerButton();
+        return;
+    }
+
+    // 3. Apply custom colors and round the tips of each placed word directly
+    placedWordsData.forEach(data => {
+        const length = Math.max(
+            Math.abs(data.endR - data.startR), 
+            Math.abs(data.endC - data.startC)
+        ) + 1;
+
+        // Calculate direction step flags
+        const dr = data.endR === data.startR ? 0 : (data.endR > data.startR ? 1 : -1);
+        const dc = data.endC === data.startC ? 0 : (data.endC > data.startC ? 1 : -1);
+
+        for (let i = 0; i < length; i++) {
+            const r = data.startR + dr * i;
+            const c = data.startC + dc * i;
+
+            // Target the specific cell index in the flat DOM grid array
+            const cellIndex = r * gridSize + c;
+            const cell = cells[cellIndex];
+
+            if (cell) {
+                // Apply the word's unique marker color (using 40% alpha opacity hex colors)
+                cell.style.backgroundColor = data.color + "66"; 
+                cell.style.color = "#000000"; // Keep text sharp and visible
+
+                // Beautiful extra touch: Round the outer edges of the start and end letters
+                if (i === 0) {
+                    cell.style.borderRadius = '50% 0 0 50%'; // Rounded start caps
+                } else if (i === length - 1) {
+                    cell.style.borderRadius = '0 50% 50% 0'; // Rounded end caps
+                }
+            }
+        }
+    });
+
+    updateAnswerButton();
+}
+
+// ボタンのUI表現だけを更新する補助関数
+function updateAnswerButton() {
+    const btn = document.getElementById('btn-toggle-answer');
+    if (btn) {
+        if (showAnswer) {
+            btn.innerText = "Hide Answer Sheet";
+            btn.style.background = "#2c3e50";
+        } else {
+            btn.innerText = "Show Answer Sheet";
+            btn.style.background = "#e74c3c";
+        }
+    }
+}
+
+// 通常シートと解答シートを切り替えるトリガー
+function toggleAnswerSheet() {
+    showAnswer = !showAnswer;
+    syncAnswerDisplay();
+}
+
+
+
 function extractWordsFromGrid(grid) {
-
     const foundWords = new Set();
-
-    const directions = [
-        [0, 1],   // horizontal
-        [1, 0],   // vertical
-        [1, 1],   // diagonal down-right
-        [0, -1],  // horizontal backwards
-        [-1, 0],  // vertical backwards
-        [-1, -1], // diagonal up-left
-        [1, -1],  // diagonal down-left
-        [-1, 1]   // diagonal up-right
+    
+    // Using string formats to prevent the AI system from dropping coordinates
+    const dirStrings = [
+        "0,1",   // Horizontal Forward
+        "1,0",   // Vertical Forward
+        "1,1",   // Diagonal Down-Right
+        "0,-1",  // Horizontal Backwards
+        "-1,0",  // Vertical Backwards
+        "-1,-1", // Diagonal Up-Left
+        "1,-1",  // Diagonal Down-Left
+        "-1,1"   // Diagonal Up-Right
     ];
 
-    for (const word of words) {
+    // Convert string arrays back into actual directional numbers safely
+    const directions = dirStrings.map(str => {
+        const parts = str.split(",");
+        return [parseInt(parts[0]), parseInt(parts[1])];
+    });
 
+    for (const word of words) {
         outerLoop:
         for (let r = 0; r < gridSize; r++) {
             for (let c = 0; c < gridSize; c++) {
-
-                for (const [dr, dc] of directions) {
-
+                for (let d = 0; d < directions.length; d++) {
+                    const dr = directions[d][0];
+                    const dc = directions[d][1];
                     let match = true;
 
                     for (let i = 0; i < word.length; i++) {
-
                         const nr = r + dr * i;
                         const nc = c + dc * i;
 
-                        if (
-                            nr < 0 ||
-                            nc < 0 ||
-                            nr >= gridSize ||
-                            nc >= gridSize
-                        ) {
+                        if (nr < 0 || nc < 0 || nr >= gridSize || nc >= gridSize) {
                             match = false;
                             break;
                         }
@@ -432,46 +527,41 @@ function extractWordsFromGrid(grid) {
             }
         }
     }
-
     return [...foundWords];
 }
 
-    // JSON Functions
-    function saveJSON() {
-        const data = {
-            gridSize,
-            words,
-            title: document.getElementById('titleInput').value
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `wordsearch-${gridSize}x${gridSize}.json`;
-        a.click();
-    }
+function saveJSON() {
+    const data = {
+        gridSize,
+        words,
+        title: document.getElementById('titleInput').value
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `wordsearch-${gridSize}x${gridSize}.json`;
+    a.click();
+}
 
-    async function loadJSON(event) {
-        for (let file of event.target.files) {
-            const text = await file.text();
-            const data = JSON.parse(text);
-            if (data.words) {
-                if (data.title) {
-                    document.getElementById('titleInput').value =
-                        data.title;
-
-                    updateTitle();
-                }
-                // 既存の単語とマージ（重複排除）
-                words = [...new Set([...words, ...data.words])];
-                if (data.gridSize > gridSize) updateGridSize(data.gridSize);
+async function loadJSON(event) {
+    for (let file of event.target.files) {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (data.words) {
+            if (data.title) {
+                document.getElementById('titleInput').value = data.title;
+                updateTitle();
             }
+            words = [...new Set([...words, ...data.words])];
+            if (data.gridSize > gridSize) updateGridSize(data.gridSize);
         }
-        updateUI();
-        generatePuzzle();
     }
-
-    // 初期化
+    updateUI();
     generatePuzzle();
+}
+
+// Self-initialize layout grid upon startup
+generatePuzzle();
 </script>
 
 </body>
