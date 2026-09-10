@@ -1,166 +1,453 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="eng">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Word Search</title>
     <style>
+        /* Default Industrial Dark Design profile config */
         :root {
-            --primary: #2c3e50;
-            --accent: #3498db;
-            --bg: #000000;
+            --bg: #0b0c10;
+            --sidebar-bg: #11141a;
+            --text-main: #f0f2f5;
+            --text-muted: #8892b0;
+            --accent: #4fc3f7;
+            --accent-hover: #29b6f6;
+            --border: #232936;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 1100px; margin: 0 auto; display: flex; gap: 30px; }
-        
-        /* サイドバー（操作パネル） */
-        .sidebar { flex: 350px; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); height: fit-content; }
-        .sidebar h1 { font-size: 1.4rem; margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--bg); padding-bottom: 10px; }
-        
-        .control-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #666; }
-        input[type="text"] { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; }
-	    input[type="range"] { width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 	8px; font-size: 1rem; }
-        
-        .grid-size-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        
-        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-bottom: 10px; font-size: 1rem; }
-        .btn-add { background: var(--accent); color: white; }
-        .btn-add:hover { background: #2980b9; }
-        .btn-save { background: #27ae60; color: white; }
-        .btn-load { background: #f39c12; color: white; }
-        .btn-print { background: var(--primary); color: white; margin-top: 20px; font-size: 1.1rem; }
 
-        .word-tag-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
-        .word-tag { background: #ecf0f1; padding: 5px 10px; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; }
-        .remove-tag { color: #e74c3c; cursor: pointer; font-weight: bold; }
+        /* Fluid light book printing design profile config */
+        :root.light-mode {
+            --bg: #f5f6f8;
+            --sidebar-bg: #ffffff;
+            --text-main: #1a1a24;
+            --text-muted: #626d8a;
+            --accent: #0091ea;
+            --accent-hover: #0070c0;
+            --border: #d2d7df;
+        }
 
-        /* パズル表示エリア */
-        .preview-area { flex: 1; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; min-height: 800px; }
-.cell { 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    font-weight: bold; 
-    
-    /* ここを書き換えます */
-    font-family: 'Comic Sans MS', 'Comic Relief', 'Chalkboard SE', 'Comic Neue', sans-serif; 
-    
-    text-transform: uppercase; 
-    user-select: none; 
-}
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "BIZ UDPGothic", "Hiragino Kaku Gothic ProN", sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 40px 20px; 
+            color: var(--text-main); 
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.3s, color 0.3s;
+        }
 
-        #puzzle-title { margin-top: 0; font-size: 3rem; letter-spacing: 4px; text-decoration: underline; font-family: fantasy; text-decoration-thickness: 9px;}
+        .container { 
+            max-width: 1250px; 
+            margin: 0 auto; 
+            display: flex; 
+            gap: 40px; 
+            align-items: flex-start;
+        }
+        /* Isolated structural menu layout to lock window scrolling in place */
+        .sidebar { 
+            flex: 0 0 350px; 
+            background: var(--sidebar-bg); 
+            padding: 30px; 
+            border: 1px solid var(--border);
+            box-sizing: border-box;
+            max-height: calc(100vh - 80px); /* Lock sidebar sizing into viewport restrictions */
+            overflow-y: auto;               /* Isolate scrolling movements inside menu dashboard frame */
+            position: sticky;
+            top: 40px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        /* Refined minimalist scroll handle indicators */
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        .sidebar h1 { 
+            font-size: 1.25rem; 
+            margin: 0 0 30px 0; 
+            color: var(--text-main); 
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 800;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+        .control-group { 
+            margin-bottom: 28px; 
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 24px;
+        }
+
+        .control-group:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        label { 
+            display: block; 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            margin-bottom: 12px; 
+            color: var(--text-muted); 
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .checkbox-label {
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            color: var(--text-main);
+            transition: color 0.2s;
+        }
+
+        .checkbox-label:hover {
+            color: var(--accent);
+        }
+
+        input[type="text"] { 
+            width: 100%; 
+            box-sizing: border-box; 
+            padding: 12px; 
+            background: var(--bg);
+            border: 1px solid var(--border); 
+            color: var(--text-main);
+            font-size: 0.95rem; 
+            transition: border-color 0.2s, background 0.3s;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn-row .btn {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .slider-wrapper {
+            margin-top: 10px;
+        }
+
+        input[type="range"] { 
+            width: 100%; 
+            -webkit-appearance: none;
+            appearance: none;
+            height: 2px;
+            background: var(--border);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
         
-#grid { 
-    display: grid; 
-    margin: 30px auto; 
-    border: 2px solid #333; 
-    width: fit-content; 
-    background: #fff; 
-    position: relative; /* SVGを正確に重ねるための基準点にします */
-}
+        .grid-size-display { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
 
-/* グリッドの真上に重なる透明な線引き用キャンバス */
-.answer-svg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* 下にある文字の選択などを邪魔しないようにします */
-    z-index: 10;
-}
-
+        .size-badge {
+            font-size: 1.1rem; 
+            font-weight: 700;
+            color: var(--accent);
+            font-family: monospace;
+        }
         
-        .word-bank { margin-top: 40px; text-align: left; }
-        .word-bank h3 { border-bottom: 2px solid #333; display: inline-block; margin-bottom: 15px; }
-        .word-bank-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 1.1rem; font-family: 'Courier New', Courier, monospace; }
+        .btn { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid var(--border); 
+            background: transparent;
+            color: var(--text-main);
+            cursor: pointer; 
+            font-weight: 700; 
+            transition: all 0.2s; 
+            margin-bottom: 12px; 
+            font-size: 0.85rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-        /* 印刷設定 */
+        .btn:hover {
+            background: var(--border);
+            border-color: var(--text-muted);
+        }
+
+        .btn-add { 
+            background: var(--accent); 
+            color: var(--bg); 
+            border: none;
+        }
+        .btn-add:hover { 
+            background: var(--accent-hover); 
+        }
+
+        .btn-active {
+            background: var(--border);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .word-tag-container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 6px; 
+            margin: 20px 0; 
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .word-tag { 
+            background: var(--bg); 
+            border: 1px solid var(--border);
+            padding: 4px 10px; 
+            font-size: 0.8rem; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .remove-tag { 
+            color: var(--text-muted); 
+            cursor: pointer; 
+            transition: color 0.1s;
+        }
+        .remove-tag:hover { color: #ff5252; }
+
+        .preview-area { 
+            flex: 1; 
+            background: var(--sidebar-bg); 
+            padding: 45px; 
+            border: 1px solid var(--border);
+            text-align: center; 
+            min-height: 800px; 
+            box-sizing: border-box;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        #puzzle-title { 
+            margin-top: 0; 
+            font-size: 2.2rem; 
+            letter-spacing: 6px; 
+            text-transform: uppercase;
+            font-family: -apple-system, sans-serif; 
+            font-weight: 900;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--text-main);
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 40px;
+        }
+        
+        /* Absolute flat space profile template with no grid borders */
+        #grid { 
+            display: grid; 
+            margin: 0 auto 40px auto; 
+            border: none; 
+            width: fit-content; 
+            background: transparent; 
+            position: relative; /* Serve as reference base framework for floating marker coordinates */
+        }
+
+        .cell { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-family: 'Comic Sans MS', 'Comic Relief', 'Chalkboard SE', 'Yu Gothic', sans-serif; 
+            user-select: none; 
+            border: none;
+            box-sizing: border-box;
+            color: var(--text-main);
+            background: transparent;
+            position: relative;
+            z-index: 2; /* Force character nodes above marker graphics layers */
+        }
+        
+        /* Floating linear strike layer overlapping targeted character vectors */
+        .highlight-strike {
+            position: absolute;
+            transform-origin: left center;
+            border-radius: 50px; /* High fidelity rounded rectangle capsule overlay */
+            pointer-events: none;
+            z-index: 1; /* Layer seamlessly between grid canvas baseline and character nodes */
+            mix-blend-mode: multiply; /* Maintain raw text ink visibility during active printer pipelines */
+            animation: strikeGrow 0.25s cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        /* Dynamic blend adjustments across lighting profiles */
+        :root:not(.light-mode) .highlight-strike {
+            mix-blend-mode: screen; /* Prevent dark profile color opacity muddying */
+        }
+
+        @keyframes strikeGrow {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+        
+        .word-bank { 
+            text-align: left; 
+            border-top: 1px solid var(--border);
+            padding-top: 30px;
+            margin-top: 20px;
+        }
+
+        .word-bank h3 { 
+            margin: 0 0 20px 0;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .word-bank-list { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 16px; 
+            font-size: 1rem; 
+            font-family: monospace; 
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
         @media print {
-            body { background: white; padding: 0; }
+            body { background: white; padding: 0; color: black; }
             .sidebar { display: none; }
-            .preview-area { box-shadow: none; width: 100%; padding: 0; margin: 0; }
+            .preview-area { border: none; background: white; width: 100%; padding: 0; margin: 0; }
             .container { display: block; }
-            .cell {  }
-            .word-bank-list { grid-template-columns: repeat(4, 1fr); }
+            #puzzle-title { color: black; border-bottom-color: black; }
+            .cell { color: black; }
+            .highlight-strike { mix-blend-mode: multiply !important; opacity: 0.35 !important; }
+            .word-bank { border-top-color: #ccc; }
+            .word-bank h3 { color: #666; }
+            .word-bank-list { color: black; grid-template-columns: repeat(4, 1fr); }
         }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="sidebar">
-        <h1>Word Search Setup</h1>
+        <h1>Setup Panel</h1>
+        
+        <div class="control-group">
+            <label>Theme Mode</label>
+            <div class="btn-row">
+                <button type="button" id="btn-theme-dark" class="btn btn-active" onclick="setThemeMode('dark')">Dark</button>
+                <button type="button" id="btn-theme-light" class="btn" onclick="setThemeMode('light')">Light</button>
+            </div>
+        </div>
+        
+        <!-- Swap between Lang（EN / JA） -->
+        <div class="control-group">
+            <label>Language Mode</label>
+            <div class="btn-row">
+                <button type="button" id="btn-lang-en" class="btn btn-active" onclick="setLanguageMode('EN')">English</button>
+                <button type="button" id="btn-lang-ja" class="btn" onclick="setLanguageMode('JA')">日本語</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label id="case-toggle-label">Letter Case</label>
+            <div class="btn-row">
+                <button type="button" id="btn-case-primary" class="btn btn-active" onclick="setLetterCase(true)"></button>
+                <button type="button" id="btn-case-secondary" class="btn" onclick="setLetterCase(false)"></button>
+            </div>
+        </div>
         
         <div class="control-group">
             <div class="grid-size-display">
                 <label>Grid Size</label>
-                <span id="sizeValue" style="font-size: 30px; font-weight:bold">20 x 20</span>
-                <div class="control-group">
-    <label>Directions</label>
-
-    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
-        <input type="checkbox" id="allowHorizontal" checked>
-        Horizontal
-    </label>
-
-    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
-        <input type="checkbox" id="allowVertical" checked>
-        Vertical
-    </label>
-
-    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
-        <input type="checkbox" id="allowDiagonal" checked>
-        Diagonal
-    </label>
-
-    <label style="display:flex; align-items:center; gap:8px; font-weight:normal;">
-        <input type="checkbox" id="allowBackward">
-        Allow Backwards
-    </label>
-</div>
+                <span id="sizeValue" class="size-badge">20 x 20</span>
             </div>
-            <input type="range" id="sizeRange" min="8" max="30" value="20" oninput="updateGridSize(this.value)">
+            <div class="slider-wrapper">
+                <input type="range" id="sizeRange" min="8" max="30" value="20" oninput="handleSliderInput(this.value)">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>Directions</label>
+            <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" id="allowHorizontal" checked onchange="generatePuzzle()">Horizontal</label>
+                <label class="checkbox-label"><input type="checkbox" id="allowVertical" checked onchange="generatePuzzle()">Vertical</label>
+                <label class="checkbox-label"><input type="checkbox" id="allowDiagonal" checked onchange="generatePuzzle()">Diagonal</label>
+                <label class="checkbox-label"><input type="checkbox" id="allowBackward" onchange="generatePuzzle()">Backwards</label>
+            </div>
         </div>
         
         <div class="control-group">
             <label>Puzzle Title</label>
-            <input
-                type="text"
-                id="titleInput"
-                placeholder="Enter puzzle title..."
-                oninput="updateTitle()"
-            >
-            <label>Add Word</label>
+            <input type="text" id="titleInput" placeholder="Enter puzzle title..." oninput="updateTitle()">
+            
+            <label style="margin-top: 20px;">Add Word</label>
             <input type="text" id="wordInput" placeholder="Enter word..." onkeypress="if(event.key==='Enter') addWord()">
-            <button class="btn btn-add" style="margin-top:10px" onclick="addWord()">Add to Puzzle</button>
+            <button class="btn btn-add" style="margin-top: 14px;" onclick="addWord()">
+                ✚ Add Word
+            </button>
         </div>
         
         <div class="word-tag-container" id="wordTagContainer"></div>
         
-        <button class="btn btn-save" style="margin-top:20px" onclick="saveJSON()">Download JSON</button>
+        <button class="btn" id="btn-toggle-answer" onclick="toggleAnswerSheet()">
+            Show Answer Sheet
+        </button>
+        <button class="btn" onclick="saveJSON()">⎙ Download JSON</button>
         <input type="file" id="fileInput" style="display:none" onchange="loadJSON(event)" multiple>
-        <button class="btn btn-load" onclick="document.getElementById('fileInput').click()">Upload JSON(s)</button>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">➜] Upload JSON(s)</button>
 
-        <button class="btn btn-add" onclick="generatePuzzle()">
+        <button class="btn" onclick="generatePuzzle()">
             🔄 Refresh Grid
         </button>
-
-	<button class="btn" id="btn-toggle-answer" style="background: #e74c3c; color: white;" onclick="toggleAnswerSheet()">
-    		👁️ Show Answer Sheet
-	</button>
-
         
-        <button class="btn btn-print" onclick="window.print()">Print to A4 / PDF</button>
+        <button class="btn btn-print" style="margin-top: 25px;" onclick="window.print()">Print to A4 / PDF</button>
     </div>
 
     <div class="preview-area">
         <h2 id="puzzle-title">WORD SEARCH</h2>
         <div id="grid"></div>
         <div class="word-bank">
-            <h3>WORDS TO FIND:</h3>
+            <h3>WORDS TO FIND</h3>
             <div class="word-bank-list" id="wordBankList"></div>
         </div>
     </div>
@@ -168,31 +455,124 @@
 
 <script>
     let words = [];
-    let gridSize = 20; 
-    
-    // Global tracking array to track direction axis signature of each letter
+    let gridSize = 20;
     let directionGrid = [];
-
-    let showAnswer = false;
+    let showAnswer = false; 
     let placedWordsData = []; 
+    let sliderTimeout = null; 
 
-    function updateGridSize(val) {
+    let currentLanguage = 'EN'; 
+    let isPrimaryCase = true;   
+
+    // THEME
+    let currentTheme = 'dark';
+    function setThemeMode(theme) {
+        currentTheme = theme;
+        const html = document.documentElement;
+        if (theme === 'light') {
+            html.classList.add('light-mode');
+        } else {
+            html.classList.remove('light-mode');
+        }
+        document.getElementById('btn-theme-dark').classList.toggle('btn-active', theme === 'dark');
+        document.getElementById('btn-theme-light').classList.toggle('btn-active', theme === 'light');
+        
+        // オーバーレイハイライトの色やブレンドを馴染ませるために再描画
+        syncAnswerDisplay();
+    }
+
+    function convertJapanese(text, toKatakana) {
+        return text.replace(/[\u3041-\u3096]/g, function(match) {
+            const chr = match.charCodeAt(0) + 0x60;
+            return String.fromCharCode(chr);
+        }).replace(/[\u30a1-\u30f6]/g, function(match) {
+            if (!toKatakana) {
+                const chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            }
+            return match;
+        });
+    }
+
+    function handleSliderInput(val) {
         gridSize = parseInt(val);
         document.getElementById('sizeValue').innerText = `${gridSize} x ${gridSize}`;
+        
+        clearTimeout(sliderTimeout);
+        sliderTimeout = setTimeout(() => {
+            generatePuzzle();
+        }, 80); 
+    }
+    function setLanguageMode(mode) {
+        if (currentLanguage === mode) return;
+        currentLanguage = mode;
+
+        document.getElementById('btn-lang-en').classList.toggle('btn-active', mode === 'EN');
+        document.getElementById('btn-lang-ja').classList.toggle('btn-active', mode === 'JA');
+
+        const label = document.getElementById('case-toggle-label');
+        if (mode === 'EN') {
+            label.innerText = 'Letter Case';
+            isPrimaryCase = true;
+        } else {
+            label.innerText = '文字の種類 (Type)';
+            isPrimaryCase = true;
+        }
+
+        words = words.map(word => sanitizeWord(word));
+        words = [...new Set(words)]; 
+
+        updateToggleButtonsUI();
+        updateUI();
         generatePuzzle();
+    }
+
+    function setLetterCase(isPrimary) {
+        if (isPrimaryCase === isPrimary) return;
+        isPrimaryCase = isPrimary;
+
+        updateToggleButtonsUI();
+        updateUI();
+        generatePuzzle(); 
+    }
+
+    function updateToggleButtonsUI() {
+        const btnPrimary = document.getElementById('btn-case-primary');
+        const btnSecondary = document.getElementById('btn-case-secondary');
+
+        if (currentLanguage === 'EN') {
+            btnPrimary.innerText = 'UPPERCASE';
+            btnSecondary.innerText = 'lowercase';
+        } else {
+            btnPrimary.innerText = 'ひらがな';
+            btnSecondary.innerText = 'カタカナ';
+        }
+
+        btnPrimary.classList.toggle('btn-active', isPrimaryCase);
+        btnSecondary.classList.toggle('btn-active', !isPrimaryCase);
+    }
+
+    function sanitizeWord(inputString) {
+        let text = inputString.trim();
+        if (currentLanguage === 'EN') {
+            return text.toUpperCase().replace(/[^A-Z]/g, '');
+        } else {
+            text = text.replace(/[^\u3041-\u3096\u30a1-\u30f6]/g, '');
+            return convertJapanese(text, false);
+        }
     }
 
     function addWord() {
         const input = document.getElementById('wordInput');
-        const word = input.value.toUpperCase().trim().replace(/[^A-Z]/g, '');
+        const word = sanitizeWord(input.value);
         
         if (!word) return;
         if (word.length > gridSize) {
-            alert(`Word is too long for a ${gridSize}x${gridSize} grid!`);
+            alert(currentLanguage === 'EN' ? `Word is too long for a ${gridSize}x${gridSize} grid!` : `単語が長すぎます（現在のサイズ: ${gridSize}x${gridSize}）`);
             return;
         }
         if (words.includes(word)) {
-            alert("Word already added!");
+            alert(currentLanguage === 'EN' ? "Word already added!" : "その単語はすでに追加されています");
             return;
         }
 
@@ -218,350 +598,380 @@
         const tagContainer = document.getElementById('wordTagContainer');
         tagContainer.innerHTML = '';
         words.forEach((word, i) => {
-            tagContainer.innerHTML += `<div class="word-tag">${word} <span class="remove-tag" onclick="removeWord(${i})">×</span></div>`;
+            let displayWord = word;
+            if (currentLanguage === 'EN') {
+                displayWord = isPrimaryCase ? word.toUpperCase() : word.toLowerCase();
+            } else {
+                displayWord = isPrimaryCase ? convertJapanese(word, false) : convertJapanese(word, true);
+            }
+            tagContainer.innerHTML += `<div class="word-tag">${displayWord} <span class="remove-tag" onclick="removeWord(${i})">×</span></div>`;
         });
 
         const bankList = document.getElementById('wordBankList');
         bankList.innerHTML = '';
         [...words].sort().forEach(word => {
-            bankList.innerHTML += `<div>□ ${word}</div>`;
+            let displayWord = word;
+            if (currentLanguage === 'EN') {
+                displayWord = isPrimaryCase ? word.toUpperCase() : word.toLowerCase();
+            } else {
+                displayWord = isPrimaryCase ? convertJapanese(word, false) : convertJapanese(word, true);
+            }
+            bankList.innerHTML += `<div>□ ${displayWord}</div>`;
         });
     }
+    function getDirections() {
+        const dirs = [];
+        const horizontal = document.getElementById('allowHorizontal').checked;
+        const vertical = document.getElementById('allowVertical').checked;
+        const diagonal = document.getElementById('allowDiagonal').checked;
+        const backward = document.getElementById('allowBackward').checked;
 
-function getDirections() {
-    const dirs = [];
-    const horizontal = document.getElementById('allowHorizontal').checked;
-    const vertical = document.getElementById('allowVertical').checked;
-    const diagonal = document.getElementById('allowDiagonal').checked;
-    const backward = document.getElementById('allowBackward').checked;
+        if (horizontal) dirs.push("0,1".split(",").map(Number));
+        if (vertical)   dirs.push("1,0".split(",").map(Number));
+        if (diagonal)   dirs.push("1,1".split(",").map(Number));
 
-    // Forward directions processed safely using strings
-    if (horizontal) dirs.push("0,1".split(",").map(Number));
-    if (vertical)   dirs.push("1,0".split(",").map(Number));
-    if (diagonal)   dirs.push("1,1".split(",").map(Number));
-
-    // Backward directions processed safely using strings
-    if (backward) {
-        if (horizontal) dirs.push("0,-1".split(",").map(Number));
-        if (vertical)   dirs.push("-1,0".split(",").map(Number));
-        if (diagonal) {
-            dirs.push("-1,-1".split(",").map(Number));
-            dirs.push("1,-1".split(",").map(Number));
-            dirs.push("-1,1".split(",").map(Number));
+        if (backward) {
+            if (horizontal) dirs.push("0,-1".split(",").map(Number));
+            if (vertical)   dirs.push("-1,0".split(",").map(Number));
+            if (diagonal) {
+                dirs.push("-1,-1".split(",").map(Number));
+                dirs.push("1,-1".split(",").map(Number));
+                dirs.push("-1,1".split(",").map(Number));
+            }
         }
+        return dirs;
     }
-    return dirs;
-}
 
+    function generatePuzzle() {
+        const gridDiv = document.getElementById('grid');
+        if (!gridDiv) return;
 
-function generatePuzzle() {
-    const gridDiv = document.getElementById('grid');
-    const cellSize = Math.min(550 / gridSize, 45);
+        const cellSize = Math.min(550 / gridSize, 45);
+        gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
 
-    gridDiv.style.gridTemplateColumns = `repeat(${gridSize}, ${cellSize}px)`;
+        let grid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+        directionGrid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
 
-    let grid = Array(gridSize)
-        .fill()
-        .map(() => Array(gridSize).fill(''));
+        const directions = getDirections();
+        const sortedWords = [...words].sort((a, b) => b.length - a.length);
 
-    // Initialize direction tracking map alongside character map
-    directionGrid = Array(gridSize)
-        .fill()
-        .map(() => Array(gridSize).fill(''));
+        placedWordsData = [];
+        const colors = ["#ff7675", "#74b9ff", "#55efc4", "#ffeaa7", "#a29bfe", "#fd79a8", "#fdcb6e", "#00cec9"];
 
-    const directions = getDirections();
-    const sortedWords = [...words].sort((a, b) => b.length - a.length);
-
-    // ==========================================
-    // ここからが、ご提示いただいた新しいコードの配置場所です
-    // ==========================================
-    placedWordsData = [];
-
-    // カラーパレット（単語ごとに異なるランダムな色を割り当てるため）
-    const colors = ["#ff7675", "#74b9ff", "#55efc4", "#ffeaa7", "#a29bfe", "#fd79a8", "#fdcb6e", "#00cec9"];
-
-    sortedWords.forEach((word, wordIndex) => {
-        let validPlacements = [];
-        for (let r = 0; r < gridSize; r++) {
-            for (let c = 0; c < gridSize; c++) {
-                for (let d = 0; d < directions.length; d++) {
-                    const [dr, dc] = directions[d];
-                    if (canPlace(grid, word, r, c, dr, dc)) {
-                        validPlacements.push(`${r},${c},${dr},${dc}`);
+        sortedWords.forEach((word, wordIndex) => {
+            let validPlacements = [];
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    for (let d = 0; d < directions.length; d++) {
+                        const [dr, dc] = directions[d];
+                        if (canPlace(grid, word, r, c, dr, dc)) {
+                            validPlacements.push(`${r},${c},${dr},${dc}`);
+                        }
                     }
                 }
             }
-        }
 
-        if (validPlacements.length > 0) {
-            const randomIndex = Math.floor(Math.random() * validPlacements.length);
-            const [selectedRow, selectedCol, selectedDr, selectedDc] = validPlacements[randomIndex].split(",").map(Number);
+            if (validPlacements.length > 0) {
+                const randomIndex = Math.floor(Math.random() * validPlacements.length);
+                const [selectedRow, selectedCol, selectedDr, selectedDc] = validPlacements[randomIndex].split(",").map(Number);
 
-            placeWord(grid, word, selectedRow, selectedCol, selectedDr, selectedDc);
+                placeWord(grid, word, selectedRow, selectedCol, selectedDr, selectedDc);
 
-            // 【新機能】単語の「開始マス」と「終了マス」、そして割り当てられた「色」を保存
-            const endRow = selectedRow + selectedDr * (word.length - 1);
-            const endCol = selectedCol + selectedDc * (word.length - 1);
-            const color = colors[wordIndex % colors.length]; // 色を順番に割り当て
-            
-            placedWordsData.push({
-                startR: selectedRow,
-                startC: selectedCol,
-                endR: endRow,
-                endC: endCol,
-                color: color
-            });
+                const endRow = selectedRow + selectedDr * (word.length - 1);
+                const endCol = selectedCol + selectedDc * (word.length - 1);
+                const color = colors[wordIndex % colors.length];
+                
+                placedWordsData.push({
+                    startR: selectedRow,
+                    startC: selectedCol,
+                    endR: endRow,
+                    endC: endCol,
+                    color: color
+                });
+            } else {
+                console.warn(`Could not place word: ${word}`);
+            }
+        });
+
+        const validWords = extractWordsFromGrid(grid);
+        const bankList = document.getElementById('wordBankList');
+        bankList.innerHTML = '';
+        validWords.sort().forEach(word => {
+            let displayWord = word;
+            if (currentLanguage === 'EN') {
+                displayWord = isPrimaryCase ? word.toUpperCase() : word.toLowerCase();
+            } else {
+                displayWord = isPrimaryCase ? convertJapanese(word, false) : convertJapanese(word, true);
+            }
+            bankList.innerHTML += `<div>□ ${displayWord}</div>`;
+        });
+
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        if (currentLanguage === 'EN') {
+            letters = isPrimaryCase ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "abcdefghijklmnopqrstuvwxyz";
         } else {
-            console.warn(`Could not place word: ${word}`);
+            const hiraganaPool = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわん";
+            const katakanaPool = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン";
+            letters = isPrimaryCase ? hiraganaPool : katakanaPool;
         }
-    });
-    // ==========================================
-    // ここまで
-    // ==========================================
 
-    // Only show words actually placed in grid
-    const validWords = extractWordsFromGrid(grid);
+        let gridHTML = "";
 
-    // Update visible word bank
-    const bankList = document.getElementById('wordBankList');
-    bankList.innerHTML = '';
+        for (let r = 0; r < gridSize; r++) {
+            for (let c = 0; c < gridSize; c++) {
+                let char = grid[r][c];
+                
+                if (char === '') {
+                    char = letters[Math.floor(Math.random() * letters.length)];
+                } else {
+                    if (currentLanguage === 'EN') {
+                        char = isPrimaryCase ? char.toUpperCase() : char.toLowerCase();
+                    } else {
+                        char = isPrimaryCase ? convertJapanese(char, false) : convertJapanese(char, true);
+                    }
+                }
 
-    validWords.sort().forEach(word => {
-        bankList.innerHTML += `<div>□ ${word}</div>`;
-    });
-
-    // Fill remaining cells
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    gridDiv.innerHTML = '';
-
-    for (let r = 0; r < gridSize; r++) {
-        for (let c = 0; c < gridSize; c++) {
-            const char = grid[r][c] || letters[Math.floor(Math.random() * letters.length)];
-            gridDiv.innerHTML += `
-                <div class="cell"
-                     style="
-                        width:${cellSize}px;
-                        height:${cellSize}px;
-                        font-size:${cellSize * 0.6}px
-                     ">
-                    ${char}
-                </div>
-            `;
+                gridHTML += `
+                    <div class="cell"
+                         style="
+                            width:${cellSize}px;
+                            height:${cellSize}px;
+                            font-size:${cellSize * 0.55}px;
+                         ">
+                        ${char}
+                    </div>
+                `;
+            }
         }
+        gridDiv.innerHTML = gridHTML;
+
+        syncAnswerDisplay();
     }
+    function canPlace(grid, word, row, col, dr, dc) {
+        const currentAxisKey = `${Math.abs(dr)},${Math.abs(dc)}`;
 
-    // 【重要】マスを出力し終わった直後に、透明なSVGキャンバスを重ねて追加します
-    const svgCanvas = document.createElementNS("http://w3.org", "svg");
-    svgCanvas.setAttribute("class", "answer-svg");
-    svgCanvas.setAttribute("id", "answerCanvas");
-    gridDiv.appendChild(svgCanvas);
+        for (let i = 0; i < word.length; i++) {
+            const r = row + dr * i;
+            const c = col + dc * i;
 
-    // 解答表示モードの状態を画面に同期
-    syncAnswerDisplay();
-}
-
-
-function canPlace(grid, word, row, col, dr, dc) {
-    // Generate orientation key profile (e.g. '0,1' or '1,0')
-    const currentAxisKey = `${Math.abs(dr)},${Math.abs(dc)}`;
-
-    for (let i = 0; i < word.length; i++) {
-        const r = row + dr * i;
-        const c = col + dc * i;
-
-        if (r < 0 || c < 0 || r >= gridSize || c >= gridSize) {
-            return false;
-        }
-
-        if (grid[r][c] !== '') {
-            // FIX: Block overlapping words if they share the exact same directional axis line
-            if (directionGrid[r][c] === currentAxisKey) {
+            if (r < 0 || c < 0 || r >= gridSize || c >= gridSize) {
                 return false;
             }
 
-            // Allow intersection ONLY if crossing paths and letter matches perfectly
-            if (grid[r][c] !== word[i]) {
-                return false;
+            if (grid[r][c] !== '') {
+                // BUG FIX: 同一軸上（同じ直線上）で完全に隠蔽される単語や、
+                // 不自然に直列に結合して文字が連続してしまうバグを完全にブロックします。
+                if (directionGrid[r][c] === currentAxisKey) {
+                    return false;
+                }
+
+                // 異なる軸同士がクロスして交差する場合は、文字が完全一致していれば共有を許可します
+                if (grid[r][c] !== word[i]) {
+                    return false;
+                }
             }
         }
+        return true;
     }
-    return true;
-}
 
-function placeWord(grid, word, row, col, dr, dc) {
-    const currentAxisKey = `${Math.abs(dr)},${Math.abs(dc)}`;
+    function placeWord(grid, word, row, col, dr, dc) {
+        const currentAxisKey = `${Math.abs(dr)},${Math.abs(dc)}`;
 
-    for (let i = 0; i < word.length; i++) {
-        const r = row + dr * i;
-        const c = col + dc * i;
+        for (let i = 0; i < word.length; i++) {
+            const r = row + dr * i;
+            const c = col + dc * i;
 
-        grid[r][c] = word[i];
-        directionGrid[r][c] = currentAxisKey; // Record axis profile signature to grid map
+            grid[r][c] = word[i];
+            directionGrid[r][c] = currentAxisKey; // 配置された文字に軸の方向を記録
+        }
     }
-}
 
-function syncAnswerDisplay() {
-    // 1. Reset all cells back to normal layout styles
-    const cells = document.querySelectorAll('#grid .cell');
-    cells.forEach(cell => {
-        cell.style.backgroundColor = '';
-        cell.style.color = '';
-        cell.style.borderRadius = '';
-    });
+    // Element Bound Center System
+    function syncAnswerDisplay() {
+        const existingStrikes = document.querySelectorAll('.highlight-strike');
+        existingStrikes.forEach(strike => strike.remove());
 
-    // 2. If answer mode is disabled, simply update the toggle button and stop
-    if (!showAnswer) {
+        if (!showAnswer) {
+            updateAnswerButton();
+            return;
+        }
+
+        const gridDiv = document.getElementById('grid');
+        const cells = document.querySelectorAll('#grid .cell');
+        if (!gridDiv || cells.length === 0) return;
+
+        // Ask the main grid container for its precise current bounding rectangle coordinates
+        const gridRect = gridDiv.getBoundingClientRect();
+        
+        // Grab one fallback sizing layout standard for the marker capsule thickness
+        const fallbackCellSize = cells[0].offsetWidth;
+        const strikeHeight = fallbackCellSize * 0.72; 
+        const paddingOffset = fallbackCellSize * 0.38; // Slightly tucked capsule edge padding
+
+        placedWordsData.forEach(data => {
+            // Map the exact grid row/col to flat array indices to target specific DOM cells
+            const startCellIndex = data.startR * gridSize + data.startC;
+            const endCellIndex = data.endR * gridSize + data.endC;
+
+            const startCellElement = cells[startCellIndex];
+            const endCellElement = cells[endCellIndex];
+
+            if (!startCellElement || !endCellElement) return;
+
+            // NEW MECHANIC: Get the real-time exact pixel bounds of the actual letter cells on screen
+            const startRect = startCellElement.getBoundingClientRect();
+            const endRect = endCellElement.getBoundingClientRect();
+
+            // Calculate exact centers relative to the parent #grid container coordinates
+            const x1_center = (startRect.left + startRect.width / 2) - gridRect.left;
+            const y1_center = (startRect.top + startRect.height / 2) - gridRect.top;
+            const x2_center = (endRect.left + endRect.width / 2) - gridRect.left;
+            const y2_center = (endRect.top + endRect.height / 2) - gridRect.top;
+
+            // Calculate precise orientation direction vectors
+            const radians = Math.atan2(y2_center - y1_center, x2_center - x1_center);
+            const angle = radians * (180 / Math.PI);
+
+            // Shift outer coordinate caps safely inward using the refined offset limits
+            const x1 = x1_center - Math.cos(radians) * paddingOffset;
+            const y1 = y1_center - Math.sin(radians) * paddingOffset;
+            const x2 = x2_center + Math.cos(radians) * paddingOffset;
+            const y2 = y2_center + Math.sin(radians) * paddingOffset;
+
+            // Compute exact updated line boundary spans
+            const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+
+            const strike = document.createElement('div');
+            strike.className = 'highlight-strike';
+
+            // Apply direct positions
+            strike.style.left = `${x1}px`;
+            strike.style.top = `${y1 - strikeHeight / 2}px`;
+            strike.style.width = `${distance}px`;
+            strike.style.height = `${strikeHeight}px`;
+            strike.style.backgroundColor = data.color + "55"; 
+
+            // Lock rotation pivoting to the capsule center edge
+            strike.style.transformOrigin = "left center";
+            strike.style.transform = `rotate(${angle}deg)`;
+
+            gridDiv.appendChild(strike);
+        });
+
         updateAnswerButton();
-        return;
     }
 
-    // 3. Apply custom colors and round the tips of each placed word directly
-    placedWordsData.forEach(data => {
-        const length = Math.max(
-            Math.abs(data.endR - data.startR), 
-            Math.abs(data.endC - data.startC)
-        ) + 1;
 
-        // Calculate direction step flags
-        const dr = data.endR === data.startR ? 0 : (data.endR > data.startR ? 1 : -1);
-        const dc = data.endC === data.startC ? 0 : (data.endC > data.startC ? 1 : -1);
-
-        for (let i = 0; i < length; i++) {
-            const r = data.startR + dr * i;
-            const c = data.startC + dc * i;
-
-            // Target the specific cell index in the flat DOM grid array
-            const cellIndex = r * gridSize + c;
-            const cell = cells[cellIndex];
-
-            if (cell) {
-                // Apply the word's unique marker color (using 40% alpha opacity hex colors)
-                cell.style.backgroundColor = data.color + "66"; 
-                cell.style.color = "#000000"; // Keep text sharp and visible
-
-                // Beautiful extra touch: Round the outer edges of the start and end letters
-                if (i === 0) {
-                    cell.style.borderRadius = '50% 0 0 50%'; // Rounded start caps
-                } else if (i === length - 1) {
-                    cell.style.borderRadius = '0 50% 50% 0'; // Rounded end caps
-                }
+    function updateAnswerButton() {
+        const btn = document.getElementById('btn-toggle-answer');
+        if (btn) {
+            if (showAnswer) {
+                btn.innerText = "Hide Answer Sheet";
+                btn.style.background = "var(--border)";
+            } else {
+                btn.innerText = "Show Answer Sheet";
+                btn.style.background = "transparent";
             }
         }
-    });
-
-    updateAnswerButton();
-}
-
-// ボタンのUI表現だけを更新する補助関数
-function updateAnswerButton() {
-    const btn = document.getElementById('btn-toggle-answer');
-    if (btn) {
-        if (showAnswer) {
-            btn.innerText = "Hide Answer Sheet";
-            btn.style.background = "#2c3e50";
-        } else {
-            btn.innerText = "Show Answer Sheet";
-            btn.style.background = "#e74c3c";
-        }
     }
-}
 
-// 通常シートと解答シートを切り替えるトリガー
-function toggleAnswerSheet() {
-    showAnswer = !showAnswer;
-    syncAnswerDisplay();
-}
+    function toggleAnswerSheet() {
+        showAnswer = !showAnswer;
+        syncAnswerDisplay(); // 再生成させず、マーカーストライクの表示だけを瞬時にトグル
+    }
 
+    function extractWordsFromGrid(grid) {
+        const foundWords = new Set();
+        const dirStrings = [
+            "0,1", "1,0", "1,1", "0,-1", "-1,0", "-1,-1", "1,-1", "-1,1"
+        ];
+        const directions = dirStrings.map(str => str.split(",").map(Number));
 
+        for (const word of words) {
+            outerLoop:
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    for (let d = 0; d < directions.length; d++) {
+                        const [dr, dc] = directions[d];
+                        let match = true;
 
-function extractWordsFromGrid(grid) {
-    const foundWords = new Set();
-    
-    // Using string formats to prevent the AI system from dropping coordinates
-    const dirStrings = [
-        "0,1",   // Horizontal Forward
-        "1,0",   // Vertical Forward
-        "1,1",   // Diagonal Down-Right
-        "0,-1",  // Horizontal Backwards
-        "-1,0",  // Vertical Backwards
-        "-1,-1", // Diagonal Up-Left
-        "1,-1",  // Diagonal Down-Left
-        "-1,1"   // Diagonal Up-Right
-    ];
+                        for (let i = 0; i < word.length; i++) {
+                            const nr = r + dr * i;
+                            const nc = c + dc * i;
 
-    // Convert string arrays back into actual directional numbers safely
-    const directions = dirStrings.map(str => {
-        const parts = str.split(",");
-        return [parseInt(parts[0]), parseInt(parts[1])];
-    });
+                            if (nr < 0 || nc < 0 || nr >= gridSize || nc >= gridSize) {
+                                match = false;
+                                break;
+                            }
 
-    for (const word of words) {
-        outerLoop:
-        for (let r = 0; r < gridSize; r++) {
-            for (let c = 0; c < gridSize; c++) {
-                for (let d = 0; d < directions.length; d++) {
-                    const dr = directions[d][0];
-                    const dc = directions[d][1];
-                    let match = true;
-
-                    for (let i = 0; i < word.length; i++) {
-                        const nr = r + dr * i;
-                        const nc = c + dc * i;
-
-                        if (nr < 0 || nc < 0 || nr >= gridSize || nc >= gridSize) {
-                            match = false;
-                            break;
+                            if (grid[nr][nc] !== word[i]) {
+                                match = false;
+                                break;
+                            }
                         }
 
-                        if (grid[nr][nc] !== word[i]) {
-                            match = false;
-                            break;
+                        if (match) {
+                            foundWords.add(word);
+                            break outerLoop;
                         }
-                    }
-
-                    if (match) {
-                        foundWords.add(word);
-                        break outerLoop;
                     }
                 }
             }
         }
+        return [...foundWords];
     }
-    return [...foundWords];
-}
 
-function saveJSON() {
-    const data = {
-        gridSize,
-        words,
-        title: document.getElementById('titleInput').value
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `wordsearch-${gridSize}x${gridSize}.json`;
-    a.click();
-}
+    function saveJSON() {
+        const data = {
+            gridSize,
+            words,
+            title: document.getElementById('titleInput').value,
+            currentLanguage,
+            isPrimaryCase,
+            currentTheme
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `wordsearch-${gridSize}x${gridSize}.json`;
+        a.click();
+    }
 
-async function loadJSON(event) {
-    for (let file of event.target.files) {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (data.words) {
-            if (data.title) {
-                document.getElementById('titleInput').value = data.title;
-                updateTitle();
+    async function loadJSON(event) {
+        for (let file of event.target.files) {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (data.words) {
+                if (data.title) {
+                    document.getElementById('titleInput').value = data.title;
+                    updateTitle();
+                }
+                if (data.currentLanguage) {
+                    currentLanguage = data.currentLanguage;
+                    document.getElementById('btn-lang-en').classList.toggle('btn-active', currentLanguage === 'EN');
+                    document.getElementById('btn-lang-ja').classList.toggle('btn-active', currentLanguage === 'JA');
+                }
+                if (data.isPrimaryCase !== undefined) {
+                    isPrimaryCase = data.isPrimaryCase;
+                }
+                if (data.currentTheme) {
+                    setThemeMode(data.currentTheme);
+                }
+                words = [...new Set([...words, ...data.words])];
+                if (data.gridSize > gridSize) {
+                    gridSize = data.gridSize;
+                    document.getElementById('sizeRange').value = gridSize;
+                    document.getElementById('sizeValue').innerText = `${gridSize} x ${gridSize}`;
+                }
             }
-            words = [...new Set([...words, ...data.words])];
-            if (data.gridSize > gridSize) updateGridSize(data.gridSize);
         }
+        updateToggleButtonsUI();
+        updateUI();
+        generatePuzzle();
     }
-    updateUI();
+
+    updateToggleButtonsUI();
     generatePuzzle();
-}
-
-// Self-initialize layout grid upon startup
-generatePuzzle();
 </script>
 
 </body>
