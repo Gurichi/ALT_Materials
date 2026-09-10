@@ -1,2327 +1,2366 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 
-<html lang="en"> 
+<html lang="en">
 
-<head> 
+<head>
 
-<meta charset="UTF-8"> 
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<title>Snakes &amp; Ladders</title> 
+    <title>Snakes &amp; Ladders</title>
 
-<style> 
+    <style>
+        :root {
 
-:root { 
+            --jungle-dark: #0f1f11;
 
---jungle-dark: #0f1f11; 
+            --leaf-green: #2a5934;
 
---leaf-green: #2a5934; 
+            --moss-green: #4f8a5b;
 
---moss-green: #4f8a5b; 
+            --bamboo-wood: #c29b62;
 
---bamboo-wood: #c29b62; 
+            --stone-even: #283029;
 
---stone-even: #283029; 
+            --stone-odd: #1e241f;
 
---stone-odd: #1e241f; 
+            --gold-accent: #ffd700;
 
---gold-accent: #ffd700; 
+            --question-glow: #00f0ff;
 
---question-glow: #00f0ff; 
+            --panel-bg: rgba(15, 31, 17, 0.96);
 
---panel-bg: rgba(15, 31, 17, 0.96); 
+        }
 
-} 
 
- 
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Verdana', 'Trebuchet MS', sans-serif; } 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Verdana', 'Trebuchet MS', sans-serif;
+        }
 
-body {  
+        body {
 
-width: 100vw; height: 100vh; height: -webkit-fill-available; 
+            width: 100vw;
+            height: 100vh;
+            height: -webkit-fill-available;
 
-background-color: var(--jungle-dark); 
+            background-color: var(--jungle-dark);
 
-background-image:  
+            background-image:
 
-radial-gradient(at 10% 20%, rgba(79, 138, 91, 0.25) 0px, transparent 50%), 
+                radial-gradient(at 10% 20%, rgba(79, 138, 91, 0.25) 0px, transparent 50%),
 
-radial-gradient(at 90% 80%, rgba(194, 155, 98, 0.15) 0px, transparent 50%), 
+                radial-gradient(at 90% 80%, rgba(194, 155, 98, 0.15) 0px, transparent 50%),
 
-linear-gradient(rgba(42, 89, 52, 0.1) 1px, transparent 1px), 
+                linear-gradient(rgba(42, 89, 52, 0.1) 1px, transparent 1px),
 
-linear-gradient(90deg, rgba(42, 89, 52, 0.1) 1px, transparent 1px); 
+                linear-gradient(90deg, rgba(42, 89, 52, 0.1) 1px, transparent 1px);
 
-background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px; 
+            background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
 
-display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
 
-overflow: hidden; color: #f0f5f1; position: relative; 
+            overflow: hidden;
+            color: #f0f5f1;
+            position: relative;
 
-} 
+        }
 
- 
 
-/* TITLE RELOCATED: Fixed at top-left so it never interferes with the board size */ 
 
-h1 {  
+        /* TITLE RELOCATED: Fixed at top-left so it never interferes with the board size */
 
-position: fixed; top: 15px; left: 15px;  
+        h1 {
 
-font-size: calc(10px + 0.6vh); font-weight: bold; 
+            position: fixed;
+            top: 15px;
+            left: 15px;
 
-letter-spacing: 1px; text-transform: uppercase; 
+            font-size: calc(10px + 0.6vh);
+            font-weight: bold;
 
-background: linear-gradient(135deg, #a3e635, var(--gold-accent)); 
+            letter-spacing: 1px;
+            text-transform: uppercase;
 
--webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            background: linear-gradient(135deg, #a3e635, var(--gold-accent));
 
-text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7); z-index: 20; pointer-events: none; 
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
 
-} 
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+            z-index: 20;
+            pointer-events: none;
 
- 
+        }
 
-/* TOP NAVIGATION BUTTONS */ 
 
-.top-nav { 
 
-position: fixed; bottom: 5%; left: 90%; transform: translateX(-50%); 
+        /* TOP NAVIGATION BUTTONS */
 
-display: flex; gap: 10px; z-index: 100; 
+        .top-nav {
 
-} 
+            position: fixed;
+            bottom: 5%;
+            left: 90%;
+            transform: translateX(-50%);
 
-.nav-btn { 
+            display: flex;
+            gap: 10px;
+            z-index: 100;
 
-background: rgba(42, 89, 52, 0.85); border: 2px solid var(--bamboo-wood); 
+        }
 
-color: #fff; padding: 8px 16px; border-radius: 8px; font-weight: bold; 
+        .nav-btn {
 
-font-size: 11px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; 
+            background: rgba(42, 89, 52, 0.85);
+            border: 2px solid var(--bamboo-wood);
 
-box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: all 0.2s; 
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
 
-} 
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
 
-.nav-btn:hover { background: var(--moss-green); transform: translateY(-1px); } 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s;
 
- 
+        }
 
-/* MAXIMUM SCREEN COVERAGE: Board now stretches strictly 100% from top to bottom */ 
+        .nav-btn:hover {
+            background: var(--moss-green);
+            transform: translateY(-1px);
+        }
 
-.game-layout {  
 
-position: relative; display: flex; justify-content: center; align-items: center;  
 
-width: 100vh; height: 100vh; max-width: 100vw; max-height: 100vh; 
+        /* MAXIMUM SCREEN COVERAGE: Board now stretches strictly 100% from top to bottom */
 
-aspect-ratio: 1 / 1; padding: 0;  
+        .game-layout {
 
-} 
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
- 
+            width: 100vh;
+            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
 
-.board-container {  
+            aspect-ratio: 1 / 1;
+            padding: 0;
 
-position: relative; background: rgba(30, 45, 32, 0.6); padding: 0.5%;  
+        }
 
-border-radius: 0; border: none; width: 100%; height: 100%; 
 
-} 
 
- 
+        .board-container {
 
-#board {  
+            position: relative;
+            background: rgba(30, 45, 32, 0.6);
+            padding: 0.5%;
 
-display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(10, 1fr);  
+            border-radius: 0;
+            border: none;
+            width: 100%;
+            height: 100%;
 
-border: none; background: #111612; width: 100%; height: 100%; 
+        }
 
-} 
 
- 
 
-.cell {  
+        #board {
 
-border: 1px solid rgba(255, 255, 255, 0.02); display: flex; flex-direction: column;  
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-template-rows: repeat(10, 1fr);
 
-justify-content: space-between; padding: 5%; font-weight: bold; font-size: calc(5px + 0.7vh);  
+            border: none;
+            background: #111612;
+            width: 100%;
+            height: 100%;
 
-position: relative; color: rgba(240, 245, 241, 0.25); user-select: none; 
+        }
 
-} 
 
-.cell-even { background: var(--stone-even); } 
 
-.cell-odd { background: var(--stone-odd); } 
+        .cell {
 
-.cell-100 { background: linear-gradient(135deg, rgba(255,215,0,0.25), transparent) !important; color: var(--gold-accent); font-weight: 900; } 
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
 
- 
+            justify-content: space-between;
+            padding: 5%;
+            font-weight: bold;
+            font-size: calc(5px + 0.7vh);
 
-.q-mark-glow { 
+            position: relative;
+            color: rgba(240, 245, 241, 0.25);
+            user-select: none;
 
-position: absolute; top: 15%; right: 15%; font-size: calc(8px + 0.8vh); 
+        }
 
-color: var(--question-glow); font-weight: 900; 
+        .cell-even {
+            background: var(--stone-even);
+        }
 
-text-shadow: 0 0 8px var(--question-glow), 0 0 15px var(--question-glow); 
+        .cell-odd {
+            background: var(--stone-odd);
+        }
 
-animation: qPulse 1.2s infinite alternate ease-in-out; pointer-events: none; z-index: 15; 
+        .cell-100 {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), transparent) !important;
+            color: var(--gold-accent);
+            font-weight: 900;
+        }
 
-} 
 
-@keyframes qPulse { 0% { opacity: 0.3; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } } 
 
- 
+        .q-mark-glow {
 
-#pathway-canvas { position: absolute; top: 0.5%; left: 0.5%; width: 99%; height: 99%; pointer-events: none; z-index: 10; } 
+            position: absolute;
+            top: 15%;
+            right: 15%;
+            font-size: calc(8px + 0.8vh);
 
-.pieces-overlay { position: absolute; top: 0.5%; left: 0.5%; width: 99%; height: 99%; pointer-events: none; z-index: 40; } 
+            color: var(--question-glow);
+            font-weight: 900;
 
-.piece {  
+            text-shadow: 0 0 8px var(--question-glow), 0 0 15px var(--question-glow);
 
-width: calc(6px + 1.4vh); height: calc(6px + 1.4vh); max-width: 26px; max-height: 26px; 
+            animation: qPulse 1.2s infinite alternate ease-in-out;
+            pointer-events: none;
+            z-index: 15;
 
-border-radius: 50%; border: calc(1px + 0.1vh) solid rgba(255, 255, 255, 0.9);  
+        }
 
-outline: calc(1px + 0.05vh) solid rgba(0, 0, 0, 0.4); 
+        @keyframes qPulse {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.9);
+            }
 
-background-image: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.65) 0%, rgba(0,0,0,0.15) 60%, rgba(0,0,0,0.5) 100%); 
+            100% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
 
-box-shadow: 0 4px 8px rgba(0,0,0,0.6); cursor: grab; pointer-events: auto; position: absolute; transform: translate(-50%, -50%); left: 0; top: 0; 
 
-} 
 
-.piece:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.2); z-index: 50; } 
+        #pathway-canvas {
+            position: absolute;
+            top: 0.5%;
+            left: 0.5%;
+            width: 99%;
+            height: 99%;
+            pointer-events: none;
+            z-index: 10;
+        }
 
-.piece.crowded-medium { width: calc(5px + 1vh); height: calc(5px + 1vh); } 
+        .pieces-overlay {
+            position: absolute;
+            top: 0.5%;
+            left: 0.5%;
+            width: 99%;
+            height: 99%;
+            pointer-events: none;
+            z-index: 40;
+        }
 
-.piece.crowded-heavy { width: calc(4px + 0.7vh); height: calc(4px + 0.7vh); } 
+        .piece {
 
- 
+            width: calc(6px + 1.4vh);
+            height: calc(6px + 1.4vh);
+            max-width: 26px;
+            max-height: 26px;
 
-/* --- Sidebar Menu Styling --- */ 
+            border-radius: 50%;
+            border: calc(1px + 0.1vh) solid rgba(255, 255, 255, 0.9);
 
-.hamburger-btn { 
+            outline: calc(1px + 0.05vh) solid rgba(0, 0, 0, 0.4);
 
-position: fixed; top: 15px; right: 15px; width: 38px; height: 38px; 
+            background-image: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.65) 0%, rgba(0, 0, 0, 0.15) 60%, rgba(0, 0, 0, 0.5) 100%);
 
-background: rgba(42, 89, 52, 0.85); border: 2px solid var(--bamboo-wood); border-radius: 8px; 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+            cursor: grab;
+            pointer-events: auto;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            left: 0;
+            top: 0;
 
-cursor: pointer; z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; 
+        }
 
-} 
+        .piece:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 50;
+        }
 
-.hamburger-btn span { width: 16px; height: 2.5px; background: #fff; border-radius: 2px; transition: all 0.3s; } 
+        .piece.crowded-medium {
+            width: calc(5px + 1vh);
+            height: calc(5px + 1vh);
+        }
 
-.hamburger-btn.active span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); background: #ff5555; } 
+        .piece.crowded-heavy {
+            width: calc(4px + 0.7vh);
+            height: calc(4px + 0.7vh);
+        }
 
-.hamburger-btn.active span:nth-child(2) { opacity: 0; } 
 
-.hamburger-btn.active span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); background: #ff5555; } 
 
- 
+        /* --- Sidebar Menu Styling --- */
 
-.sidebar { 
+        .hamburger-btn {
 
-position: fixed; top: 0; right: -310px; width: 290px; height: 100vh; 
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 38px;
+            height: 38px;
 
-background: var(--panel-bg); border-left: 3px solid var(--bamboo-wood); box-shadow: -15px 0 40px rgba(0,0,0,0.6); 
+            background: rgba(42, 89, 52, 0.85);
+            border: 2px solid var(--bamboo-wood);
+            border-radius: 8px;
 
-z-index: 150; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); 
+            cursor: pointer;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
 
-padding: 70px 15px 15px 15px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; 
+        }
 
-transition: right 0.4s cubic-bezier(0.1, 0.9, 0.2, 1); 
+        .hamburger-btn span {
+            width: 16px;
+            height: 2.5px;
+            background: #fff;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
 
-} 
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(6.5px) rotate(45deg);
+            background: #ff5555;
+        }
 
-.sidebar.open { right: 0; } 
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+        }
 
- 
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-6.5px) rotate(-45deg);
+            background: #ff5555;
+        }
 
-/* --- Moveable Popup Controls --- */ 
 
-.dice-popup { 
 
-position: fixed; 
+        .sidebar {
 
-top: 70px; 
+            position: fixed;
+            top: 0;
+            right: -310px;
+            width: 290px;
+            height: 100vh;
 
-left: 15px; 
+            background: var(--panel-bg);
+            border-left: 3px solid var(--bamboo-wood);
+            box-shadow: -15px 0 40px rgba(0, 0, 0, 0.6);
 
-width: 160px; 
+            z-index: 150;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
 
-background: rgba(20, 35, 22, 0.96); 
+            padding: 70px 15px 15px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
 
-border: 2px solid var(--bamboo-wood); 
+            transition: right 0.4s cubic-bezier(0.1, 0.9, 0.2, 1);
 
-border-radius: 12px; 
+        }
 
-box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
+        .sidebar.open {
+            right: 0;
+        }
 
-z-index: 100; 
 
-backdrop-filter: blur(10px); 
 
-display: flex; 
+        /* --- Moveable Popup Controls --- */
 
-flex-direction: column; 
+        .dice-popup {
 
-align-items: center; 
+            position: fixed;
 
-padding: 8px; 
+            top: 70px;
 
-touch-action: none; 
+            left: 15px;
 
-overflow: hidden; /* Needed for resize handle */ 
+            width: 160px;
 
-} 
+            background: rgba(20, 35, 22, 0.96);
 
- 
+            border: 2px solid var(--bamboo-wood);
 
-.dice-popup-header { 
+            border-radius: 12px;
 
-width: 100%; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 
-display: flex; 
+            z-index: 100;
 
-justify-content: space-between; 
+            backdrop-filter: blur(10px);
 
-align-items: center; 
+            display: flex;
 
-cursor: move; 
+            flex-direction: column;
 
-border-bottom: 1px solid rgba(255,255,255,0.1); 
+            align-items: center;
 
-padding-bottom: 4px; 
+            padding: 8px;
 
-margin-bottom: 6px; 
+            touch-action: none;
 
-font-size: 10px; 
+            overflow: hidden;
+            /* Needed for resize handle */
 
-font-weight: bold; 
+        }
 
-color: var(--bamboo-wood); 
 
-text-transform: uppercase; 
 
-user-select: none; 
+        .dice-popup-header {
 
-} 
+            width: 100%;
 
- 
+            display: flex;
 
-.resize-handle { 
+            justify-content: space-between;
 
-position: absolute; 
+            align-items: center;
 
-width: 12px; 
+            cursor: move;
 
-height: 12px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-background: #666; 
+            padding-bottom: 4px;
 
-right: 0; 
+            margin-bottom: 6px;
 
-bottom: 0; 
+            font-size: 10px;
 
-cursor: se-resize; 
+            font-weight: bold;
 
-border-radius: 2px; 
+            color: var(--bamboo-wood);
 
-} 
+            text-transform: uppercase;
 
- 
+            user-select: none;
 
-.close-popup-btn { 
+        }
 
-background: none!important; 
 
-border: none!important; 
 
-color: #ff5555!important; 
+        .resize-handle {
 
-font-size: 14px!important; 
+            position: absolute;
 
-cursor: pointer; 
+            width: 12px;
 
-} 
+            height: 12px;
 
- 
+            background: #666;
 
- 
+            right: 0;
 
-/* --- QUIZ GAMEPLAY MODAL OVERLAY --- */ 
+            bottom: 0;
 
-.quiz-modal { 
+            cursor: se-resize;
 
-position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            border-radius: 2px;
 
-background: rgba(5, 12, 6, 0.85); z-index: 300; display: flex; 
+        }
 
-align-items: center; justify-content: center; backdrop-filter: blur(10px); 
 
-visibility: hidden; opacity: 0; transition: opacity 0.3s; 
 
-} 
+        .close-popup-btn {
 
-.quiz-modal.show { visibility: visible; opacity: 1; } 
+            background: none !important;
 
-.quiz-box { 
+            border: none !important;
 
-background: rgba(20, 35, 22, 0.98); border: 3px solid var(--bamboo-wood); 
+            color: #ff5555 !important;
 
-border-radius: 20px; width: 90%; max-width: 440px; padding: 25px; 
+            font-size: 14px !important;
 
-box-shadow: 0 20px 60px rgba(0,0,0,0.8); text-align: center; 
+            cursor: pointer;
 
-} 
+        }
 
-.quiz-title { font-size: 14px; text-transform: uppercase; color: var(--gold-accent); margin-bottom: 12px; font-weight: bold; } 
 
-.quiz-text { font-size: 16px; margin-bottom: 20px; line-height: 1.5; color: #fff; } 
 
-.quiz-options { display: flex; flex-direction: column; gap: 10px; } 
 
-.quiz-opt-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); padding: 12px; text-align: left; font-size: 14px; color: #fff; cursor: pointer; border-radius: 6px; } 
 
-.quiz-opt-btn:hover { background: var(--moss-green); color: #fff; } 
+        /* --- QUIZ GAMEPLAY MODAL OVERLAY --- */
 
- 
+        .quiz-modal {
 
-/* --- SEPARATE VIEW: SEPARATED SPA QUIZ CRUD MANAGER VIEW --- */ 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
 
-.quiz-crud-view { 
+            background: rgba(5, 12, 6, 0.85);
+            z-index: 300;
+            display: flex;
 
-position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
 
-background: var(--jungle-dark); z-index: 250; padding: 60px 20px 20px 20px; 
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
 
-display: flex; flex-direction: column; gap: 20px; overflow-y: auto; 
+        }
 
-visibility: hidden; opacity: 0; transition: all 0.3s ease; 
+        .quiz-modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
 
-} 
+        .quiz-box {
 
-.quiz-crud-view.show { visibility: visible; opacity: 1; } 
+            background: rgba(20, 35, 22, 0.98);
+            border: 3px solid var(--bamboo-wood);
 
-.crud-container { max-width: 800px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; } 
+            border-radius: 20px;
+            width: 90%;
+            max-width: 440px;
+            padding: 25px;
 
-.crud-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--bamboo-wood); padding-bottom: 10px; } 
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            text-align: center;
 
-.crud-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } 
+        }
 
-@media(max-width: 600px) { .crud-grid { grid-template-columns: 1fr; } } 
+        .quiz-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--gold-accent);
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
 
-/* Quiz Node List Tracker */ 
+        .quiz-text {
+            font-size: 16px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #fff;
+        }
 
-.quiz-list-table { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; max-height: 400px; overflow-y: auto; } 
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
-.quiz-item-node { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; } 
+        .quiz-opt-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 6px;
+        }
 
-.quiz-item-node:last-child { border: none; } 
+        .quiz-opt-btn:hover {
+            background: var(--moss-green);
+            color: #fff;
+        }
 
-.quiz-node-details { display: flex; flex-direction: column; gap: 3px; max-width: 70%; } 
 
- 
 
-.summon-dice-btn { 
+        /* --- SEPARATE VIEW: SEPARATED SPA QUIZ CRUD MANAGER VIEW --- */
 
-position: fixed; bottom: 15px; left: 15px; width: 44px; height: 44px; border-radius: 50%; 
+        .quiz-crud-view {
 
-background: linear-gradient(135deg, var(--moss-green), var(--leaf-green)); border: 2px solid var(--bamboo-wood); 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
 
-font-size: 18px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 90; visibility: hidden; 
+            background: var(--jungle-dark);
+            z-index: 250;
+            padding: 60px 20px 20px 20px;
 
-} 
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
 
- 
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
 
-.section { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 10px; } 
+        }
 
-h3 { font-size: 11px; text-transform: uppercase; color: var(--gold-accent); margin-bottom: 8px; } 
+        .quiz-crud-view.show {
+            visibility: visible;
+            opacity: 1;
+        }
 
- 
+        .crud-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-input[type="text"], input[type="number"], select { background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 8px; color: #fff; font-size: 11px; width: 100%; outline: none; } 
+        .crud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--bamboo-wood);
+            padding-bottom: 10px;
+        }
 
-button { background: linear-gradient(135deg, #2a402e, #17261a); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 6px 10px; border-radius: 6px; font-weight: bold; font-size: 10px; cursor: pointer; text-transform: uppercase; } 
+        .crud-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
 
-button:hover { background: var(--moss-green); } 
+        @media(max-width: 600px) {
+            .crud-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-button.danger { background: linear-gradient(135deg, rgba(231,29,54,0.25), rgba(231,29,54,0.08)); border-color: rgba(231,29,54,0.4); color: #ff5577; } 
+        /* Quiz Node List Tracker */
 
-button.danger:hover { background: #e71d36; color: #fff; } 
+        .quiz-list-table {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
 
-button.success { background: linear-gradient(135deg, rgba(163,230,53,0.2), rgba(163,230,53,0.05)); border-color: rgba(163,230,53,0.4); color: #a3e635; } 
+        .quiz-item-node {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+        }
 
-button.success:hover { background: #a3e635; color: #000; } 
+        .quiz-item-node:last-child {
+            border: none;
+        }
 
- 
+        .quiz-node-details {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            max-width: 70%;
+        }
 
-.btn-group { display: flex; gap: 4px; margin-top: 4px; } 
 
-.team-row, .item-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.3); padding: 5px 8px; border-radius: 6px; margin-bottom: 4px; font-size: 11px; } 
 
-.team-info { display: flex; align-items: center; gap: 6px; } 
+        .summon-dice-btn {
 
-.color-dot { width: 9px; height: 9px; border-radius: 50%; } 
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
 
-/* GRID LINK COORDINATES MAX HEIGHT SET TO 300PX */ 
+            background: linear-gradient(135deg, var(--moss-green), var(--leaf-green));
+            border: 2px solid var(--bamboo-wood);
 
-.item-list { max-height: 300px; overflow-y: auto; } 
+            font-size: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 90;
+            visibility: hidden;
 
- 
+        }
 
-.dice-area { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; resize: both; } 
 
-#status { font-size: 15px; text-align: center; font-weight: bold; width: 100%; background: rgba(0,0,0,0.4); padding: 5px; border-radius: 6px; border-left: 3px solid var(--gold-accent); } 
 
-.scene { width: 46px; height: 46px; perspective: 300px; margin: 2px 0; } 
+        .section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 10px;
+        }
 
-.cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1); } 
+        h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--gold-accent);
+            margin-bottom: 8px;
+        }
 
-.cube-face {  
 
-position: absolute; width: 46px; height: 46px; background: #fdfaf2; border: 1.5px solid #5a4f3f; border-radius: 7px;  
 
-display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 3px; align-items: center; justify-items: center; 
+        input[type="text"],
+        input[type="number"],
+        select {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 8px;
+            color: #fff;
+            font-size: 11px;
+            width: 100%;
+            outline: none;
+        }
 
-} 
+        button {
+            background: linear-gradient(135deg, #2a402e, #17261a);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
 
-.pip { width: 6.5px; height: 6.5px; background-color: #3e3529; border-radius: 50%; } 
+        button:hover {
+            background: var(--moss-green);
+        }
 
-.face-1 .pip { background-color: #cc2233; width: 11px; height: 11px; } 
+        button.danger {
+            background: linear-gradient(135deg, rgba(231, 29, 54, 0.25), rgba(231, 29, 54, 0.08));
+            border-color: rgba(231, 29, 54, 0.4);
+            color: #ff5577;
+        }
 
-.face-1 { transform: rotateY(0deg) translateZ(23px); display: flex !important; justify-content: center !important; align-items: center !important; } 
+        button.danger:hover {
+            background: #e71d36;
+            color: #fff;
+        }
 
-.face-2 { transform: rotateY(90deg) translateZ(23px); } 
+        button.success {
+            background: linear-gradient(135deg, rgba(163, 230, 53, 0.2), rgba(163, 230, 53, 0.05));
+            border-color: rgba(163, 230, 53, 0.4);
+            color: #a3e635;
+        }
 
-.face-3 { transform: rotateX(90deg) translateZ(23px); } 
+        button.success:hover {
+            background: #a3e635;
+            color: #000;
+        }
 
-.face-4 { transform: rotateX(-90deg) translateZ(23px); } 
 
-.face-5 { transform: rotateY(-90deg) translateZ(23px); } 
 
-.face-6 { transform: rotateY(180deg) translateZ(23px); } 
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+        }
 
- 
+        .team-row,
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 8px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
 
-.rng { 
+        .team-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-position: fixed; 
+        .color-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
 
-top: 10%; 
+        /* GRID LINK COORDINATES MAX HEIGHT SET TO 300PX */
 
-right: 15px; 
+        .item-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
 
-width: 160px; 
 
-background: rgba(20, 35, 22, 0.96); 
 
-border: 2px solid var(--bamboo-wood); 
+        .dice-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            resize: both;
+        }
 
-border-radius: 12px; 
+        #status {
+            font-size: 15px;
+            text-align: center;
+            font-weight: bold;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 5px;
+            border-radius: 6px;
+            border-left: 3px solid var(--gold-accent);
+        }
 
-box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
+        .scene {
+            width: 46px;
+            height: 46px;
+            perspective: 300px;
+            margin: 2px 0;
+        }
 
-z-index: 100; 
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
 
-backdrop-filter: blur(10px); 
+        .cube-face {
 
-display: flex; 
+            position: absolute;
+            width: 46px;
+            height: 46px;
+            background: #fdfaf2;
+            border: 1.5px solid #5a4f3f;
+            border-radius: 7px;
 
-flex-direction: column; 
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 3px;
+            align-items: center;
+            justify-items: center;
 
-align-items: center; 
+        }
 
-padding: 8px; 
+        .pip {
+            width: 6.5px;
+            height: 6.5px;
+            background-color: #3e3529;
+            border-radius: 50%;
+        }
 
-touch-action: none; 
+        .face-1 .pip {
+            background-color: #cc2233;
+            width: 11px;
+            height: 11px;
+        }
 
-overflow: hidden; /* Needed for resize handle */ 
+        .face-1 {
+            transform: rotateY(0deg) translateZ(23px);
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+        }
 
-} 
+        .face-2 {
+            transform: rotateY(90deg) translateZ(23px);
+        }
 
-input { 
+        .face-3 {
+            transform: rotateX(90deg) translateZ(23px);
+        }
 
-width: 60px; 
+        .face-4 {
+            transform: rotateX(-90deg) translateZ(23px);
+        }
 
-padding: 8px; 
+        .face-5 {
+            transform: rotateY(-90deg) translateZ(23px);
+        }
 
-margin: 10px; 
+        .face-6 {
+            transform: rotateY(180deg) translateZ(23px);
+        }
 
-font-size: 16px; 
 
-} 
 
-button { 
+        .rng {
 
-padding: 10px 20px; 
+            position: fixed;
 
-font-size: 16px; 
+            top: 10%;
 
-background-color: #007BFF; 
+            right: 15px;
 
-color: white; 
+            width: 160px;
 
-border: none; 
+            background: rgba(20, 35, 22, 0.96);
 
-border-radius: 5px; 
+            border: 2px solid var(--bamboo-wood);
 
-cursor: pointer; 
+            border-radius: 12px;
 
-} 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 
-button:hover { 
+            z-index: 100;
 
-background-color: #0056b3; 
+            backdrop-filter: blur(10px);
 
-} 
+            display: flex;
 
-#result { 
+            flex-direction: column;
 
-font-size: 48px; 
+            align-items: center;
 
-font-weight: bold; 
+            padding: 8px;
 
-color: #ffffff; 
+            touch-action: none;
 
-margin-top: 20px; 
+            overflow: hidden;
+            /* Needed for resize handle */
 
-} 
+        }
 
-</style> 
+        input {
 
-</head> 
+            width: 60px;
 
-<body> 
+            padding: 8px;
 
- 
+            margin: 10px;
 
-<h1>Snakes & Ladders</h1> 
+            font-size: 16px;
 
-<!-- NAVIGATION BAR FOR VIEW CONTROLS --> 
+        }
 
-<div class="top-nav"> 
+        button {
 
-<button class="nav-btn" onclick="openQuizView()">📝 Manage Quizzes</button> 
+            padding: 10px 20px;
 
-</div> 
+            font-size: 16px;
 
- 
+            background-color: #007BFF;
 
-<div class="hamburger-btn" id="menu-toggle" onclick="toggleSidebar()"> 
+            color: white;
 
-<span></span><span></span><span></span> 
+            border: none;
 
-</div> 
+            border-radius: 5px;
 
- 
+            cursor: pointer;
 
-<!-- Draggable Dice Pop-up --> 
+        }
 
-<div class="dice-popup" id="movable-dice-station"> 
+        button:hover {
 
-<div class="dice-popup-header" id="dice-drag-bar"> 
+            background-color: #0056b3;
 
-<span>✛ Drag Engine</span> 
+        }
 
-<button class="close-popup-btn" onclick="minimizeDicePopup()">×</button> 
+        #result {
 
-</div> 
+            font-size: 48px;
 
-<div class="dice-area"> 
+            font-weight: bold;
 
-<div id="status">Red Active</div> 
+            color: #ffffff;
 
-<div class="scene"> 
+            margin-top: 20px;
 
-<div id="cube" class="cube"> 
+        }
+    </style>
 
-<div class="cube-face face-1"><span class="pip"></span></div> 
+</head>
 
-<div class="cube-face face-2"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div> 
+<body>
 
-<div class="cube-face face-3"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 2/2;"></span><span class="pip" style="grid-area: 3/3;"></span></div> 
 
-<div class="cube-face face-4"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div> 
 
-<div class="cube-face face-5"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/2;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div> 
+    <h1>Snakes & Ladders</h1>
 
-<div class="cube-face face-6"><span class="pip" style="grid-area: 1/1;"></span><span class="pip" style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/1;"></span><span class="pip" style="grid-area: 2/3;"></span><span class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div> 
+    <!-- NAVIGATION BAR FOR VIEW CONTROLS -->
 
-</div> 
+    <div class="top-nav">
 
-</div> 
+        <button class="nav-btn" onclick="openQuizView()">📝 Manage Quizzes</button>
 
-<button id="roll-btn" style="width:100%; padding:6px; font-size:10px; background: linear-gradient(135deg, var(--bamboo-wood), #a07640); color: #fff;">Roll Dice</button> 
+    </div>
 
-<button id="skip-player-btn" style="width:100%; padding:6px; font-size:10px; margin-top: 4px; background: linear-gradient(135deg, #6b2121, #421313); color: #fff; border: 1px solid rgba(255,85,85,0.4);">Skip Player</button> 
 
-<div id="dice-resize-handle" class="resize-handle"></div> 
 
- 
+    <div class="hamburger-btn" id="menu-toggle" onclick="toggleSidebar()">
 
-</div> 
+        <span></span><span></span><span></span>
 
-</div> 
+    </div>
 
- 
 
-<!-- Active Gameplay Quiz Modal Window Overlay --> 
 
-<div class="quiz-modal" id="quiz-overlay"> 
+    <!-- Draggable Dice Pop-up -->
 
-<div class="quiz-box"> 
+    <div class="dice-popup" id="movable-dice-station">
 
-<div class="quiz-title">⚠️ Question!</div> 
+        <div class="dice-popup-header" id="dice-drag-bar">
 
-<div class="quiz-text" id="quiz-box-text">Question text goes here?</div> 
+            <span>✛ Drag Engine</span>
 
-<div class="quiz-options" id="quiz-box-options"></div> 
+            <button class="close-popup-btn" onclick="minimizeDicePopup()">×</button>
 
-</div> 
+        </div>
 
-</div> 
+        <div class="dice-area">
 
- 
+            <div id="status">Red Active</div>
 
-<!-- SEPARATE SPA VIEW VIEWPORT FOR FULL QUIZ CRUD MANAGEMENT --> 
+            <div class="scene">
 
-<div class="quiz-crud-view" id="quiz-crud-viewport"> 
+                <div id="cube" class="cube">
 
-<div class="crud-container"> 
+                    <div class="cube-face face-1"><span class="pip"></span></div>
 
-<div class="crud-header"> 
+                    <div class="cube-face face-2"><span class="pip" style="grid-area: 1/1;"></span><span class="pip"
+                            style="grid-area: 3/3;"></span></div>
 
-<h2 style="color: var(--gold-accent);">Quiz Manager</h2> 
+                    <div class="cube-face face-3"><span class="pip" style="grid-area: 1/1;"></span><span class="pip"
+                            style="grid-area: 2/2;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
 
-<button class="nav-btn danger" onclick="closeQuizView()">✕ Return to Board</button> 
+                    <div class="cube-face face-4"><span class="pip" style="grid-area: 1/1;"></span><span class="pip"
+                            style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 3/1;"></span><span
+                            class="pip" style="grid-area: 3/3;"></span></div>
 
-</div> 
+                    <div class="cube-face face-5"><span class="pip" style="grid-area: 1/1;"></span><span class="pip"
+                            style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/2;"></span><span
+                            class="pip" style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span>
+                    </div>
 
-<div class="crud-grid"> 
+                    <div class="cube-face face-6"><span class="pip" style="grid-area: 1/1;"></span><span class="pip"
+                            style="grid-area: 1/3;"></span><span class="pip" style="grid-area: 2/1;"></span><span
+                            class="pip" style="grid-area: 2/3;"></span><span class="pip"
+                            style="grid-area: 3/1;"></span><span class="pip" style="grid-area: 3/3;"></span></div>
 
-<!-- Form Module: Add & Update Node Entries --> 
+                </div>
 
-<div class="section" style="display: flex; flex-direction: column; gap: 8px;"> 
+            </div>
 
-<h4 style="color: var(--bamboo-wood); text-transform: uppercase; font-size: 12px; margin-bottom: 4px;">Add / Edit Quiz Node</h4> 
+            <button id="roll-btn"
+                style="width:100%; padding:6px; font-size:10px; background: linear-gradient(135deg, var(--bamboo-wood), #a07640); color: #fff;">Roll
+                Dice</button>
 
-<div> 
+            <button id="skip-player-btn"
+                style="width:100%; padding:6px; font-size:10px; margin-top: 4px; background: linear-gradient(135deg, #6b2121, #421313); color: #fff; border: 1px solid rgba(255,85,85,0.4);">Skip
+                Player</button>
 
-<label style="font-size: 10px; opacity: 0.6;">Target Board Tile Number (2 - 99)</label> 
+            <div id="dice-resize-handle" class="resize-handle"></div>
 
-<input type="number" id="crud-tile" min="2" max="99" value="12"> 
 
-</div> 
 
-<div> 
+        </div>
 
-<label style="font-size: 10px; opacity: 0.6;">Expedition Question Prompt Text</label> 
+    </div>
 
-<input type="text" id="crud-question" placeholder="e.g., What is the capital of Peru?"> 
 
-</div> 
 
-<div> 
+    <!-- Active Gameplay Quiz Modal Window Overlay -->
 
-<label style="font-size: 10px; color: var(--success-glow); opacity: 0.8;">Option A: Verified Correct Answer Entry</label> 
+    <div class="quiz-modal" id="quiz-overlay">
 
-<input type="text" id="crud-opt-a" placeholder="Correct Choice"> 
+        <div class="quiz-box">
 
-</div> 
+            <div class="quiz-title">⚠️ Question!</div>
 
-<div> 
+            <div class="quiz-text" id="quiz-box-text">Question text goes here?</div>
 
-<label style="font-size: 10px; color: #ff5555; opacity: 0.8;">Option B: Deceptive Wrong Answer Trap</label> 
+            <div class="quiz-options" id="quiz-box-options"></div>
 
-<input type="text" id="crud-opt-b" placeholder="Decoy Answer"> 
+        </div>
 
-</div> 
+    </div>
 
-<div> 
 
-<label style="font-size: 10px; color: #ff5555; opacity: 0.8;">Option C: Deceptive Wrong Answer Trap</label> 
 
-<input type="text" id="crud-opt-c" placeholder="Decoy Answer"> 
+    <!-- SEPARATE SPA VIEW VIEWPORT FOR FULL QUIZ CRUD MANAGEMENT -->
 
-</div> 
+    <div class="quiz-crud-view" id="quiz-crud-viewport">
 
-<div class="btn-group" style="margin-top: 8px;"> 
+        <div class="crud-container">
 
-<button class="success" onclick="executeCrudSave()" style="flex: 2;">💾 Save / Update Quiz</button> 
+            <div class="crud-header">
 
-<button onclick="triggerCrudShuffle()" style="background: var(--moss-green); flex: 1;">🔀 Shuffle All</button> 
+                <h2 style="color: var(--gold-accent);">Quiz Manager</h2>
 
-</div> 
+                <button class="nav-btn danger" onclick="closeQuizView()">✕ Return to Board</button>
 
-</div> 
+            </div>
 
- 
+            <div class="crud-grid">
 
-<!-- Read Module: Live Table Tracking View list --> 
+                <!-- Form Module: Add & Update Node Entries -->
 
-<div class="section" style="display: flex; flex-direction: column; gap: 8px;"> 
+                <div class="section" style="display: flex; flex-direction: column; gap: 8px;">
 
-<h4 style="color: var(--bamboo-wood); text-transform: uppercase; font-size: 12px;">Active Matrix Database Sync</h4> 
+                    <h4
+                        style="color: var(--bamboo-wood); text-transform: uppercase; font-size: 12px; margin-bottom: 4px;">
+                        Add / Edit Quiz Node</h4>
 
-<div class="quiz-list-table" id="crud-live-nodes-list"> 
+                    <div>
 
-<!-- Dynamic items list goes here --> 
+                        <label style="font-size: 10px; opacity: 0.6;">Target Board Tile Number (2 - 99)</label>
 
-</div> 
+                        <input type="number" id="crud-tile" min="2" max="99" value="12">
 
-</div> 
+                    </div>
 
-</div> 
+                    <div>
 
-</div> 
+                        <label style="font-size: 10px; opacity: 0.6;">Expedition Question Prompt Text</label>
 
-</div> 
+                        <input type="text" id="crud-question" placeholder="e.g., What is the capital of Peru?">
 
- 
+                    </div>
 
-<div class="rng"> 
+                    <div>
 
-<!-- Step 1: Input fields for the range --> 
+                        <label style="font-size: 10px; color: var(--success-glow); opacity: 0.8;">Option A: Verified
+                            Correct Answer Entry</label>
 
-<label for="min">Min:</label> 
+                        <input type="text" id="crud-opt-a" placeholder="Correct Choice">
 
-<input type="number" id="min" value="1"> 
+                    </div>
 
-<label for="max">Max:</label> 
+                    <div>
 
-<input type="number" id="max" value="100"> 
+                        <label style="font-size: 10px; color: #ff5555; opacity: 0.8;">Option B: Deceptive Wrong Answer
+                            Trap</label>
 
-<br><br> 
+                        <input type="text" id="crud-opt-b" placeholder="Decoy Answer">
 
-<!-- Step 2: Trigger button --> 
+                    </div>
 
-<button id="pickBtn">Pick Number</button> 
+                    <div>
 
-<!-- Step 3: Display area --> 
+                        <label style="font-size: 10px; color: #ff5555; opacity: 0.8;">Option C: Deceptive Wrong Answer
+                            Trap</label>
 
-<div id="result">-</div> 
+                        <input type="text" id="crud-opt-c" placeholder="Decoy Answer">
 
-</div> 
+                    </div>
 
- 
+                    <div class="btn-group" style="margin-top: 8px;">
 
-<div class="summon-dice-btn" id="recall-dice-trigger" onclick="maximizeDicePopup()">🎲</div> 
+                        <button class="success" onclick="executeCrudSave()" style="flex: 2;">💾 Save / Update
+                            Quiz</button>
 
- 
+                        <button onclick="triggerCrudShuffle()" style="background: var(--moss-green); flex: 1;">🔀
+                            Shuffle All</button>
 
-<div class="game-layout"> 
+                    </div>
 
-<div class="board-container"> 
+                </div>
 
-<div id="board"></div> 
 
-<canvas id="pathway-canvas"></canvas> 
 
-<div class="pieces-overlay" id="animation-layer"></div> 
+                <!-- Read Module: Live Table Tracking View list -->
 
-</div> 
+                <div class="section" style="display: flex; flex-direction: column; gap: 8px;">
 
-<div class="sidebar" id="config-sidebar"> 
+                    <h4 style="color: var(--bamboo-wood); text-transform: uppercase; font-size: 12px;">Active Matrix
+                        Database Sync</h4>
 
-<div class="section"> 
+                    <div class="quiz-list-table" id="crud-live-nodes-list">
 
-<h3>💾 Profile Cloud Storage</h3> 
+                        <!-- Dynamic items list goes here -->
 
-<input type="text" id="save-layout-name" placeholder="Save Profile Name" style="margin-bottom:6px;"> 
+                    </div>
 
-<div class="btn-group"> 
+                </div>
 
-<button class="success" onclick="saveBoardProfile()" style="flex:1;">Save Map</button> 
+            </div>
 
-<button class="success" onclick="loadBoardProfile()" style="flex:1;">Load Map</button> 
+        </div>
 
-</div> 
+    </div>
 
-</div> 
 
- 
 
-<div class="section"> 
+    <div class="rng">
 
-<h3>Teams</h3> 
+        <!-- Step 1: Input fields for the range -->
 
-<div id="teams-list"></div> 
+        <label for="min">Min:</label>
 
-<div class="btn-group"> 
+        <input type="number" id="min" value="1">
 
-<input type="color" id="new-team-color" value="#000000" style="width:35px; padding:0; height:28px; border:none; cursor:pointer;"> 
+        <label for="max">Max:</label>
 
-<input type="text" id="new-team-name" placeholder="Name"> 
+        <input type="number" id="max" value="100">
 
-<button id="add-team-btn" style="padding:0 10px;">+</button> 
+        <br><br>
 
-</div> 
+        <!-- Step 2: Trigger button -->
 
-</div> 
+        <button id="pickBtn">Pick Number</button>
 
- 
+        <!-- Step 3: Display area -->
 
-<div class="section"> 
+        <div id="result">-</div>
 
-<h3>🛠️ Map Realignment</h3> 
+    </div>
 
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-bottom:4px;"> 
 
-<div><input type="number" id="link-start" min="1" max="99" value="15"></div> 
 
-<div><input type="number" id="link-end" min="2" max="100" value="45"></div> 
+    <div class="summon-dice-btn" id="recall-dice-trigger" onclick="maximizeDicePopup()">🎲</div>
 
-</div> 
 
-<div class="btn-group"> 
 
-<button id="add-ladder-btn" class="success" style="flex:1;">+ Ladder</button> 
+    <div class="game-layout">
 
-<button id="add-snake-btn" class="danger" style="flex:1;">+ Snake</button> 
+        <div class="board-container">
 
-</div> 
+            <div id="board"></div>
 
-</div> 
+            <canvas id="pathway-canvas"></canvas>
 
- 
+            <div class="pieces-overlay" id="animation-layer"></div>
 
-<div class="section"> 
+        </div>
 
-<h3>📋 Grid Link Coordinates</h3> 
+        <div class="sidebar" id="config-sidebar">
 
-<div id="items-list" class="item-list"></div> 
+            <div class="section">
 
-</div> 
+                <h3>💾 Profile Cloud Storage</h3>
 
-</div> 
+                <input type="text" id="save-layout-name" placeholder="Save Profile Name" style="margin-bottom:6px;">
 
-</div> 
+                <div class="btn-group">
 
-<script> 
+                    <button class="success" onclick="saveBoardProfile()" style="flex:1;">Save Map</button>
 
-// --- SPA VIEW CONTROLLER: SWITCH BETWEEN BOARD AND QUIZ CORE MODES --- 
+                    <button class="success" onclick="loadBoardProfile()" style="flex:1;">Load Map</button>
 
-function openQuizView() { 
+                </div>
 
-const viewport = document.getElementById('quiz-crud-viewport'); 
+            </div>
 
-viewport.classList.add('show'); 
 
-renderCrudTableSync(); // Refresh live readings list when view expands 
 
-} 
+            <div class="section">
 
- 
+                <h3>Teams</h3>
 
-function closeQuizView() { 
+                <div id="teams-list"></div>
 
-const viewport = document.getElementById('quiz-crud-viewport'); 
+                <div class="btn-group">
 
-viewport.classList.remove('show'); 
+                    <input type="color" id="new-team-color" value="#000000"
+                        style="width:35px; padding:0; height:28px; border:none; cursor:pointer;">
 
-} 
+                    <input type="text" id="new-team-name" placeholder="Name">
 
- 
+                    <button id="add-team-btn" style="padding:0 10px;">+</button>
 
-// --- Sidebar Menu Interaction Controls --- 
+                </div>
 
-function toggleSidebar() { 
+            </div>
 
-const sidebar = document.getElementById('config-sidebar'); 
 
-const toggle = document.getElementById('menu-toggle'); 
 
-sidebar.classList.toggle('open'); 
+            <div class="section">
 
-toggle.classList.toggle('active'); 
+                <h3>🛠️ Map Realignment</h3>
 
-} 
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:4px; margin-bottom:4px;">
 
- 
+                    <div><input type="number" id="link-start" min="1" max="99" value="15"></div>
 
-// --- Movable & Draggable Floating Pop-up UI Control Engine --- 
+                    <div><input type="number" id="link-end" min="2" max="100" value="45"></div>
 
-const popup = document.getElementById('movable-dice-station'); 
+                </div>
 
-const dragBar = document.getElementById('dice-drag-bar'); 
+                <div class="btn-group">
 
-const summonBtn = document.getElementById('recall-dice-trigger'); 
+                    <button id="add-ladder-btn" class="success" style="flex:1;">+ Ladder</button>
 
-const resizeHandle = document.getElementById('dice-resize-handle'); // new handle element 
+                    <button id="add-snake-btn" class="danger" style="flex:1;">+ Snake</button>
 
- 
+                </div>
 
-let isDragging = false; 
+            </div>
 
-let isResizing = false; 
 
-let startX, startY, initialLeft, initialTop, initialWidth, initialHeight; 
 
- 
+            <div class="section">
 
-// --- Dragging --- 
+                <h3>📋 Grid Link Coordinates</h3>
 
-dragBar.addEventListener('mousedown', dragStart); 
+                <div id="items-list" class="item-list"></div>
 
-dragBar.addEventListener('touchstart', dragStart, { passive: false }); 
+            </div>
 
- 
+        </div>
 
-function dragStart(e) { 
+    </div>
 
-isDragging = true; 
+    <script>
 
-const clientX = e.clientX ?? e.touches[0].clientX; 
+        // --- SPA VIEW CONTROLLER: SWITCH BETWEEN BOARD AND QUIZ CORE MODES --- 
 
-const clientY = e.clientY ?? e.touches[0].clientY; 
+        function openQuizView() {
 
-const btnSize = document.getElementById('roll-btn'); 
+            const viewport = document.getElementById('quiz-crud-viewport');
+            viewport.classList.add('show');
+            renderCrudTableSync();
 
-let currentPadding = parseInt(window.getComputedStyle(btnSize).padding, 10); 
+        }
 
-startX = clientX; 
 
-startY = clientY; 
 
-const computedStyle = window.getComputedStyle(popup); 
+        function closeQuizView() {
 
-initialLeft = parseInt(computedStyle.left); 
+            const viewport = document.getElementById('quiz-crud-viewport');
+            viewport.classList.remove('show');
 
-initialTop = parseInt(computedStyle.top); 
+        }
 
- 
 
-if (e.type === 'mousedown') { 
 
-document.addEventListener('mousemove', dragMove); 
+        // --- Sidebar Menu Interaction Controls --- 
 
-document.addEventListener('mouseup', dragEnd); 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('config-sidebar');
+            const toggle = document.getElementById('menu-toggle');
+            sidebar.classList.toggle('open');
+            toggle.classList.toggle('active');
 
-btnSize.style.transform = 'scale(1.1)'; 
+        }
 
-} else { 
 
-document.addEventListener('touchmove', dragMove, { passive: false }); 
 
-document.addEventListener('touchend', dragEnd); 
+        // --- Movable & Draggable Floating Pop-up UI Control Engine --- 
 
-} 
+        const popup = document.getElementById('movable-dice-station');
+        const dragBar = document.getElementById('dice-drag-bar');
+        const summonBtn = document.getElementById('recall-dice-trigger');
+        const resizeHandle = document.getElementById('dice-resize-handle'); // new handle element 
 
-if (e.cancelable) e.preventDefault(); 
+        let isDragging = false;
+        let isResizing = false;
+        let startX, startY, initialLeft, initialTop, initialWidth, initialHeight;
 
-} 
 
- 
 
-function dragMove(e) { 
+        // --- Dragging --- 
 
-if (!isDragging) return; 
+        dragBar.addEventListener('mousedown', dragStart);
+        dragBar.addEventListener('touchstart', dragStart, { passive: false });
 
-const clientX = e.clientX ?? e.touches[0].clientX; 
 
-const clientY = e.clientY ?? e.touches[0].clientY; 
 
-let deltaX = clientX - startX; 
+        function dragStart(e) {
 
-let deltaY = clientY - startY; 
+            isDragging = true;
+            const clientX = e.clientX ?? e.touches[0].clientX;
+            const clientY = e.clientY ?? e.touches[0].clientY;
+            const btnSize = document.getElementById('roll-btn');
+            let currentPadding = parseInt(window.getComputedStyle(btnSize).padding, 10);
+            startX = clientX;
+            startY = clientY;
+            const computedStyle = window.getComputedStyle(popup);
+            initialLeft = parseInt(computedStyle.left);
+            initialTop = parseInt(computedStyle.top);
 
-popup.style.left = (initialLeft + deltaX) + 'px'; 
 
-popup.style.top = (initialTop + deltaY) + 'px'; 
+            if (e.type === 'mousedown') {
 
-if (e.cancelable) e.preventDefault(); 
+                document.addEventListener('mousemove', dragMove);
+                document.addEventListener('mouseup', dragEnd);
+                btnSize.style.transform = 'scale(1.1)';
 
-} 
+            } else {
 
- 
+                document.addEventListener('touchmove', dragMove, { passive: false });
+                document.addEventListener('touchend', dragEnd);
 
-function dragEnd() { 
+            }
 
-isDragging = false; 
+            if (e.cancelable) e.preventDefault();
 
-document.removeEventListener('mousemove', dragMove); 
+        }
 
-document.removeEventListener('mouseup', dragEnd); 
 
-document.removeEventListener('touchmove', dragMove); 
 
-document.removeEventListener('touchend', dragEnd); 
+        function dragMove(e) {
 
-} 
+            if (!isDragging) return;
+            const clientX = e.clientX ?? e.touches[0].clientX;
+            const clientY = e.clientY ?? e.touches[0].clientY;
+            let deltaX = clientX - startX;
+            let deltaY = clientY - startY;
+            popup.style.left = (initialLeft + deltaX) + 'px';
+            popup.style.top = (initialTop + deltaY) + 'px';
+            if (e.cancelable) e.preventDefault();
 
- 
+        }
 
-// --- Resizing --- 
 
-resizeHandle.addEventListener('mousedown', resizeStart); 
 
-resizeHandle.addEventListener('touchstart', resizeStart, { passive: false }); 
+        function dragEnd() {
 
- 
+            isDragging = false;
+            document.removeEventListener('mousemove', dragMove);
+            document.removeEventListener('mouseup', dragEnd);
+            document.removeEventListener('touchmove', dragMove);
+            document.removeEventListener('touchend', dragEnd);
 
-function resizeStart(e) { 
+        }
 
-isResizing = true; 
 
-const clientX = e.clientX ?? e.touches[0].clientX; 
 
-const clientY = e.clientY ?? e.touches[0].clientY; 
+        // --- Resizing --- 
 
-startX = clientX; 
+        resizeHandle.addEventListener('mousedown', resizeStart);
+        resizeHandle.addEventListener('touchstart', resizeStart, { passive: false });
 
-startY = clientY; 
 
-initialWidth = popup.offsetWidth; 
 
-initialHeight = popup.offsetHeight; 
+        function resizeStart(e) {
 
- 
+            isResizing = true;
+            const clientX = e.clientX ?? e.touches[0].clientX;
+            const clientY = e.clientY ?? e.touches[0].clientY;
+            startX = clientX;
+            startY = clientY;
+            initialWidth = popup.offsetWidth;
+            initialHeight = popup.offsetHeight;
 
-if (e.type === 'mousedown') { 
 
-document.addEventListener('mousemove', resizeMove); 
+            if (e.type === 'mousedown') {
 
-document.addEventListener('mouseup', resizeEnd); 
+                document.addEventListener('mousemove', resizeMove);
+                document.addEventListener('mouseup', resizeEnd);
 
-} else { 
+            } else {
+                document.addEventListener('touchmove', resizeMove, { passive: false });
+                document.addEventListener('touchend', resizeEnd);
 
-document.addEventListener('touchmove', resizeMove, { passive: false }); 
+            }
 
-document.addEventListener('touchend', resizeEnd); 
+            if (e.cancelable) e.preventDefault();
 
-} 
+        }
 
-if (e.cancelable) e.preventDefault(); 
 
-} 
 
- 
+        function resizeMove(e) {
+            if (!isResizing) return;
+            const clientX = e.clientX ?? e.touches[0].clientX;
+            const clientY = e.clientY ?? e.touches[0].clientY;
+            let deltaX = clientX - startX;
+            let deltaY = clientY - startY;
+            popup.style.width = (initialWidth + deltaX) + 'px';
+            popup.style.height = (initialHeight + deltaY) + 'px';
+            if (e.cancelable) e.preventDefault();
 
-function resizeMove(e) { 
+        }
 
-if (!isResizing) return; 
 
-const clientX = e.clientX ?? e.touches[0].clientX; 
 
-const clientY = e.clientY ?? e.touches[0].clientY; 
+        function resizeEnd() {
 
-let deltaX = clientX - startX; 
+            isResizing = false;
 
-let deltaY = clientY - startY; 
+            document.removeEventListener('mousemove', resizeMove);
+            document.removeEventListener('mouseup', resizeEnd);
+            document.removeEventListener('touchmove', resizeMove);
+            document.removeEventListener('touchend', resizeEnd);
 
-popup.style.width = (initialWidth + deltaX) + 'px'; 
+        }
 
-popup.style.height = (initialHeight + deltaY) + 'px'; 
+        // --- Core Game Architecture & Data State --- 
 
-if (e.cancelable) e.preventDefault(); 
+        let teams = [
 
-} 
+            { id: 1, name: "Explorer Red", color: "#ff4d6d", position: 1, currentX: 0, currentY: 0 },
+            { id: 2, name: "Viper Blue", color: "#00f0ff", position: 1, currentX: 0, currentY: 0 },
+            { id: 3, name: "Orchid Green", color: "#a3e635", position: 1, currentX: 0, currentY: 0 },
+            { id: 4, name: "Toxic Purple", color: "#800080", position: 1, currentX: 0, currentY: 0 }
 
- 
+        ];
 
-function resizeEnd() { 
+        let currentTeamIndex = 0;
+        let isRolling = false;
+        let snakeColors = ['#38b000', '#ff7b00', '#9d4edd', '#e63946', '#00b4d8', '#ffac33', '#6a4c93', '#00ffcc', '#ff00ff', '#ff6347'];
+        let currentXRotation = 0; let currentYRotation = 0;
 
-isResizing = false; 
 
-document.removeEventListener('mousemove', resizeMove); 
 
-document.removeEventListener('mouseup', resizeEnd); 
+        let links = [
 
-document.removeEventListener('touchmove', resizeMove); 
+            { id: 1, type: 'ladder', start: 4, end: 25 },
+            { id: 2, type: 'ladder', start: 13, end: 46 },
+            { id: 3, type: 'ladder', start: 33, end: 49 },
+            { id: 4, type: 'ladder', start: 50, end: 69 },
+            { id: 5, type: 'ladder', start: 62, end: 81 },
+            { id: 6, type: 'snake', start: 27, end: 5 },
+            { id: 7, type: 'snake', start: 43, end: 18 },
+            { id: 8, type: 'snake', start: 74, end: 53 },
+            { id: 9, type: 'snake', start: 89, end: 68 },
+            { id: 10, type: 'snake', start: 99, end: 41 }
+        ];
 
-document.removeEventListener('touchend', resizeEnd); 
 
-} 
 
- 
+        let quizDatabase = {
 
- 
+            12: { q: "What is the capital of France?", a: "Paris", b: "London", c: "Berlin" },
+            24: { q: "Which animal is known as the King of the Jungle?", a: "Lion", b: "Tiger", c: "Elephant" },
+            40: { q: "How many colors are there in a rainbow?", a: "7", b: "6", c: "8" },
+            55: { q: "What is 5 + 7?", a: "12", b: "11", c: "13" }
 
-// --- Core Game Architecture & Data State --- 
+        };
 
-let teams = [ 
 
-{ id: 1, name: "Explorer Red", color: "#ff4d6d", position: 1, currentX: 0, currentY: 0 }, 
 
-{ id: 2, name: "Viper Blue", color: "#00f0ff", position: 1, currentX: 0, currentY: 0 }, 
+        function getCellCenterCoordinates(cellNum) {
 
-{ id: 3, name: "Orchid Green", color: "#a3e635", position: 1, currentX: 0, currentY: 0 }, 
+            const canvas = document.getElementById('pathway-canvas');
 
-{ id: 4, name: "Toxic Purple", color: "#800080", position: 1, currentX: 0, currentY: 0 } 
+            const cellWidth = canvas.width / 10; const cellHeight = canvas.height / 10;
 
-]; 
+            let row = Math.floor((cellNum - 1) / 10); let col = (cellNum - 1) % 10;
 
-let currentTeamIndex = 0; 
+            if (row % 2 !== 0) col = 9 - col;
 
-let isRolling = false; 
+            let visualRow = 9 - row;
 
-let snakeColors = ['#38b000', '#ff7b00', '#9d4edd', '#e63946', '#00b4d8', '#ffac33', '#6a4c93', '#00ffcc', '#ff00ff', '#ff6347']; 
+            return { x: col * cellWidth + (cellWidth / 2), y: visualRow * cellHeight + (cellHeight / 2) };
 
-let currentXRotation = 0; let currentYRotation = 0; 
+        }
 
- 
 
-let links = [ 
 
-{ id: 1, type: 'ladder', start: 4, end: 25 }, 
+        function createBoard() {
 
-{ id: 2, type: 'ladder', start: 13, end: 46 }, 
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            for (let r = 0; r < 10; r++) {
+                for (let c = 0; c < 10; c++) {
+                    let rowLogic = 9 - r;
+                    let cellNum = (rowLogic % 2 === 0) ? (rowLogic * 10 + c + 1) : (rowLogic * 10 + (9 - c) + 1);
+                    const cell = document.createElement('div');
+                    cell.className = `cell ${(r + c) % 2 === 0 ? 'cell-even' : 'cell-odd'}`;
+                    if (cellNum === 100) cell.classList.add('cell-100');
+                    cell.id = `cell-${cellNum}`;
+                    cell.innerHTML = `<div>${cellNum}</div>`;
+                    cell.addEventListener('dragover', e => e.preventDefault());
+                    cell.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const teamId = parseInt(e.dataTransfer.getData('text/plain'));
+                        updateTeamPosition(teamId, cellNum, false);
 
-{ id: 3, type: 'ladder', start: 33, end: 49 }, 
+                    });
 
-{ id: 4, type: 'ladder', start: 50, end: 69 }, 
+                    board.appendChild(cell);
 
-{ id: 5, type: 'ladder', start: 62, end: 81 }, 
+                }
 
-{ id: 6, type: 'snake', start: 27, end: 5 }, 
+            }
 
-{ id: 7, type: 'snake', start: 43, end: 18 }, 
+            refreshGlowingQuestionMarks();
+            resizeAndRedrawCanvas();
+            teams.forEach(t => {
+                let coords = getCellCenterCoordinates(t.position);
+                t.currentX = coords.x; t.currentY = coords.y;
+            });
+            updatePiecesDisplay();
 
-{ id: 8, type: 'snake', start: 74, end: 53 }, 
+        }
 
-{ id: 9, type: 'snake', start: 89, end: 68 }, 
 
-{ id: 10, type: 'snake', start: 99, end: 41 } 
 
-]; 
+        function refreshGlowingQuestionMarks() {
 
- 
+            document.querySelectorAll('.q-mark-glow').forEach(el => el.remove());
+            for (const tile in quizDatabase) {
+                const targetCell = document.getElementById(`cell-${tile}`);
+                if (targetCell) {
+                    targetCell.insertAdjacentHTML('beforeend', `<div class="q-mark-glow">?</div>`);
+                }
 
-let quizDatabase = { 
+            }
 
-12: { q: "What is the capital of France?", a: "Paris", b: "London", c: "Berlin" }, 
+        }
 
-24: { q: "Which animal is known as the King of the Jungle?", a: "Lion", b: "Tiger", c: "Elephant" }, 
 
-40: { q: "How many colors are there in a rainbow?", a: "7", b: "6", c: "8" }, 
 
-55: { q: "What is 5 + 7?", a: "12", b: "11", c: "13" } 
+        function drawPathways() {
 
-}; 
+            const canvas = document.getElementById('pathway-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const scaleFactor = canvas.width / 600;
 
- 
+            links.forEach((link, idx) => {
 
-function getCellCenterCoordinates(cellNum) { 
+                const start = getCellCenterCoordinates(link.start);
+                const end = getCellCenterCoordinates(link.end);
 
-const canvas = document.getElementById('pathway-canvas'); 
 
-const cellWidth = canvas.width / 10; const cellHeight = canvas.height / 10; 
 
-let row = Math.floor((cellNum - 1) / 10); let col = (cellNum - 1) % 10; 
+                if (link.type === 'ladder') {
 
-if (row % 2 !== 0) col = 9 - col; 
+                    ctx.save();
+                    let dx = end.x - start.x; let dy = end.y - start.y;
+                    let angle = Math.atan2(dy, dx); let len = Math.hypot(dx, dy);
+                    let railOffset = 6.5 * scaleFactor;
+                    ctx.translate(start.x, start.y); ctx.rotate(angle);
+                    ctx.strokeStyle = '#85581A'; ctx.lineWidth = Math.max(1.5, 4 * scaleFactor);
+                    ctx.beginPath(); ctx.moveTo(0, -railOffset); ctx.lineTo(len, -railOffset); ctx.moveTo(0, railOffset); ctx.lineTo(len, railOffset); ctx.stroke();
+                    ctx.strokeStyle = '#c29b62'; ctx.lineWidth = Math.max(1, 2.5 * scaleFactor);
+                    let stepSpacing = 16 * scaleFactor;
+                    ctx.beginPath();
+                    for (let d = stepSpacing; d < len; d += stepSpacing) { ctx.moveTo(d, -railOffset - 1); ctx.lineTo(d, railOffset + 1); }
+                    ctx.stroke(); ctx.restore();
 
-let visualRow = 9 - row; 
+                } else {
 
-return { x: col * cellWidth + (cellWidth / 2), y: visualRow * cellHeight + (cellHeight / 2) }; 
+                    ctx.save();
+                    let dx = end.x - start.x; let dy = end.y - start.y;
+                    let len = Math.hypot(dx, dy); let angle = Math.atan2(dy, dx);
+                    let points = []; let steps = 40; let waveCount = 2.5; let waveAmplitude = 15 * scaleFactor;
+                    for (let i = 0; i <= steps; i++) {
+                        let t = i / steps; let lx = t * len; let ly = Math.sin(t * Math.PI * 2 * waveCount) * waveAmplitude;
+                        let wx = start.x + lx * Math.cos(angle) - ly * Math.sin(angle); let wy = start.y + lx * Math.sin(angle) + ly * Math.cos(angle);
+                        points.push({ x: wx, y: wy });
 
-} 
+                    }
 
- 
+                    let baseColor = snakeColors[idx % snakeColors.length];
+                    ctx.strokeStyle = baseColor; ctx.lineWidth = Math.max(4, 10 * scaleFactor); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+                    ctx.beginPath(); ctx.moveTo(points.x, points.y);
+                    for (let p = 1; p < points.length; p++) { ctx.lineTo(points[p].x, points[p].y); }
+                    ctx.stroke();
+                    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(0.8, 2 * scaleFactor); ctx.setLineDash([4 * scaleFactor, 6 * scaleFactor]);
+                    ctx.beginPath(); ctx.moveTo(points.x, points.y);
+                    for (let p = 1; p < points.length; p++) { ctx.lineTo(points[p].x, points[p].y); }
+                    ctx.stroke(); ctx.setLineDash([]);
+                    ctx.fillStyle = baseColor;
+                    let tailPoint = points[points.length - 1]; let prevPoint = points[points.length - 3];
+                    let tailAngle = Math.atan2(tailPoint.y - prevPoint.y, tailPoint.x - prevPoint.x);
+                    let tailWidth = 4.5 * scaleFactor; let tailLength = 11 * scaleFactor;
+                    ctx.beginPath(); ctx.moveTo(tailPoint.x, tailPoint.y);
+                    ctx.lineTo(tailPoint.x - tailLength * Math.cos(tailAngle) + tailWidth * Math.sin(tailAngle), tailPoint.y - tailLength * Math.sin(tailAngle) - tailWidth * Math.cos(tailAngle));
+                    ctx.lineTo(tailPoint.x - tailLength * Math.cos(tailAngle) - tailWidth * Math.sin(tailAngle), tailPoint.y - tailLength * Math.sin(tailAngle) + tailWidth * Math.cos(tailAngle));
+                    ctx.closePath(); ctx.fill();
+                    ctx.fillStyle = baseColor; ctx.beginPath(); ctx.arc(start.x, start.y, 8 * scaleFactor, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#ff2244'; ctx.lineWidth = Math.max(0.8, 1.5 * scaleFactor);
+                    let tongueLen = 4.5 * scaleFactor; ctx.beginPath(); ctx.moveTo(start.x, start.y);
+                    ctx.lineTo(start.x + tongueLen * Math.cos(angle - 0.25), start.y + tongueLen * Math.sin(angle - 0.25));
+                    ctx.moveTo(start.x, start.y);
+                    ctx.lineTo(start.x + tongueLen * Math.cos(angle + 0.25), start.y + tongueLen * Math.sin(angle + 0.25));
+                    ctx.stroke(); ctx.restore();
+                }
 
-function createBoard() { 
+            });
 
-const board = document.getElementById('board'); 
+            renderGimmickList();
 
-board.innerHTML = ''; 
+        }
 
-for (let r = 0; r < 10; r++) { 
 
-for (let c = 0; c < 10; c++) { 
 
-let rowLogic = 9 - r; 
+        function resizeAndRedrawCanvas() {
 
-let cellNum = (rowLogic % 2 === 0) ? (rowLogic * 10 + c + 1) : (rowLogic * 10 + (9 - c) + 1); 
+            const canvas = document.getElementById('pathway-canvas');
+            const board = document.getElementById('board');
+            if (!canvas || !board) return;
+            canvas.width = board.clientWidth; canvas.height = board.clientHeight;
+            drawPathways();
+            teams.forEach(t => {
 
-const cell = document.createElement('div'); 
+                let currentCoords = getCellCenterCoordinates(t.position);
+                t.currentX = currentCoords.x; t.currentY = currentCoords.y;
 
-cell.className = `cell ${(r+c)%2===0 ? 'cell-even' : 'cell-odd'}`; 
+            });
+            updatePiecesDisplay();
 
-if(cellNum === 100) cell.classList.add('cell-100'); 
+        }
 
-cell.id = `cell-${cellNum}`; 
 
-cell.innerHTML = `<div>${cellNum}</div>`; 
 
-cell.addEventListener('dragover', e => e.preventDefault()); 
+        function updatePiecesDisplay() {
 
-cell.addEventListener('drop', e => { 
+            const layer = document.getElementById('animation-layer');
+            layer.innerHTML = '';
+            const cellOccupancy = {};
+            teams.forEach(team => {
 
-e.preventDefault(); 
+                if (!cellOccupancy[team.position]) cellOccupancy[team.position] = [];
+                cellOccupancy[team.position].push(team);
 
-const teamId = parseInt(e.dataTransfer.getData('text/plain')); 
+            });
 
-updateTeamPosition(teamId, cellNum, false); 
 
-}); 
 
-board.appendChild(cell); 
+            teams.forEach(team => {
 
-} 
+                const piece = document.createElement('div');
+                piece.className = 'piece';
+                piece.style.backgroundColor = team.color;
+                piece.title = team.name;
+                piece.draggable = true;
+                piece.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', team.id));
 
-} 
+                let offsetX = 0; let offsetY = 0;
+                const occupants = cellOccupancy[team.position] || [];
+                const count = occupants.length;
 
-refreshGlowingQuestionMarks(); 
+                if (count > 1) {
 
-resizeAndRedrawCanvas(); 
+                    const idx = occupants.indexOf(team);
 
-teams.forEach(t => { 
 
-let coords = getCellCenterCoordinates(t.position); 
 
-t.currentX = coords.x; t.currentY = coords.y; 
+                    if (count === 2) {
 
-}); 
+                        piece.classList.add('crowded-medium');
 
-updatePiecesDisplay(); 
+                        offsetX = (idx === 0 ? -6 : 6);
 
-} 
+                    }
 
- 
+                    else if (count <= 4) {
 
-function refreshGlowingQuestionMarks() { 
+                        piece.classList.add('crowded-medium');
 
-document.querySelectorAll('.q-mark-glow').forEach(el => el.remove()); 
+                        offsetX = (idx % 2 === 0 ? -6 : 6);
 
-for (const tile in quizDatabase) { 
+                        offsetY = (idx < 2 ? -6 : 6);
 
-const targetCell = document.getElementById(`cell-${tile}`); 
+                    }
 
-if (targetCell) { 
+                    else if (count <= 9) {
 
-targetCell.insertAdjacentHTML('beforeend', `<div class="q-mark-glow">?</div>`); 
+                        piece.classList.add('crowded-heavy');
 
-} 
+                        const col = idx % 3;
 
-} 
+                        const row = Math.floor(idx / 3);
 
-} 
+                        offsetX = (col - 1) * 8;
 
- 
+                        offsetY = (row - 1) * 8;
 
-function drawPathways() { 
+                    }
 
-const canvas = document.getElementById('pathway-canvas'); 
+                    else {
 
-if (!canvas) return; 
 
-const ctx = canvas.getContext('2d'); 
+                        piece.classList.add('crowded-super-heavy');
 
-ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                        const col = idx % 4;
 
-const scaleFactor = canvas.width / 600; 
+                        const row = Math.floor(idx / 4);
 
- 
+                        offsetX = (col * 6) - 9;
 
-links.forEach((link, idx) => { 
+                        offsetY = (row * 6) - 9;
 
-const start = getCellCenterCoordinates(link.start); 
+                    }
 
-const end = getCellCenterCoordinates(link.end); 
+                }
 
- 
+                piece.style.left = (team.currentX + offsetX) + 'px';
+                piece.style.top = (team.currentY + offsetY) + 'px';
+                layer.appendChild(piece);
 
-if (link.type === 'ladder') { 
+            });
 
-ctx.save(); 
+            updateStatusText();
 
-let dx = end.x - start.x; let dy = end.y - start.y; 
+        }
 
-let angle = Math.atan2(dy, dx); let len = Math.hypot(dx, dy); 
 
-let railOffset = 6.5 * scaleFactor; 
 
-ctx.translate(start.x, start.y); ctx.rotate(angle); 
 
-ctx.strokeStyle = '#85581A'; ctx.lineWidth = Math.max(1.5, 4 * scaleFactor); 
 
-ctx.beginPath(); ctx.moveTo(0, -railOffset); ctx.lineTo(len, -railOffset); ctx.moveTo(0, railOffset); ctx.lineTo(len, railOffset); ctx.stroke(); 
+        function updateTeamPosition(teamId, newPos, autoCheckGimmick = false) {
 
-ctx.strokeStyle = '#c29b62'; ctx.lineWidth = Math.max(1, 2.5 * scaleFactor); 
+            const team = teams.find(t => t.id === teamId);
+            if (!team) return;
+            if (newPos > 100) {
+                if (autoCheckGimmick) document.getElementById('status').innerText = `${team.name}: Too Far, try again!`;
+                return;
 
-let stepSpacing = 16 * scaleFactor; 
+            }
 
-ctx.beginPath(); 
 
-for (let d = stepSpacing; d < len; d += stepSpacing) { ctx.moveTo(d, -railOffset - 1); ctx.lineTo(d, railOffset + 1); } 
 
-ctx.stroke(); ctx.restore(); 
+            if (autoCheckGimmick) {
 
-} else { 
+                let startPos = team.position;
+                let stepsArray = [];
+                for (let i = startPos + 1; i <= newPos; i++) { stepsArray.push(i); }
 
-ctx.save(); 
 
-let dx = end.x - start.x; let dy = end.y - start.y; 
 
-let len = Math.hypot(dx, dy); let angle = Math.atan2(dy, dx); 
+                function animateTileJumps() {
 
-let points = []; let steps = 40; let waveCount = 2.5; let waveAmplitude = 15 * scaleFactor; 
+                    if (stepsArray.length === 0) {
 
-for (let i = 0; i <= steps; i++) { 
+                        if (quizDatabase[team.position]) {
+                            setTimeout(() => triggerQuizPopupModal(team, team.position), 300);
 
-let t = i / steps; let lx = t * len; let ly = Math.sin(t * Math.PI * 2 * waveCount) * waveAmplitude; 
+                        } else {
+                            processGimmickLinks(team);
+                        }
 
-let wx = start.x + lx * Math.cos(angle) - ly * Math.sin(angle); let wy = start.y + lx * Math.sin(angle) + ly * Math.cos(angle); 
+                        return;
 
-points.push({x: wx, y: wy}); 
+                    }
 
-} 
+                    let nextTile = stepsArray.shift();
+                    let targetCoords = getCellCenterCoordinates(nextTile);
+                    let startX = team.currentX; let startY = team.currentY;
+                    let duration = 280; let startTime = performance.now();
 
-let baseColor = snakeColors[idx % snakeColors.length]; 
 
-ctx.strokeStyle = baseColor; ctx.lineWidth = Math.max(4, 10 * scaleFactor); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; 
+                    function jumpStep(now) {
 
-ctx.beginPath(); ctx.moveTo(points.x, points.y); 
+                        let progress = (now - startTime) / duration;
+                        if (progress > 1) progress = 1;
+                        team.currentX = startX + (targetCoords.x - startX) * progress;
+                        team.currentY = startY + (targetCoords.y - startY) * progress;
+                        team.currentY += -22 * Math.sin(progress * Math.PI);
+                        updatePiecesDisplay();
+                        if (progress < 1) { requestAnimationFrame(jumpStep); }
+                        else { team.position = nextTile; updatePiecesDisplay(); setTimeout(animateTileJumps, 60); }
 
-for(let p = 1; p < points.length; p++) { ctx.lineTo(points[p].x, points[p].y); } 
+                    }
 
-ctx.stroke(); 
+                    requestAnimationFrame(jumpStep);
 
-ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(0.8, 2 * scaleFactor); ctx.setLineDash([4 * scaleFactor, 6 * scaleFactor]); 
+                }
 
-ctx.beginPath(); ctx.moveTo(points.x, points.y); 
+                animateTileJumps();
 
-for(let p = 1; p < points.length; p++) { ctx.lineTo(points[p].x, points[p].y); } 
+            } else {
 
-ctx.stroke(); ctx.setLineDash([]); 
+                let currentCoords = getCellCenterCoordinates(newPos);
+                team.position = newPos; team.currentX = currentCoords.x; team.currentY = currentCoords.y;
+                updatePiecesDisplay();
+                if (quizDatabase[newPos]) triggerQuizPopupModal(team, newPos);
 
-ctx.fillStyle = baseColor; 
+            }
 
-let tailPoint = points[points.length - 1]; let prevPoint = points[points.length - 3]; 
+        }
 
-let tailAngle = Math.atan2(tailPoint.y - prevPoint.y, tailPoint.x - prevPoint.x); 
 
-let tailWidth = 4.5 * scaleFactor; let tailLength = 11 * scaleFactor; 
 
-ctx.beginPath(); ctx.moveTo(tailPoint.x, tailPoint.y); 
+        function processGimmickLinks(team) {
 
-ctx.lineTo(tailPoint.x - tailLength * Math.cos(tailAngle) + tailWidth * Math.sin(tailAngle), tailPoint.y - tailLength * Math.sin(tailAngle) - tailWidth * Math.cos(tailAngle)); 
+            const link = links.find(l => l.start === team.position);
 
-ctx.lineTo(tailPoint.x - tailLength * Math.cos(tailAngle) - tailWidth * Math.sin(tailAngle), tailPoint.y - tailLength * Math.sin(tailAngle) + tailWidth * Math.cos(tailAngle)); 
+            if (link) {
+                setTimeout(() => {
 
-ctx.closePath(); ctx.fill(); 
+                    let startCoords = getCellCenterCoordinates(link.start);
+                    let endCoords = getCellCenterCoordinates(link.end);
+                    let duration = 850; let startTime = performance.now();
+                    let dx = endCoords.x - startCoords.x; let dy = endCoords.y - startCoords.y;
+                    let len = Math.hypot(dx, dy); let angle = Math.atan2(dy, dx);
+                    const scaleFactor = document.getElementById('pathway-canvas').width / 600;
+                    let waveCount = 2.5; let waveAmplitude = 15 * scaleFactor;
 
-ctx.fillStyle = baseColor; ctx.beginPath(); ctx.arc(start.x, start.y, 8 * scaleFactor, 0, Math.PI * 2); ctx.fill(); 
 
-ctx.strokeStyle = '#ff2244'; ctx.lineWidth = Math.max(0.8, 1.5 * scaleFactor); 
 
-let tongueLen = 4.5 * scaleFactor; ctx.beginPath(); ctx.moveTo(start.x, start.y); 
+                    function curveStep(now) {
+                        let progress = (now - startTime) / duration;
+                        if (progress > 1) progress = 1;
+                        if (link.type === 'ladder') {
 
-ctx.lineTo(start.x + tongueLen * Math.cos(angle - 0.25), start.y + tongueLen * Math.sin(angle - 0.25)); 
+                            team.currentX = startCoords.x + dx * progress; team.currentY = startCoords.y + dy * progress;
+                        } else {
 
-ctx.moveTo(start.x, start.y); 
+                            let lx = progress * len; let ly = Math.sin(progress * Math.PI * 2 * waveCount) * waveAmplitude;
+                            team.currentX = startCoords.x + lx * Math.cos(angle) - ly * Math.sin(angle);
+                            team.currentY = startCoords.y + lx * Math.sin(angle) + ly * Math.cos(angle);
+                        }
+                        updatePiecesDisplay();
+                        if (progress < 1) { requestAnimationFrame(curveStep); }
+                        else { team.position = link.end; team.currentX = endCoords.x; team.currentY = endCoords.y; updatePiecesDisplay(); checkWinState(team); }
+                    }
+                    requestAnimationFrame(curveStep);
+                }, 350);
+            } else {
 
-ctx.lineTo(start.x + tongueLen * Math.cos(angle + 0.25), start.y + tongueLen * Math.sin(angle + 0.25)); 
+                checkWinState(team);
 
-ctx.stroke(); ctx.restore(); 
+            }
 
-} 
+        }
 
-}); 
 
-renderGimmickList(); 
 
-} 
+        function checkWinState(team) {
+            if (team.position === 100) alert(`YOU MADE IT!: ${team.name} reached tile 100!`);
+        }
 
- 
 
-function resizeAndRedrawCanvas() { 
 
-const canvas = document.getElementById('pathway-canvas'); 
+        function triggerQuizPopupModal(team, tileNum) {
+            const quiz = quizDatabase[tileNum];
 
-const board = document.getElementById('board'); 
+            if (!quiz) return;
+            const overlay = document.getElementById('quiz-overlay');
+            document.getElementById('quiz-box-text').innerText = quiz.q;
+            const optionsBox = document.getElementById('quiz-box-options');
+            optionsBox.innerHTML = '';
 
-if (!canvas || !board) return; 
 
-canvas.width = board.clientWidth; canvas.height = board.clientHeight; 
 
-drawPathways(); 
+            let choices = [
 
-teams.forEach(t => { 
+                { text: quiz.a, isCorrect: true },
+                { text: quiz.b, isCorrect: false },
+                { text: quiz.c, isCorrect: false }
+            ].sort(() => Math.random() - 0.5);
 
-let currentCoords = getCellCenterCoordinates(t.position); 
 
-t.currentX = currentCoords.x; t.currentY = currentCoords.y; 
 
-}); 
+            choices.forEach(choice => {
 
-updatePiecesDisplay(); 
+                const btn = document.createElement('button');
+                btn.className = 'quiz-opt-btn';
+                btn.innerText = choice.text;
+                btn.onclick = () => {
+                    overlay.classList.remove('show');
+                    if (choice.isCorrect) {
+                        document.getElementById('status').innerText = `✨ Correct! ${team.name} holds tile ${tileNum}.`;
+                        processGimmickLinks(team);
+                    } else {
 
-} 
+                        let penaltyTile = Math.max(1, team.position - 1);
+                        document.getElementById('status').innerText = `❌ Wrong! Slipped back to tile ${penaltyTile}.`;
+                        let currentCoords = getCellCenterCoordinates(penaltyTile);
+                        team.position = penaltyTile; team.currentX = currentCoords.x; team.currentY = currentCoords.y;
+                        updatePiecesDisplay();
+                    }
 
- 
+                };
+                optionsBox.appendChild(btn);
 
-function updatePiecesDisplay() { 
+            });
+            overlay.classList.add('show');
 
-const layer = document.getElementById('animation-layer'); 
+        }
 
-layer.innerHTML = ''; 
 
-const cellOccupancy = {}; 
 
-teams.forEach(team => { 
+        // --- SPA FULL CRUD RE-LOGIC OPERATIONS (READ, ADD, UPDATE, DELETE, SHUFFLE) --- 
 
-if(!cellOccupancy[team.position]) cellOccupancy[team.position] = []; 
+        function renderCrudTableSync() {
 
-cellOccupancy[team.position].push(team); 
+            const listContainer = document.getElementById('crud-live-nodes-list');
+            listContainer.innerHTML = '';
 
-}); 
+            const keys = Object.keys(quizDatabase).sort((a, b) => a - b);
 
- 
+            if (keys.length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.4; font-size:12px;">No quizzes initialized.</div>`;
+                return;
 
-teams.forEach(team => { 
+            }
 
-const piece = document.createElement('div'); 
 
-piece.className = 'piece'; 
 
-piece.style.backgroundColor = team.color; 
+            keys.forEach(tile => {
 
-piece.title = team.name; 
-
-piece.draggable = true; 
-
-piece.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', team.id)); 
-
- 
-
-let offsetX = 0; let offsetY = 0; 
-
-const occupants = cellOccupancy[team.position] || []; 
-
-const count = occupants.length; 
-
- 
-
-if (count > 1) { 
-
-const idx = occupants.indexOf(team); 
-
- 
-
-if (count === 2) { 
-
-// 1列に2個並ぶサイズ感 
-
-piece.classList.add('crowded-medium');  
-
-offsetX = (idx === 0 ? -6 : 6); 
-
-}  
-
-else if (count <= 4) { 
-
-// 2x2 グリッド (最大4個) 
-
-piece.classList.add('crowded-medium'); 
-
-offsetX = (idx % 2 === 0 ? -6 : 6); 
-
-offsetY = (idx < 2 ? -6 : 6); 
-
-}  
-
-else if (count <= 9) { 
-
-// 3x3 グリッド (最大9個) 
-
-piece.classList.add('crowded-heavy'); 
-
-const col = idx % 3; 
-
-const row = Math.floor(idx / 3); 
-
-offsetX = (col - 1) * 8; // -8, 0, 8 
-
-offsetY = (row - 1) * 8; // -8, 0, 8 
-
-}  
-
-else { 
-
-// 4x4 グリッド (最大16個) 
-
-piece.classList.add('crowded-super-heavy'); 
-
-const col = idx % 4; 
-
-const row = Math.floor(idx / 4); 
-
-// 4マスの中心に寄せるためのオフセット（例: 間隔6pxの場合） 
-
-offsetX = (col * 6) - 9;  
-
-offsetY = (row * 6) - 9; 
-
-} 
-
-} 
-
-piece.style.left = (team.currentX + offsetX) + 'px'; 
-
-piece.style.top = (team.currentY + offsetY) + 'px'; 
-
-layer.appendChild(piece); 
-
-}); 
-
-updateStatusText(); 
-
-} 
-
- 
-
- 
-
-function updateTeamPosition(teamId, newPos, autoCheckGimmick = false) { 
-
-const team = teams.find(t => t.id === teamId); 
-
-if (!team) return; 
-
-if (newPos > 100) { 
-
-if(autoCheckGimmick) document.getElementById('status').innerText = `${team.name}: Too Far, try again!`; 
-
-return;  
-
-} 
-
- 
-
-if (autoCheckGimmick) { 
-
-let startPos = team.position; 
-
-let stepsArray = []; 
-
-for (let i = startPos + 1; i <= newPos; i++) { stepsArray.push(i); } 
-
- 
-
-function animateTileJumps() { 
-
-if (stepsArray.length === 0) { 
-
-if (quizDatabase[team.position]) { 
-
-setTimeout(() => triggerQuizPopupModal(team, team.position), 300); 
-
-} else { 
-
-processGimmickLinks(team); 
-
-} 
-
-return; 
-
-} 
-
-let nextTile = stepsArray.shift(); 
-
-let targetCoords = getCellCenterCoordinates(nextTile); 
-
-let startX = team.currentX; let startY = team.currentY; 
-
-let duration = 280; let startTime = performance.now(); 
-
- 
-
-function jumpStep(now) { 
-
-let progress = (now - startTime) / duration; 
-
-if (progress > 1) progress = 1; 
-
-team.currentX = startX + (targetCoords.x - startX) * progress; 
-
-team.currentY = startY + (targetCoords.y - startY) * progress; 
-
-team.currentY += -22 * Math.sin(progress * Math.PI); 
-
-updatePiecesDisplay(); 
-
-if (progress < 1) { requestAnimationFrame(jumpStep); }  
-
-else { team.position = nextTile; updatePiecesDisplay(); setTimeout(animateTileJumps, 60); } 
-
-} 
-
-requestAnimationFrame(jumpStep); 
-
-} 
-
-animateTileJumps(); 
-
-} else { 
-
-let currentCoords = getCellCenterCoordinates(newPos); 
-
-team.position = newPos; team.currentX = currentCoords.x; team.currentY = currentCoords.y; 
-
-updatePiecesDisplay(); 
-
-if (quizDatabase[newPos]) triggerQuizPopupModal(team, newPos); 
-
-} 
-
-} 
-
- 
-
-function processGimmickLinks(team) { 
-
-const link = links.find(l => l.start === team.position); 
-
-if (link) { 
-
-setTimeout(() => { 
-
-let startCoords = getCellCenterCoordinates(link.start); 
-
-let endCoords = getCellCenterCoordinates(link.end); 
-
-let duration = 850; let startTime = performance.now(); 
-
-let dx = endCoords.x - startCoords.x; let dy = endCoords.y - startCoords.y; 
-
-let len = Math.hypot(dx, dy); let angle = Math.atan2(dy, dx); 
-
-const scaleFactor = document.getElementById('pathway-canvas').width / 600; 
-
-let waveCount = 2.5; let waveAmplitude = 15 * scaleFactor; 
-
- 
-
-function curveStep(now) { 
-
-let progress = (now - startTime) / duration; 
-
-if (progress > 1) progress = 1; 
-
-if (link.type === 'ladder') { 
-
-team.currentX = startCoords.x + dx * progress; team.currentY = startCoords.y + dy * progress; 
-
-} else { 
-
-let lx = progress * len; let ly = Math.sin(progress * Math.PI * 2 * waveCount) * waveAmplitude; 
-
-team.currentX = startCoords.x + lx * Math.cos(angle) - ly * Math.sin(angle); 
-
-team.currentY = startCoords.y + lx * Math.sin(angle) + ly * Math.cos(angle); 
-
-} 
-
-updatePiecesDisplay(); 
-
-if (progress < 1) { requestAnimationFrame(curveStep); }  
-
-else { team.position = link.end; team.currentX = endCoords.x; team.currentY = endCoords.y; updatePiecesDisplay(); checkWinState(team); } 
-
-} 
-
-requestAnimationFrame(curveStep); 
-
-}, 350); 
-
-} else { 
-
-checkWinState(team); 
-
-} 
-
-} 
-
- 
-
-function checkWinState(team) { 
-
-if(team.position === 100) alert(`YOU MADE IT!: ${team.name} reached tile 100!`); 
-
-} 
-
- 
-
-function triggerQuizPopupModal(team, tileNum) { 
-
-const quiz = quizDatabase[tileNum]; 
-
-if (!quiz) return; 
-
-const overlay = document.getElementById('quiz-overlay'); 
-
-document.getElementById('quiz-box-text').innerText = quiz.q; 
-
-const optionsBox = document.getElementById('quiz-box-options'); 
-
-optionsBox.innerHTML = ''; 
-
- 
-
-let choices = [ 
-
-{ text: quiz.a, isCorrect: true }, 
-
-{ text: quiz.b, isCorrect: false }, 
-
-{ text: quiz.c, isCorrect: false } 
-
-].sort(() => Math.random() - 0.5); 
-
- 
-
-choices.forEach(choice => { 
-
-const btn = document.createElement('button'); 
-
-btn.className = 'quiz-opt-btn'; 
-
-btn.innerText = choice.text; 
-
-btn.onclick = () => { 
-
-overlay.classList.remove('show'); 
-
-if (choice.isCorrect) { 
-
-document.getElementById('status').innerText = `✨ Correct! ${team.name} holds tile ${tileNum}.`; 
-
-processGimmickLinks(team); 
-
-} else { 
-
-let penaltyTile = Math.max(1, team.position - 1); 
-
-document.getElementById('status').innerText = `❌ Wrong! Slipped back to tile ${penaltyTile}.`; 
-
-let currentCoords = getCellCenterCoordinates(penaltyTile); 
-
-team.position = penaltyTile; team.currentX = currentCoords.x; team.currentY = currentCoords.y; 
-
-updatePiecesDisplay(); 
-
-} 
-
-}; 
-
-optionsBox.appendChild(btn); 
-
-}); 
-
-overlay.classList.add('show'); 
-
-} 
-
- 
-
-// --- SPA FULL CRUD RE-LOGIC OPERATIONS (READ, ADD, UPDATE, DELETE, SHUFFLE) --- 
-
-function renderCrudTableSync() { 
-
-const listContainer = document.getElementById('crud-live-nodes-list'); 
-
-listContainer.innerHTML = ''; 
-
- 
-
-const keys = Object.keys(quizDatabase).sort((a,b) => a - b); 
-
-if(keys.length === 0) { 
-
-listContainer.innerHTML = `<div style="text-align:center; padding:20px; opacity:0.4; font-size:12px;">No quizzes initialized.</div>`; 
-
-return; 
-
-} 
-
- 
-
-keys.forEach(tile => { 
-
-const quiz = quizDatabase[tile]; 
-
-const node = document.createElement('div'); 
-
-node.className = 'quiz-item-node'; 
-
-node.innerHTML = ` 
+                const quiz = quizDatabase[tile];
+                const node = document.createElement('div');
+                node.className = 'quiz-item-node';
+                node.innerHTML = ` 
 
 <div class="quiz-node-details"> 
-
 <strong style="color: var(--gold-accent);">Tile ${tile}</strong> 
-
 <span>Q: ${quiz.q}</span> 
-
 <span style="font-size:10px; color:#a3e635;">Ans: ${quiz.a}</span> 
-
 </div> 
-
 <div class="btn-group" style="margin:0;"> 
-
 <button onclick="loadNodeIntoCrudForm(${tile})" style="background:var(--moss-green); padding:4px 8px;">Edit</button> 
-
 <button class="danger" onclick="deleteCrudNode(${tile})" style="padding:4px 8px;">X</button> 
-
 </div> 
 
-`; 
+`;
 
-listContainer.appendChild(node); 
+                listContainer.appendChild(node);
 
-}); 
+            });
 
-} 
+        }
 
- 
 
-function loadNodeIntoCrudForm(tile) { 
 
-const quiz = quizDatabase[tile]; 
+        function loadNodeIntoCrudForm(tile) {
 
-if (!quiz) return; 
+            const quiz = quizDatabase[tile];
+            if (!quiz) return;
+            document.getElementById('crud-tile').value = tile;
+            document.getElementById('crud-question').value = quiz.q;
+            document.getElementById('crud-opt-a').value = quiz.a;
+            document.getElementById('crud-opt-b').value = quiz.b;
+            document.getElementById('crud-opt-c').value = quiz.c;
 
-document.getElementById('crud-tile').value = tile; 
+        }
 
-document.getElementById('crud-question').value = quiz.q; 
 
-document.getElementById('crud-opt-a').value = quiz.a; 
 
-document.getElementById('crud-opt-b').value = quiz.b; 
+        function executeCrudSave() {
 
-document.getElementById('crud-opt-c').value = quiz.c; 
+            const tile = parseInt(document.getElementById('crud-tile').value);
+            const question = document.getElementById('crud-question').value.trim();
+            const optA = document.getElementById('crud-opt-a').value.trim();
+            const optB = document.getElementById('crud-opt-b').value.trim();
+            const optC = document.getElementById('crud-opt-c').value.trim();
 
-} 
 
- 
 
-function executeCrudSave() { 
+            if (isNaN(tile) || tile < 2 || tile > 99 || !question || !optA || !optB || !optC) {
 
-const tile = parseInt(document.getElementById('crud-tile').value); 
+                alert("CRUD Warning: Fill all input slots correctly (Tiles 2-99)."); return;
 
-const question = document.getElementById('crud-question').value.trim(); 
+            }
 
-const optA = document.getElementById('crud-opt-a').value.trim(); 
+            // Create or overwrite entry mapping pass 
+            quizDatabase[tile] = { q: question, a: optA, b: optB, c: optC };
 
-const optB = document.getElementById('crud-opt-b').value.trim(); 
+            // Wipe forms out clean 
+            document.getElementById('crud-question').value = '';
+            document.getElementById('crud-opt-a').value = ''; document.getElementById('crud-opt-b').value = ''; document.getElementById('crud-opt-c').value = '';
 
-const optC = document.getElementById('crud-opt-c').value.trim(); 
+            renderCrudTableSync();
+            refreshGlowingQuestionMarks();
 
- 
+        }
 
-if (isNaN(tile) || tile < 2 || tile > 99 || !question || !optA || !optB || !optC) { 
 
-alert("CRUD Warning: Fill all input slots correctly (Tiles 2-99)."); return; 
 
-} 
+        function deleteCrudNode(tile) {
 
- 
+            if (confirm(`Purge quiz layout node on tile ${tile}?`)) {
+                delete quizDatabase[tile];
+                renderCrudTableSync();
+                refreshGlowingQuestionMarks();
+            }
 
-// Create or overwrite entry mapping pass 
+        }
 
-quizDatabase[tile] = { q: question, a: optA, b: optB, c: optC }; 
 
-// Wipe forms out clean 
 
-document.getElementById('crud-question').value = ''; 
+        function triggerCrudShuffle() {
+            let items = Object.values(quizDatabase);
+            if (items.length === 0) { alert("Matrix is empty! Create data first."); return; }
+            quizDatabase = {};
+            let allocated = new Set();
 
-document.getElementById('crud-opt-a').value = ''; document.getElementById('crud-opt-b').value = ''; document.getElementById('crud-opt-c').value = ''; 
 
- 
 
-renderCrudTableSync(); 
+            items.forEach(quiz => {
+                let randTile;
+                do {
+                    randTile = Math.floor(Math.random() * 98) + 2;
+                } while (allocated.has(randTile) || links.some(l => l.start === randTile));
+                allocated.add(randTile);
+                quizDatabase[randTile] = quiz;
 
-refreshGlowingQuestionMarks(); 
+            });
 
-} 
+            renderCrudTableSync();
+            refreshGlowingQuestionMarks();
+            alert("Database synchronized. Quiz node coordinates scrambled!");
 
- 
+        }
 
-function deleteCrudNode(tile) { 
 
-if(confirm(`Purge quiz layout node on tile ${tile}?`)) { 
 
-delete quizDatabase[tile]; 
+        // --- STORAGE MANAGEMENT --- 
 
-renderCrudTableSync(); 
+        function saveBoardProfile() {
+            const profileName = document.getElementById('save-layout-name').value.trim();
+            if (!profileName) { alert("Profile Error: Name required."); return; }
+            const payload = { links: links, quizDatabase: quizDatabase };
+            localStorage.setItem(`SL_PROFILE_${profileName}`, JSON.stringify(payload));
+            alert(`Layout cached successfully as [${profileName}].`);
 
-refreshGlowingQuestionMarks(); 
+        }
 
-} 
 
-} 
 
- 
+        function loadBoardProfile() {
 
-function triggerCrudShuffle() { 
+            const profileName = document.getElementById('save-layout-name').value.trim();
+            if (!profileName) { alert("Profile Error: Enter search key."); return; }
+            const raw = localStorage.getItem(`SL_PROFILE_${profileName}`);
+            if (!raw) { alert("Fetch pipeline failed: Target profile entry missing."); return; }
+            const imported = JSON.parse(raw);
+            links = imported.links || [];
+            quizDatabase = imported.quizDatabase || {};
+            createBoard();
+            alert(`Layout profile [${profileName}] extracted and executed successfully!`);
 
-let items = Object.values(quizDatabase); 
+        }
 
-if(items.length === 0) { alert("Matrix is empty! Create data first."); return; } 
 
-quizDatabase = {};  
 
-let allocated = new Set(); 
+        function updateStatusText() {
 
- 
+            if (teams.length === 0) { document.getElementById('status').innerText = "Awaiting explorers..."; return; }
+            const currentTeam = teams[currentTeamIndex];
+            const status = document.getElementById('status');
+            status.innerText = `${currentTeam.name}'s Shift (Tile: ${currentTeam.position})`;
+            status.style.borderLeftColor = currentTeam.color;
 
-items.forEach(quiz => { 
+        }
 
-let randTile; 
 
-do { 
 
-randTile = Math.floor(Math.random() * 98) + 2; 
+        // --- DICE CONTROLLER --- 
 
-} while (allocated.has(randTile) || links.some(l => l.start === randTile)); 
+        document.getElementById('roll-btn').addEventListener('click', () => {
 
-allocated.add(randTile); 
+            if (isRolling || teams.length === 0) return; isRolling = true;
+            const cube = document.getElementById('cube'); const result = Math.floor(Math.random() * 6) + 1;
+            const additionalRotX = (Math.floor(Math.random() * 3) + 4) * 360;
+            const additionalRotY = (Math.floor(Math.random() * 3) + 4) * 360;
+            let targetX = 0; let targetY = 0;
+            switch (result) {
+                case 1: targetX = 0; targetY = 0; break; case 2: targetX = 0; targetY = -90; break;
+                case 3: targetX = -90; targetY = 0; break; case 4: targetX = 90; targetY = 0; break;
+                case 5: targetX = 0; targetY = 90; break; case 6: targetX = 180; targetY = 0; break;
 
-quizDatabase[randTile] = quiz; 
+            }
 
-}); 
+            currentXRotation += additionalRotX; currentYRotation += additionalRotY;
+            cube.style.transform = `rotateX(${currentXRotation + targetX}deg) rotateY(${currentYRotation + targetY}deg)`;
+            const currentTeam = teams[currentTeamIndex];
+            setTimeout(() => {
+                let nextPos = currentTeam.position + result;
+                updateTeamPosition(currentTeam.id, nextPos, true);
+                currentTeamIndex = (currentTeamIndex + 1) % teams.length; isRolling = false;
+            }, 1400);
 
- 
+        });
 
-renderCrudTableSync(); 
+        function getRandomColor() {
+            return '#' + Math.floor(Math.random() * 16777215)
+                .toString(16)
+                .padStart(6, '0'); // Ensure 6 digits 
 
-refreshGlowingQuestionMarks(); 
+        }
 
-alert("Database synchronized. Quiz node coordinates scrambled!"); 
 
-} 
 
- 
-
-// --- PROFILE CLOUD STORAGE MANAGEMENT PASS --- 
-
-function saveBoardProfile() { 
-
-const profileName = document.getElementById('save-layout-name').value.trim(); 
-
-if (!profileName) { alert("Profile Error: Name required."); return; } 
-
-const payload = { links: links, quizDatabase: quizDatabase }; 
-
-localStorage.setItem(`SL_PROFILE_${profileName}`, JSON.stringify(payload)); 
-
-alert(`Layout cached successfully as [${profileName}].`); 
-
-} 
-
- 
-
-function loadBoardProfile() { 
-
-const profileName = document.getElementById('save-layout-name').value.trim(); 
-
-if (!profileName) { alert("Profile Error: Enter search key."); return; } 
-
-const raw = localStorage.getItem(`SL_PROFILE_${profileName}`); 
-
-if (!raw) { alert("Fetch pipeline failed: Target profile entry missing."); return; } 
-
-const imported = JSON.parse(raw); 
-
-links = imported.links || []; 
-
-quizDatabase = imported.quizDatabase || {}; 
-
-createBoard(); 
-
-alert(`Layout profile [${profileName}] extracted and executed successfully!`); 
-
-} 
-
- 
-
-function updateStatusText() { 
-
-if(teams.length === 0) { document.getElementById('status').innerText = "Awaiting explorers..."; return; } 
-
-const currentTeam = teams[currentTeamIndex]; 
-
-const status = document.getElementById('status'); 
-
-status.innerText = `${currentTeam.name}'s Shift (Tile: ${currentTeam.position})`; 
-
-status.style.borderLeftColor = currentTeam.color; 
-
-} 
-
- 
-
-// --- KINETIC CUMULATIVE DICE CONTROLLER ENGINE PASS --- 
-
-document.getElementById('roll-btn').addEventListener('click', () => { 
-
-if (isRolling || teams.length === 0) return; isRolling = true; 
-
-const cube = document.getElementById('cube'); const result = Math.floor(Math.random() * 6) + 1; 
-
-const additionalRotX = (Math.floor(Math.random() * 3) + 4) * 360; 
-
-const additionalRotY = (Math.floor(Math.random() * 3) + 4) * 360; 
-
-let targetX = 0; let targetY = 0; 
-
-switch(result) { 
-
-case 1: targetX = 0; targetY = 0; break; case 2: targetX = 0; targetY = -90; break; 
-
-case 3: targetX = -90; targetY = 0; break; case 4: targetX = 90; targetY = 0; break; 
-
-case 5: targetX = 0; targetY = 90; break; case 6: targetX = 180; targetY = 0; break; 
-
-} 
-
-currentXRotation += additionalRotX; currentYRotation += additionalRotY; 
-
-cube.style.transform = `rotateX(${currentXRotation + targetX}deg) rotateY(${currentYRotation + targetY}deg)`; 
-
-const currentTeam = teams[currentTeamIndex]; 
-
-setTimeout(() => { 
-
-let nextPos = currentTeam.position + result; 
-
-updateTeamPosition(currentTeam.id, nextPos, true); 
-
-currentTeamIndex = (currentTeamIndex + 1) % teams.length; isRolling = false; 
-
-}, 1400);  
-
-}); 
-
- 
-
-function getRandomColor() { 
-
-return '#' + Math.floor(Math.random() * 16777215) 
-
-.toString(16) 
-
-.padStart(6, '0'); // Ensure 6 digits 
-
-} 
-
- 
-
-function renderTeamsUI() { 
-
-const list = document.getElementById('teams-list'); list.innerHTML = ''; 
-
-teams.forEach((team) => { 
-
-const row = document.createElement('div'); row.className = 'team-row'; 
-
-row.innerHTML = ` 
-
+        function renderTeamsUI() {
+            const list = document.getElementById('teams-list'); list.innerHTML = '';
+            teams.forEach((team) => {
+                const row = document.createElement('div'); row.className = 'team-row';
+                row.innerHTML = ` 
 <div class="team-info"><div class="color-dot" style="color:${team.color}; background:${team.color}"></div><span>${team.name} (${team.position}/100)</span></div> 
-
 <button class="danger" style="padding:4px 10px; font-size:10px;" onclick="removeTeam(${team.id})">Expel</button> 
 
-`; 
+`;
+                list.appendChild(row);
+            });
+            if (currentTeamIndex >= teams.length) currentTeamIndex = 0;
+            updatePiecesDisplay();
 
-list.appendChild(row); 
+        }
 
-}); 
+        window.removeTeam = function (id) { teams = teams.filter(t => t.id !== id); renderTeamsUI(); };
 
-if(currentTeamIndex >= teams.length) currentTeamIndex = 0; 
+        document.getElementById('add-team-btn').addEventListener('click', () => {
+            const nameInput = document.getElementById('new-team-name');
+            const colorInput = document.getElementById('new-team-color');
+            if (!nameInput.value.trim()) return;
+            let coords = getCellCenterCoordinates(1);
+            teams.push({ id: Date.now(), name: nameInput.value.trim(), color: colorInput.value, position: 1, currentX: coords.x, currentY: coords.y });
+            colorInput.value = getRandomColor();
+            nameInput.value = ''; renderTeamsUI();
 
-updatePiecesDisplay(); 
+        });
 
-} 
 
- 
 
-window.removeTeam = function(id) { teams = teams.filter(t => t.id !== id); renderTeamsUI(); }; 
+        function renderGimmickList() {
+            const list = document.getElementById('items-list'); list.innerHTML = '';
+            links.forEach(link => {
 
- 
+                const row = document.createElement('div'); row.className = 'item-row';
+                row.innerHTML = ` 
 
-document.getElementById('add-team-btn').addEventListener('click', () => { 
-
-const nameInput = document.getElementById('new-team-name');  
-
-const colorInput = document.getElementById('new-team-color'); 
-
-if(!nameInput.value.trim()) return; 
-
-let coords = getCellCenterCoordinates(1); 
-
-teams.push({ id: Date.now(), name: nameInput.value.trim(), color: colorInput.value, position: 1, currentX: coords.x, currentY: coords.y }); 
-
-colorInput.value = getRandomColor(); 
-
-nameInput.value = ''; renderTeamsUI(); 
-
-}); 
-
- 
-
-function renderGimmickList() { 
-
-const list = document.getElementById('items-list'); list.innerHTML = ''; 
-
-links.forEach(link => { 
-
-const row = document.createElement('div'); row.className = 'item-row'; 
-
-row.innerHTML = ` 
-
-<span style="font-weight:bold; color:${link.type==='ladder'?'#b58253':'#38b000'}">${link.type === 'ladder' ? '🪜 Ladder' : '🐍 Snake'} [${link.start} ➔ ${link.end}]</span> 
-
+<span style="font-weight:bold; color:${link.type === 'ladder' ? '#b58253' : '#38b000'}">${link.type === 'ladder' ? '🪜 Ladder' : '🐍 Snake'} [${link.start} ➔ ${link.end}]</span> 
 <button class="danger" style="padding:3px 8px; font-size:10px;" onclick="removeGimmick(${link.id})">Burn</button> 
+`;
 
-`; 
+                list.appendChild(row);
 
-list.appendChild(row); 
+            });
 
-}); 
+        }
 
-} 
 
- 
 
-window.removeGimmick = function(id) { links = links.filter(l => l.id !== id); drawPathways(); }; 
+        window.removeGimmick = function (id) { links = links.filter(l => l.id !== id); drawPathways(); };
 
- 
 
-function addGimmick(type) { 
 
-const start = parseInt(document.getElementById('link-start').value); const end = parseInt(document.getElementById('link-end').value); 
+        function addGimmick(type) {
 
-if (isNaN(start) || isNaN(end) || start < 1 || start > 100 || end < 1 || end > 100 || start === end) { alert("Setup Error: Form bounds misaligned."); return; } 
+            const start = parseInt(document.getElementById('link-start').value); const end = parseInt(document.getElementById('link-end').value);
 
-if (type === 'ladder' && start >= end) { alert("Ladders must point up."); return; } 
+            if (isNaN(start) || isNaN(end) || start < 1 || start > 100 || end < 1 || end > 100 || start === end) { alert("Setup Error: Form bounds misaligned."); return; }
 
-if (type === 'snake' && start <= end) { alert("Snakes must fall down."); return; } 
+            if (type === 'ladder' && start >= end) { alert("Ladders must point up."); return; }
 
-links.push({ id: Date.now(), type, start, end }); drawPathways(); 
+            if (type === 'snake' && start <= end) { alert("Snakes must fall down."); return; }
 
-} 
+            links.push({ id: Date.now(), type, start, end }); drawPathways();
 
- 
+        }
 
-document.getElementById('add-ladder-btn').addEventListener('click', () => addGimmick('ladder')); 
 
-document.getElementById('add-snake-btn').addEventListener('click', () => addGimmick('snake')); 
+        document.getElementById('add-ladder-btn').addEventListener('click', () => addGimmick('ladder'));
+        document.getElementById('add-snake-btn').addEventListener('click', () => addGimmick('snake'));
 
- 
+        window.addEventListener('resize', resizeAndRedrawCanvas);
+        window.addEventListener('orientationchange', () => setTimeout(resizeAndRedrawCanvas, 250));
 
-window.addEventListener('resize', resizeAndRedrawCanvas); 
 
-window.addEventListener('orientationchange', () => setTimeout(resizeAndRedrawCanvas, 250)); 
 
- 
+        document.getElementById('skip-player-btn').addEventListener('click', () => {
 
-// 【新規追加】手動でプレイヤーをスキップするボタンのイベント処理 
 
-document.getElementById('skip-player-btn').addEventListener('click', () => { 
+            if (isRolling || teams.length === 0) return;
 
-// サイコロが回転中、またはプレイヤーがいない時は処理しない 
 
-if (isRolling || teams.length === 0) return;  
 
- 
+            const currentTeam = teams[currentTeamIndex];
 
-const currentTeam = teams[currentTeamIndex]; 
 
- 
+            currentTeamIndex = (currentTeamIndex + 1) % teams.length;
 
-currentTeamIndex = (currentTeamIndex + 1) % teams.length; 
 
-// 左上のステータステキスト表示を次の人に更新する 
+            updateStatusText();
 
-updateStatusText(); 
+        });
 
-}); 
 
- 
 
-// Step 4: JavaScript Logic 
+        // Step 4: JavaScript Logic 
 
-const minInput = document.getElementById('min'); 
+        const minInput = document.getElementById('min');
 
-const maxInput = document.getElementById('max'); 
+        const maxInput = document.getElementById('max');
 
-const pickBtn = document.getElementById('pickBtn'); 
+        const pickBtn = document.getElementById('pickBtn');
 
-const resultDisplay = document.getElementById('result'); 
+        const resultDisplay = document.getElementById('result');
 
- 
 
-pickBtn.addEventListener('click', () => { 
 
-// Convert input string values into integers 
+        pickBtn.addEventListener('click', () => {
 
-const min = parseInt(minInput.value); 
+            // Convert input string values into integers 
 
-const max = parseInt(maxInput.value); 
+            const min = parseInt(minInput.value);
 
- 
+            const max = parseInt(maxInput.value);
 
-// Validation safety check 
 
-if (isNaN(min) || isNaN(max)) { 
 
-resultDisplay.textContent = "Error"; 
+            // Validation safety check 
 
-alert("Please enter valid numbers"); 
+            if (isNaN(min) || isNaN(max)) {
 
-return; 
+                resultDisplay.textContent = "Error";
 
-} 
+                alert("Please enter valid numbers");
 
-if (min > max) { 
+                return;
 
-resultDisplay.textContent = "Error"; 
+            }
 
-alert("Min value cannot be greater than Max value"); 
+            if (min > max) {
 
-return; 
+                resultDisplay.textContent = "Error";
 
-} 
+                alert("Min value cannot be greater than Max value");
 
- 
+                return;
 
-// Formula for inclusive random number generation 
+            }
 
-const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min; 
 
-// Show the result in the HTML container 
 
-resultDisplay.textContent = randomNumber; 
+            // Formula for inclusive random number generation 
 
-}); 
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
 
- 
+            // Show the result in the HTML container 
 
-// System Core Init Launcher (既存の最下部コード) 
+            resultDisplay.textContent = randomNumber;
 
-document.getElementById('new-team-color').value = getRandomColor(); 
+        });
 
-createBoard(); 
 
-renderTeamsUI(); 
 
- 
+        // System Core Init Launcher (既存の最下部コード) 
 
-</script> 
+        document.getElementById('new-team-color').value = getRandomColor();
 
-</body> 
+        createBoard();
 
-</html> 
+        renderTeamsUI();
 
- 
 
- 
+
+    </script>
+
+</body>
+
+</html>

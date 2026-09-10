@@ -1,1833 +1,1829 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loteria Vocabulary Cards</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap');
 
-<html lang="en"> 
 
-<head> 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<meta charset="UTF-8"> 
 
-<title>Loteria Vocabulary Cards</title> 
+        body {
+            background: #f5f0e8;
+            font-family: 'Nunito', sans-serif;
+        }
 
-<style> 
 
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@700;900&display=swap'); 
+        #control-bar {
+            top: 0;
+            z-index: 100;
+            background: #1a0a00;
+            border-bottom: 4px solid #c8860a;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.5);
 
- 
+        }
 
-* { margin: 0; padding: 0; box-sizing: border-box; } 
+        #control-bar .bar-title {
 
- 
+            font-family: 'Bangers', cursive;
+            color: #f0c040;
 
-body { background: #f5f0e8; font-family: 'Nunito', sans-serif; } 
+            font-size: 22px;
+            letter-spacing: 3px;
+            margin-right: 6px;
+            white-space: nowrap;
 
- 
+        }
 
-/* ── Top Control Bar ──────────────────────────────────────────────────── */ 
+        #control-bar .separator {
 
-#control-bar { 
+            width: 2px;
+            height: 28px;
+            background: #c8860a;
+            border-radius: 2px;
+            margin: 0 4px;
 
-top: 0; z-index: 100; 
+        }
 
-background: #1a0a00; border-bottom: 4px solid #c8860a; 
+        .category-btn {
 
-padding: 10px 16px; display: flex; align-items: center; 
+            font-family: 'Bangers', cursive;
+            font-size: 15px;
+            letter-spacing: 1.5px;
 
-gap: 10px; flex-wrap: wrap; box-shadow: 0 3px 12px rgba(0,0,0,0.5); 
+            padding: 5px 14px;
+            border-radius: 6px;
+            border: 2px solid #c8860a;
 
-} 
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, transform 0.1s;
+            white-space: nowrap;
 
-#control-bar .bar-title { 
+        }
 
-font-family: 'Bangers', cursive; color: #f0c040; 
+        .category-btn.mode-replace {
+            background: #3b1a00;
+            color: #f0c040;
+        }
 
-font-size: 22px; letter-spacing: 3px; margin-right: 6px; white-space: nowrap; 
+        .category-btn.mode-replace:hover,
+        .category-btn.mode-replace.active {
 
-} 
+            background: #c8860a;
+            color: #1a0a00;
+            transform: translateY(-1px);
 
-#control-bar .separator { 
+        }
 
-width: 2px; height: 28px; background: #c8860a; border-radius: 2px; margin: 0 4px; 
+        .category-btn.mode-add {
+            background: #002a1a;
+            color: #40f0a0;
+            border-color: #40f0a0;
+        }
 
-} 
+        .category-btn.mode-add:hover,
+        .category-btn.mode-add.active {
 
-.category-btn { 
+            background: #40f0a0;
+            color: #002a1a;
+            transform: translateY(-1px);
 
-font-family: 'Bangers', cursive; font-size: 15px; letter-spacing: 1.5px; 
+        }
 
-padding: 5px 14px; border-radius: 6px; border: 2px solid #c8860a; 
+        #mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
 
-cursor: pointer; transition: background 0.15s, color 0.15s, transform 0.1s; white-space: nowrap; 
+        #mode-toggle label {
 
-} 
+            font-family: 'Bangers', cursive;
+            font-size: 13px;
+            letter-spacing: 1px;
 
-.category-btn.mode-replace { background: #3b1a00; color: #f0c040; } 
+            color: #c8860a;
+            white-space: nowrap;
 
-.category-btn.mode-replace:hover, .category-btn.mode-replace.active { 
+        }
 
-background: #c8860a; color: #1a0a00; transform: translateY(-1px); 
+        #mode-select {
 
-} 
+            font-family: 'Bangers', cursive;
+            font-size: 14px;
+            letter-spacing: 1px;
 
-.category-btn.mode-add { background: #002a1a; color: #40f0a0; border-color: #40f0a0; } 
+            background: #3b1a00;
+            color: #f0c040;
+            border: 2px solid #c8860a;
 
-.category-btn.mode-add:hover, .category-btn.mode-add.active { 
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
 
-background: #40f0a0; color: #002a1a; transform: translateY(-1px); 
+        }
 
-} 
+        /* View toggle */
 
-#mode-toggle { display: flex; align-items: center; gap: 6px; margin-left: auto; } 
+        .view-btn {
 
-#mode-toggle label { 
+            font-family: 'Bangers', cursive;
+            font-size: 14px;
+            letter-spacing: 1.5px;
 
-font-family: 'Bangers', cursive; font-size: 13px; letter-spacing: 1px; 
+            padding: 5px 14px;
+            border-radius: 6px;
+            border: 2px solid #6040c0;
 
-color: #c8860a; white-space: nowrap; 
+            cursor: pointer;
+            background: #1a0a30;
+            color: #c0a0ff;
 
-} 
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
 
-#mode-select { 
+        }
 
-font-family: 'Bangers', cursive; font-size: 14px; letter-spacing: 1px; 
+        .view-btn:hover,
+        .view-btn.active {
+            background: #6040c0;
+            color: #fff;
+        }
 
-background: #3b1a00; color: #f0c040; border: 2px solid #c8860a; 
 
-border-radius: 6px; padding: 4px 10px; cursor: pointer; 
+        #status-bar {
 
-} 
+            background: #2a1400;
+            color: #c8860a;
+            font-family: 'Bangers', cursive;
+            font-size: 13px;
+            letter-spacing: 1px;
+            padding: 4px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #3b2000;
 
-/* View toggle */ 
+        }
 
-.view-btn { 
+        #status-text {
+            flex: 1;
+        }
 
-font-family: 'Bangers', cursive; font-size: 14px; letter-spacing: 1.5px; 
+        .bar-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-padding: 5px 14px; border-radius: 6px; border: 2px solid #6040c0; 
+        .bar-controls label {
+            font-family: 'Bangers', cursive;
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: #c8860a;
+        }
 
-cursor: pointer; background: #1a0a30; color: #c0a0ff; 
+        #card-count-input {
 
-transition: background 0.15s, color 0.15s; white-space: nowrap; 
+            font-family: 'Bangers', cursive;
+            font-size: 14px;
+            width: 58px;
 
-} 
+            padding: 2px 6px;
+            background: #3b1a00;
+            color: #f0c040;
 
-.view-btn:hover, .view-btn.active { background: #6040c0; color: #fff; } 
+            border: 2px solid #c8860a;
+            border-radius: 4px;
+            text-align: center;
 
- 
+        }
 
-/* ── Status Bar ──────────────────────────────────────────────────────── */ 
+        #card-count-input:focus {
+            outline: none;
+            border-color: #f0c040;
+        }
 
-#status-bar { 
+        .bar-btn {
 
-background: #2a1400; color: #c8860a; font-family: 'Bangers', cursive; 
+            font-family: 'Bangers', cursive;
+            font-size: 13px;
+            letter-spacing: 1px;
 
-font-size: 13px; letter-spacing: 1px; padding: 4px 16px; 
+            padding: 2px 12px;
+            background: #c8860a;
+            color: #1a0a00;
+            border: none;
 
-display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #3b2000; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
 
-} 
+        }
 
-#status-text { flex: 1; } 
+        .bar-btn:hover {
+            background: #f0c040;
+        }
 
-.bar-controls { display: flex; align-items: center; gap: 6px; } 
 
-.bar-controls label { font-family: 'Bangers', cursive; font-size: 13px; letter-spacing: 1px; color: #c8860a; } 
 
-#card-count-input { 
+        #error-msg {
 
-font-family: 'Bangers', cursive; font-size: 14px; width: 58px; 
+            background: #3b0000;
+            color: #ff8080;
+            font-family: 'Nunito', sans-serif;
 
-padding: 2px 6px; background: #3b1a00; color: #f0c040; 
+            font-size: 13px;
+            padding: 8px 16px;
+            display: none;
+            border-bottom: 2px solid #800000;
 
-border: 2px solid #c8860a; border-radius: 4px; text-align: center; 
+        }
 
-} 
 
-#card-count-input:focus { outline: none; border-color: #f0c040; } 
 
-.bar-btn { 
+        #cards-view {
+            display: block;
+        }
 
-font-family: 'Bangers', cursive; font-size: 13px; letter-spacing: 1px; 
+        #cards-container {
+            padding: 8mm;
+        }
 
-padding: 2px 12px; background: #c8860a; color: #1a0a00; border: none; 
 
-border-radius: 4px; cursor: pointer; transition: background 0.15s; 
 
-} 
+        .page {
 
-.bar-btn:hover { background: #f0c040; } 
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto 10mm;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 4mm;
+            padding: 6mm;
+            page-break-after: always;
+            break-after: page;
+            box-sizing: border-box;
 
- 
+        }
 
-#error-msg { 
+        .page .card {
+            flex: 1;
+            min-height: 0;
+        }
 
-background: #3b0000; color: #ff8080; font-family: 'Nunito', sans-serif; 
+        .card {
 
-font-size: 13px; padding: 8px 16px; display: none; border-bottom: 2px solid #800000; 
+            border: 4px solid #000;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
 
-} 
+        }
 
- 
+        .card-header {
 
-/* ══════════════════════════════════════════════════════════════════════ 
+            background: gray;
+            color: white;
+            text-align: center;
+            font-family: 'Bangers', cursive;
+            font-size: 18px;
+            letter-spacing: 2px;
+            padding: 3px 0;
+            flex-shrink: 0;
 
-CARDS VIEW 
+        }
 
-══════════════════════════════════════════════════════════════════════ */ 
+        .card-grid {
 
-#cards-view { display: block; } 
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            flex: 1;
+            min-height: 0;
+            border-top: 2px solid #000;
 
-#cards-container { padding: 8mm; } 
+        }
 
- 
+        .cell {
 
-.page { 
+            border: 1.5px solid gray;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3px;
+            overflow: hidden;
+            min-height: 0;
 
-width: 210mm; height: 297mm; margin: 0 auto 10mm; background: white; 
+        }
 
-display: flex; flex-direction: column; gap: 4mm; padding: 6mm; 
+        .cell img {
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            object-fit: contain;
+        }
 
-page-break-after: always; break-after: page; box-sizing: border-box; 
 
-} 
+        #caller-view {
 
-.page .card { flex: 1; min-height: 0; } 
+            display: none;
+            padding: 16px;
+            gap: 16px;
 
-.card { 
+            min-height: calc(100vh - 80px);
 
-border: 4px solid #000; border-radius: 10px; overflow: hidden; 
+        }
 
-display: flex; flex-direction: column; min-height: 0; 
+        #caller-view.active {
+            display: flex;
+        }
 
-} 
 
-.card-header { 
 
-background: gray; color: white; text-align: center; 
+        /* Left: big current card */
 
-font-family: 'Bangers', cursive; font-size: 18px; 
+        #caller-main {
 
-letter-spacing: 2px; padding: 3px 0; flex-shrink: 0; 
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
 
-} 
+        }
 
-.card-grid { 
+        #caller-controls {
 
-display: grid; grid-template-columns: repeat(4, 1fr); 
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
 
-grid-template-rows: repeat(4, 1fr); flex: 1; min-height: 0; 
+        }
 
-border-top: 2px solid #000; 
+        .caller-btn {
 
-} 
+            font-family: 'Bangers', cursive;
+            font-size: 16px;
+            letter-spacing: 2px;
+            padding: 8px 22px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
 
-.cell { 
+        }
 
-border: 1.5px solid gray; display: flex; flex-direction: column; 
+        .caller-btn:active {
+            transform: scale(0.97);
+        }
 
-align-items: center; justify-content: center; padding: 3px; 
+        #btn-draw {
+            background: #c8860a;
+            color: #1a0a00;
+            font-size: 20px;
+        }
 
-overflow: hidden; min-height: 0; 
+        #btn-draw:hover {
+            background: #f0c040;
+        }
 
-} 
+        #btn-draw:disabled {
+            background: #555;
+            color: #999;
+            cursor: default;
+        }
 
-.cell img { width: 100%; flex: 1; min-height: 0; object-fit: contain; } 
+        #btn-reshuffle-deck {
+            background: #3b1a00;
+            color: #c8860a;
+            border: 2px solid #c8860a;
+        }
 
- 
+        #btn-reshuffle-deck:hover {
+            background: #c8860a;
+            color: #1a0a00;
+        }
 
-/* ══════════════════════════════════════════════════════════════════════ 
+        #deck-counter {
 
-CALLER VIEW 
+            font-family: 'Bangers', cursive;
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: #c8860a;
+            margin-left: auto;
 
-══════════════════════════════════════════════════════════════════════ */ 
+        }
 
-#caller-view { 
 
-display: none; padding: 16px; gap: 16px; 
 
-min-height: calc(100vh - 80px); 
+        #current-card-wrap {
 
-} 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #999999;
+            border: 4px solid #c8860a;
+            border-radius: 16px;
+            overflow: hidden;
+            max-block-size: 80vh;
+            max-width: 100vw;
+            position: relative;
+            padding: 16px;
 
-#caller-view.active { display: flex; } 
+        }
 
- 
+        #current-card-wrap.empty {
 
-/* Left: big current card */ 
+            background: #1a0a00;
+            border-color: #3b2000;
 
-#caller-main { 
+        }
 
-flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 0; 
+        #current-card-img {
 
-} 
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
+            padding: 12px;
 
-#caller-controls { 
+        }
 
-display: flex; gap: 10px; align-items: center; flex-wrap: wrap; 
+        #current-card-placeholder {
 
-} 
+            font-family: 'Bangers', cursive;
+            font-size: 28px;
+            letter-spacing: 4px;
+            color: #3b2000;
+            text-align: center;
+            padding: 40px;
 
-.caller-btn { 
+        }
 
-font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 2px; 
+        #current-card-num {
 
-padding: 8px 22px; border-radius: 8px; border: none; cursor: pointer; 
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            font-family: 'Bangers', cursive;
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: #000000;
+            opacity: 0.7;
 
-transition: background 0.15s, transform 0.1s; 
+        }
 
-} 
 
-.caller-btn:active { transform: scale(0.97); } 
 
-#btn-draw { background: #c8860a; color: #1a0a00; font-size: 20px; } 
+        /* Right: pulled pile */
 
-#btn-draw:hover { background: #f0c040; } 
+        #pulled-pile {
 
-#btn-draw:disabled { background: #555; color: #999; cursor: default; } 
+            width: 200px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
 
-#btn-reshuffle-deck { background: #3b1a00; color: #c8860a; border: 2px solid #c8860a; } 
+        }
 
-#btn-reshuffle-deck:hover { background: #c8860a; color: #1a0a00; } 
+        #pulled-title {
 
-#deck-counter { 
+            font-family: 'Bangers', cursive;
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: #c8860a;
+            text-align: center;
+            border-bottom: 2px solid #c8860a;
+            padding-bottom: 4px;
 
-font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 1px; 
+        }
 
-color: #c8860a; margin-left: auto; 
+        #pulled-list {
 
-} 
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 4px;
+            height: 70vh;
 
- 
+        }
 
-#current-card-wrap { 
+        #pulled-list::-webkit-scrollbar {
+            width: 4px;
+        }
 
-display: flex; align-items: center; justify-content: center; 
+        #pulled-list::-webkit-scrollbar-thumb {
+            background: #c8860a;
+            border-radius: 2px;
+        }
 
-background: #999999; border: 4px solid #c8860a; border-radius: 16px; 
 
-overflow: hidden; max-block-size: 80vh; max-width: 100vw; position: relative; 
 
-padding: 16px; 
+        .pulled-thumb {
 
-} 
+            background: white;
+            border: 2px solid #555;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.1s;
 
-#current-card-wrap.empty { 
+            flex-shrink: 0;
 
-background: #1a0a00; border-color: #3b2000; 
+        }
 
-} 
+        .pulled-thumb:hover {
+            border-color: #c8860a;
+            transform: scale(1.03);
+        }
 
-#current-card-img { 
+        .pulled-thumb.current-highlight {
+            border-color: #f0c040;
+            box-shadow: 0 0 8px #f0c04088;
+        }
 
-max-width: 100%; max-height: 100%; object-fit: contain; 
+        .pulled-thumb img {
+            width: 100%;
+            display: block;
+            object-fit: contain;
+        }
 
-display: none; padding: 12px; 
 
-} 
 
-#current-card-placeholder { 
+        #pulled-empty {
 
-font-family: 'Bangers', cursive; font-size: 28px; letter-spacing: 4px; 
+            font-family: 'Nunito', sans-serif;
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+            padding: 20px 0;
 
-color: #3b2000; text-align: center; padding: 40px; 
+        }
 
-} 
 
-#current-card-num { 
 
-position: absolute; top: 8px; left: 12px; 
+        #loading {
 
-font-family: 'Bangers', cursive; font-size: 13px; letter-spacing: 1px; 
+            text-align: center;
+            font-family: 'Bangers', cursive;
+            font-size: 28px;
 
-color: #000000; opacity: 0.7; 
+            letter-spacing: 4px;
+            color: #c8860a;
+            padding: 60px;
 
-} 
+        }
 
- 
 
-/* Right: pulled pile */ 
 
-#pulled-pile { 
+        @media print {
 
-width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; 
+            #control-bar,
+            #status-bar,
+            #error-msg,
+            #caller-view {
+                display: none !important;
+            }
 
-} 
+            body {
+                background: white;
+            }
 
-#pulled-title { 
+            #cards-container {
+                padding: 0;
+            }
 
-font-family: 'Bangers', cursive; font-size: 16px; letter-spacing: 2px; 
+            .page {
+                margin: 0;
+                box-shadow: none;
+                page-break-after: always;
+            }
 
-color: #c8860a; text-align: center; border-bottom: 2px solid #c8860a; padding-bottom: 4px; 
+        }
+    </style>
 
-} 
+</head>
 
-#pulled-list { 
+<body>
 
-overflow-y: auto; display: flex; flex-direction: column; 
 
-gap: 6px; padding-right: 4px; height: 70vh; 
 
-} 
+    <!-- ── Control Bar ── -->
 
-#pulled-list::-webkit-scrollbar { width: 4px; } 
+    <div id="control-bar">
+    
+        <span class="bar-title"> LOTERÍA </span>
+        <div class="separator"></div>
+        <div id="category-buttons"></div>
+        <div class="separator"></div>
+        <button class="view-btn active" id="btn-view-cards" onclick="switchView('cards')">🖨 PRINT CARDS</button>
+        <button class="view-btn" id="btn-view-caller" onclick="switchView('caller')">🎴 CALLER DECK</button>
+        <div id="mode-toggle">
+            <label for="mode-select">CLICK TO:</label>
+            <select id="mode-select">
+                <option value="replace">Replace</option>
+                <option value="append">Append</option>
+    
+            </select>
+    
+        </div>
+    
+    </div>
 
-#pulled-list::-webkit-scrollbar-thumb { background: #c8860a; border-radius: 2px; } 
 
- 
 
-.pulled-thumb { 
+    <div id="status-bar">
 
-background: white; border: 2px solid #555; border-radius: 8px; 
+        <span id="status-text">Loading manifest…</span>
+        <div class="bar-controls">
+            <label for="card-count-input">CARDS:</label>
+            <input type="number" id="card-count-input" value="32" min="1" max="200" step="1">
+            <button class="bar-btn" onclick="regenerate()">⟳ RESHUFFLE</button>
 
-overflow: hidden; cursor: pointer; transition: border-color 0.15s, transform 0.1s; 
+        </div>
 
-flex-shrink: 0; 
+    </div>
 
-} 
 
-.pulled-thumb:hover { border-color: #c8860a; transform: scale(1.03); } 
 
-.pulled-thumb.current-highlight { border-color: #f0c040; box-shadow: 0 0 8px #f0c04088; } 
+    <div id="error-msg"></div>
 
-.pulled-thumb img { width: 100%; display: block; object-fit: contain; } 
 
- 
 
-#pulled-empty { 
+    <!-- ── Cards (print) view ── -->
 
-font-family: 'Nunito', sans-serif; font-size: 12px; color: #555; 
+    <div id="cards-view">
+        <div id="cards-container">
+            <div id="loading">Loading…</div>
+        </div>
 
-text-align: center; padding: 20px 0; 
+    </div>
 
-} 
 
- 
 
-#loading { 
+    <!-- ── Caller view ── -->
 
-text-align: center; font-family: 'Bangers', cursive; font-size: 28px; 
+    <div id="caller-view">
+        <div id="caller-main">
+            <div id="caller-controls">
+                <button class="caller-btn" id="btn-draw" onclick="drawCard()">▶ DRAW</button>
+                <button class="caller-btn" id="btn-reshuffle-deck" onclick="reshuffleDeck()">⟳ NEW DECK</button>
+                <span id="deck-counter">— / —</span>
+            </div>
 
-letter-spacing: 4px; color: #c8860a; padding: 60px; 
+            <div id="current-card-wrap" class="empty">
+                <span id="current-card-num"></span>
+                <img id="current-card-img" src="" alt="">
+                <div id="current-card-placeholder">DRAW A CARD</div>
+            </div>
+        </div>
 
-} 
+        <div id="pulled-pile">
+            <div id="pulled-title">PULLED (0)</div>
+            <div id="pulled-list">
+                <div id="pulled-empty">No cards drawn yet</div>
+            </div>
 
- 
+        </div>
 
-@media print { 
+    </div>
 
-#control-bar, #status-bar, #error-msg, #caller-view { display: none !important; } 
 
-body { background: white; } 
 
-#cards-container { padding: 0; } 
+    <script>
 
-.page { margin: 0; box-shadow: none; page-break-after: always; } 
+        /* @@MANIFEST_START@@ */
+        const MANIFEST = {
 
-} 
+            "Actions": [
 
-</style> 
+                "JS6_P14_WB25_bake.png",
 
-</head> 
+                "JS6_P14_WB25_buy.png",
 
-<body> 
+                "JS6_P14_WB25_catch.png",
 
- 
+                "JS6_P14_WB25_change.png",
 
-<!-- ── Control Bar ── --> 
+                "JS6_P14_WB25_check.png",
 
-<div id="control-bar"> 
+                "JS6_P14_WB25_cook.png",
 
-<span class="bar-title">✦ LOTERÍA ✦</span> 
+                "JS6_P14_WB25_dance.png",
 
-<div class="separator"></div> 
+                "JS6_P14_WB25_do.png",
 
-<div id="category-buttons"></div> 
+                "JS6_P14_WB25_get.png",
 
-<div class="separator"></div> 
+                "JS6_P14_WB25_join.png",
 
-<button class="view-btn active" id="btn-view-cards" onclick="switchView('cards')">🖨 PRINT CARDS</button> 
+                "JS6_P14_WB25_listen.png",
 
-<button class="view-btn" id="btn-view-caller" onclick="switchView('caller')">🎴 CALLER DECK</button> 
+                "JS6_P14_WB25_look.png",
 
-<div id="mode-toggle"> 
+                "JS6_P14_WB25_make.png",
 
-<label for="mode-select">CLICK TO:</label> 
+                "JS6_P14_WB25_meet.png",
 
-<select id="mode-select"> 
+                "JS6_P14_WB25_play.png",
 
-<option value="replace">Replace</option> 
+                "JS6_P14_WB25_practice.png",
 
-<option value="append">Append</option> 
+                "JS6_P14_WB25_put.png",
 
-</select> 
+                "JS6_P14_WB25_read.png",
 
-</div> 
+                "JS6_P14_WB25_run.png",
 
-</div> 
+                "JS6_P14_WB25_sing.png",
 
- 
+                "JS6_P14_WB25_speak.png",
 
-<div id="status-bar"> 
+                "JS6_P14_WB25_stop.png",
 
-<span id="status-text">Loading manifest…</span> 
+                "JS6_P14_WB25_study.png",
 
-<div class="bar-controls"> 
+                "JS6_P14_WB25_talk.png",
 
-<label for="card-count-input">CARDS:</label> 
+                "JS6_P14_WB25_teach.png",
 
-<input type="number" id="card-count-input" value="32" min="1" max="200" step="1"> 
+                "JS6_P14_WB25_visit.png",
 
-<button class="bar-btn" onclick="regenerate()">⟳ RESHUFFLE</button> 
+                "JS6_P14_WB25_walk.png",
 
-</div> 
+                "JS6_P14_WB25_wash.png",
 
-</div> 
+                "JS6_P14_WB25_watch.png",
 
- 
+                "JS6_P14_WB25_write.png",
 
-<div id="error-msg"></div> 
+                "JS6_P15_WB25_clean.png",
 
- 
+                "JS6_P15_WB25_come.png",
 
-<!-- ── Cards (print) view ── --> 
+                "JS6_P15_WB25_drink.png",
 
-<div id="cards-view"> 
+                "JS6_P15_WB25_fly.png",
 
-<div id="cards-container"><div id="loading">Loading…</div></div> 
+                "JS6_P15_WB25_help.png",
 
-</div> 
+                "JS6_P15_WB25_jump.png",
 
- 
+                "JS6_P15_WB25_ride.png"
 
-<!-- ── Caller view ── --> 
+            ],
 
-<div id="caller-view"> 
+            "Actions 2": [
 
-<div id="caller-main"> 
+                "JS6_P17_WB29_like.png",
 
-<div id="caller-controls"> 
+                "JS6_P17_WB29_live.png",
 
-<button class="caller-btn" id="btn-draw" onclick="drawCard()">▶ DRAW</button> 
+                "JS6_P17_WB29_love.png",
 
-<button class="caller-btn" id="btn-reshuffle-deck" onclick="reshuffleDeck()">⟳ NEW DECK</button> 
+                "JS6_P17_WB29_think.png",
 
-<span id="deck-counter">— / —</span> 
+                "JS6_P17_WB29_want.png"
 
-</div> 
+            ],
 
-<div id="current-card-wrap" class="empty"> 
+            "Annual Events": [
 
-<span id="current-card-num"></span> 
+                "JS6_P7_WB14_ChildrensDay.png",
 
-<img id="current-card-img" src="" alt=""> 
+                "JS6_P7_WB14_DollsDay.png",
 
-<div id="current-card-placeholder">DRAW A CARD</div> 
+                "JS6_P7_WB14_NewYearsDay.png",
 
-</div> 
+                "JS6_P7_WB14_NewYearsEve.png",
 
-</div> 
+                "JS6_P7_WB14_SportsDay.png",
 
-<div id="pulled-pile"> 
+                "JS6_P7_WB14_StarFestival.png",
 
-<div id="pulled-title">PULLED (0)</div> 
+                "JS6_P7_WB14_birthday.png"
 
-<div id="pulled-list"><div id="pulled-empty">No cards drawn yet</div></div> 
+            ],
 
-</div> 
+            "Class Subject": [
 
-</div> 
+                "JS6_P3_WB06_English.png",
 
- 
+                "JS6_P3_WB06_Japanese.png",
 
-<script> 
+                "JS6_P3_WB06_PE.png",
 
-/* @@MANIFEST_START@@ */ 
+                "JS6_P3_WB06_artsandcrafts.png",
 
-const MANIFEST = { 
+                "JS6_P3_WB06_calligraphy.png",
 
-"Actions": [ 
+                "JS6_P3_WB06_classactivities.png",
 
-"JS6_P14_WB25_bake.png", 
+                "JS6_P3_WB06_homeeconomics.png",
 
-"JS6_P14_WB25_buy.png", 
+                "JS6_P3_WB06_math.png",
 
-"JS6_P14_WB25_catch.png", 
+                "JS6_P3_WB06_moraleducation.png",
 
-"JS6_P14_WB25_change.png", 
+                "JS6_P3_WB06_music.png",
 
-"JS6_P14_WB25_check.png", 
+                "JS6_P3_WB06_science.png",
 
-"JS6_P14_WB25_cook.png", 
+                "JS6_P3_WB06_socialstudies.png",
 
-"JS6_P14_WB25_dance.png", 
+                "JS6_P3_WB06_theperiodof.png"
 
-"JS6_P14_WB25_do.png", 
+            ],
 
-"JS6_P14_WB25_get.png", 
+            "Clothing": [
 
-"JS6_P14_WB25_join.png", 
+                "JS6_P22_WB39_T-shirt.png",
 
-"JS6_P14_WB25_listen.png", 
+                "JS6_P22_WB39_bag.png",
 
-"JS6_P14_WB25_look.png", 
+                "JS6_P22_WB39_boots.png",
 
-"JS6_P14_WB25_make.png", 
+                "JS6_P22_WB39_cap.png",
 
-"JS6_P14_WB25_meet.png", 
+                "JS6_P22_WB39_gloves.png",
 
-"JS6_P14_WB25_play.png", 
+                "JS6_P22_WB39_hat.png",
 
-"JS6_P14_WB25_practice.png", 
+                "JS6_P22_WB39_pants.png",
 
-"JS6_P14_WB25_put.png", 
+                "JS6_P22_WB39_shirt.png",
 
-"JS6_P14_WB25_read.png", 
+                "JS6_P22_WB39_shoes.png",
 
-"JS6_P14_WB25_run.png", 
+                "JS6_P22_WB39_shorts.png",
 
-"JS6_P14_WB25_sing.png", 
+                "JS6_P22_WB39_sweater.png",
 
-"JS6_P14_WB25_speak.png", 
+                "JS6_P22_WB39_umbrella.png",
 
-"JS6_P14_WB25_stop.png", 
+                "JS6_P22_WB39_uniform.png",
 
-"JS6_P14_WB25_study.png", 
+                "JS6_P22_WB39_vest.png"
 
-"JS6_P14_WB25_talk.png", 
+            ],
 
-"JS6_P14_WB25_teach.png", 
+            "Colors": [
 
-"JS6_P14_WB25_visit.png", 
+                "JS6_P4_WB09_yellow.png",
 
-"JS6_P14_WB25_walk.png", 
+                "JS6_P4_WB09_white.png",
 
-"JS6_P14_WB25_wash.png", 
+                "JS6_P4_WB09_red.png",
 
-"JS6_P14_WB25_watch.png", 
+                "JS6_P4_WB09_purple.png",
 
-"JS6_P14_WB25_write.png", 
+                "JS6_P4_WB09_pink.png",
 
-"JS6_P15_WB25_clean.png", 
+                "JS6_P4_WB09_orane.png",
 
-"JS6_P15_WB25_come.png", 
+                "JS6_P4_WB09_green.png",
 
-"JS6_P15_WB25_drink.png", 
+                "JS6_P4_WB09_brown.png",
 
-"JS6_P15_WB25_fly.png", 
+                "JS6_P4_WB09_blue.png",
 
-"JS6_P15_WB25_help.png", 
+                "JS6_P4_WB09_black.png"
 
-"JS6_P15_WB25_jump.png", 
+            ],
 
-"JS6_P15_WB25_ride.png" 
+            "Countries": [
 
-], 
+                "America.png",
 
-"Actions 2": [ 
+                "Egypt.png",
 
-"JS6_P17_WB29_like.png", 
+                "Kenya.png",
 
-"JS6_P17_WB29_live.png", 
+                "Mexico.png",
 
-"JS6_P17_WB29_love.png", 
+                "Finland.png",
 
-"JS6_P17_WB29_think.png", 
+                "Russia.png",
 
-"JS6_P17_WB29_want.png" 
+                "China.png",
 
-], 
+                "Australia.png",
 
-"Annual Events": [ 
+                "India.png",
 
-"JS6_P7_WB14_ChildrensDay.png", 
+                "Japan.png",
 
-"JS6_P7_WB14_DollsDay.png", 
+                "Brazil.png",
 
-"JS6_P7_WB14_NewYearsDay.png", 
+                "Germany.png",
 
-"JS6_P7_WB14_NewYearsEve.png", 
+                "Canada.png",
 
-"JS6_P7_WB14_SportsDay.png", 
+                "Saudi Arabia.png",
 
-"JS6_P7_WB14_StarFestival.png", 
+                "New Zealand.png",
 
-"JS6_P7_WB14_birthday.png" 
+                "Singapore.png",
 
-], 
+                "Spain.png",
 
-"Class Subject": [ 
+                "Peru.png",
 
-"JS6_P3_WB06_English.png", 
+                "South Korea.png",
 
-"JS6_P3_WB06_Japanese.png", 
+                "Indonesia.png",
 
-"JS6_P3_WB06_PE.png", 
+                "Turkey.png",
 
-"JS6_P3_WB06_artsandcrafts.png", 
+                "Italy.png",
 
-"JS6_P3_WB06_calligraphy.png", 
+                "France.png",
 
-"JS6_P3_WB06_classactivities.png", 
+                "Malaysia.png",
 
-"JS6_P3_WB06_homeeconomics.png", 
+                "Guatemala.png",
 
-"JS6_P3_WB06_math.png", 
+                "Argentina.png"
 
-"JS6_P3_WB06_moraleducation.png", 
+            ],
 
-"JS6_P3_WB06_music.png", 
+            "Date": [
 
-"JS6_P3_WB06_science.png", 
+                "JS6_P6_WB13_eighth.png",
 
-"JS6_P3_WB06_socialstudies.png", 
+                "JS6_P6_WB13_fifteenth.png",
 
-"JS6_P3_WB06_theperiodof.png" 
+                "JS6_P6_WB13_first.png",
 
-], 
+                "JS6_P6_WB13_ninth.png",
 
-"Clothing": [ 
+                "JS6_P6_WB13_second.png",
 
-"JS6_P22_WB39_T-shirt.png", 
+                "JS6_P6_WB13_seventeenth.png",
 
-"JS6_P22_WB39_bag.png", 
+                "JS6_P6_WB13_sixteenth.png",
 
-"JS6_P22_WB39_boots.png", 
+                "JS6_P6_WB13_tenth.png",
 
-"JS6_P22_WB39_cap.png", 
+                "JS6_P6_WB13_third.png",
 
-"JS6_P22_WB39_gloves.png", 
+                "JS6_P6_WB13_thirtieth.png",
 
-"JS6_P22_WB39_hat.png", 
+                "JS6_P6_WB13_thirty-first.png",
 
-"JS6_P22_WB39_pants.png", 
+                "JS6_P6_WB13_twenty-fourth.png",
 
-"JS6_P22_WB39_shirt.png", 
+                "JS6_P6_WB13_twenty-ninth.png",
 
-"JS6_P22_WB39_shoes.png", 
+                "JS6_P6_WB13_twenty-second.png",
 
-"JS6_P22_WB39_shorts.png", 
+                "JS6_P6_WB13_twenty-third.png",
 
-"JS6_P22_WB39_sweater.png", 
+                "JS6_P7_WB13_eighteenth.png",
 
-"JS6_P22_WB39_umbrella.png", 
+                "JS6_P7_WB13_eleventh.png",
 
-"JS6_P22_WB39_uniform.png", 
+                "JS6_P7_WB13_fifth.png",
 
-"JS6_P22_WB39_vest.png" 
+                "JS6_P7_WB13_fourteenth.png",
 
-], 
+                "JS6_P7_WB13_fourth.png",
 
-"Colors": [ 
+                "JS6_P7_WB13_nineteenth.png",
 
-"JS6_P4_WB09_yellow.png", 
+                "JS6_P7_WB13_seventh.png",
 
-"JS6_P4_WB09_white.png", 
+                "JS6_P7_WB13_sixth.png",
 
-"JS6_P4_WB09_red.png", 
+                "JS6_P7_WB13_thirteenth.png",
 
-"JS6_P4_WB09_purple.png", 
+                "JS6_P7_WB13_twelfth.png",
 
-"JS6_P4_WB09_pink.png", 
+                "JS6_P7_WB13_twentieth.png",
 
-"JS6_P4_WB09_orane.png", 
+                "JS6_P7_WB13_twenty-eighth.png",
 
-"JS6_P4_WB09_green.png", 
+                "JS6_P7_WB13_twenty-fifth.png",
 
-"JS6_P4_WB09_brown.png", 
+                "JS6_P7_WB13_twenty-first.png",
 
-"JS6_P4_WB09_blue.png", 
+                "JS6_P7_WB13_twenty-seventh.png",
 
-"JS6_P4_WB09_black.png" 
+                "JS6_P7_WB13_twenty-sixth.png"
 
-], 
+            ],
 
-"Countries": [ 
+            "Deserts": [
 
-"America.png", 
+                "JS6_P11_WB19_cake.png",
 
-"Egypt.png", 
+                "JS6_P11_WB19_candy.png",
 
-"Kenya.png", 
+                "JS6_P11_WB19_chocolate.png",
 
-"Mexico.png", 
+                "JS6_P11_WB19_donut.png",
 
-"Finland.png", 
+                "JS6_P11_WB19_icecream.png",
 
-"Russia.png", 
+                "JS6_P11_WB19_pancakes.png",
 
-"China.png", 
+                "JS6_P11_WB19_parfait.png",
 
-"Australia.png", 
+                "JS6_P11_WB19_pie.png",
 
-"India.png", 
+                "JS6_P11_WB19_popcorn.png",
 
-"Japan.png", 
+                "JS6_P11_WB19_pudding.png",
 
-"Brazil.png", 
+                "JS6_P11_WB19_shavedice.png",
 
-"Germany.png", 
+                "JS6_P11_WB19_yogurt.png"
 
-"Canada.png", 
+            ],
 
-"Saudi Arabia.png", 
+            "Drinks": [
 
-"New Zealand.png", 
+                "JS6_P10_WB18_coffee.png",
 
-"Singapore.png", 
+                "JS6_P10_WB18_greentea.png",
 
-"Spain.png", 
+                "JS6_P10_WB18_juice.png",
 
-"Peru.png", 
+                "JS6_P10_WB18_milk.png",
 
-"South Korea.png", 
+                "JS6_P10_WB18_mineralwater.png",
 
-"Indonesia.png", 
+                "JS6_P10_WB18_sodapop.png",
 
-"Turkey.png", 
+                "JS6_P10_WB18_tea.png",
 
-"Italy.png", 
+                "JS6_P10_WB18_water.png"
 
-"France.png", 
+            ],
 
-"Malaysia.png", 
+            "Food": [
 
-"Guatemala.png", 
+                "JS6_P10_WB17_Frenchfries.png",
 
-"Argentina.png" 
+                "JS6_P10_WB17_bread.png",
 
-], 
+                "JS6_P10_WB17_curryandrice.png",
 
-"Date": [ 
+                "JS6_P10_WB17_friedchicken.png",
 
-"JS6_P6_WB13_eighth.png", 
+                "JS6_P10_WB17_grilledfish.png",
 
-"JS6_P6_WB13_fifteenth.png", 
+                "JS6_P10_WB17_hamburger.png",
 
-"JS6_P6_WB13_first.png", 
+                "JS6_P10_WB17_hotdog.png",
 
-"JS6_P6_WB13_ninth.png", 
+                "JS6_P10_WB17_jam.png",
 
-"JS6_P6_WB13_second.png", 
+                "JS6_P10_WB17_noodles.png",
 
-"JS6_P6_WB13_seventeenth.png", 
+                "JS6_P10_WB17_omelet.png",
 
-"JS6_P6_WB13_sixteenth.png", 
+                "JS6_P10_WB17_pizza.png",
 
-"JS6_P6_WB13_tenth.png", 
+                "JS6_P10_WB17_rice.png",
 
-"JS6_P6_WB13_third.png", 
+                "JS6_P10_WB17_riceball.png",
 
-"JS6_P6_WB13_thirtieth.png", 
+                "JS6_P10_WB17_salad.png",
 
-"JS6_P6_WB13_thirty-first.png", 
+                "JS6_P10_WB17_sandwich.png",
 
-"JS6_P6_WB13_twenty-fourth.png", 
+                "JS6_P10_WB17_soup.png",
 
-"JS6_P6_WB13_twenty-ninth.png", 
+                "JS6_P10_WB17_spaghetti.png",
 
-"JS6_P6_WB13_twenty-second.png", 
+                "JS6_P10_WB17_steak.png"
 
-"JS6_P6_WB13_twenty-third.png", 
+            ],
 
-"JS6_P7_WB13_eighteenth.png", 
+            "Greeting": [
 
-"JS6_P7_WB13_eleventh.png", 
+                "Hello.png",
 
-"JS6_P7_WB13_fifth.png", 
+                "Hi.png",
 
-"JS6_P7_WB13_fourteenth.png", 
+                "Goodbye.png",
 
-"JS6_P7_WB13_fourth.png", 
+                "See you.png",
 
-"JS6_P7_WB13_nineteenth.png", 
+                "Good morning.png"
 
-"JS6_P7_WB13_seventh.png", 
+            ],
 
-"JS6_P7_WB13_sixth.png", 
+            "Junior High": [
 
-"JS6_P7_WB13_thirteenth.png", 
+                "JS6_P18_WB33_artclub.png",
 
-"JS6_P7_WB13_twelfth.png", 
+                "JS6_P18_WB33_badminton.png",
 
-"JS6_P7_WB13_twentieth.png", 
+                "JS6_P18_WB33_baseball.png",
 
-"JS6_P7_WB13_twenty-eighth.png", 
+                "JS6_P18_WB33_basketball.png",
 
-"JS6_P7_WB13_twenty-fifth.png", 
+                "JS6_P18_WB33_brassband.png",
 
-"JS6_P7_WB13_twenty-first.png", 
+                "JS6_P18_WB33_chorus.png",
 
-"JS6_P7_WB13_twenty-seventh.png", 
+                "JS6_P18_WB33_clubactivities.png",
 
-"JS6_P7_WB13_twenty-sixth.png" 
+                "JS6_P18_WB33_dramaclub.png",
 
-], 
+                "JS6_P18_WB33_gymnastics.png",
 
-"Deserts": [ 
+                "JS6_P18_WB33_soccerteam.png",
 
-"JS6_P11_WB19_cake.png", 
+                "JS6_P18_WB33_softballteam.png",
 
-"JS6_P11_WB19_candy.png", 
+                "JS6_P18_WB33_tabletennis.png",
 
-"JS6_P11_WB19_chocolate.png", 
+                "JS6_P18_WB33_tennisteam.png",
 
-"JS6_P11_WB19_donut.png", 
+                "JS6_P18_WB33_trackandfield.png",
 
-"JS6_P11_WB19_icecream.png", 
+                "JS6_P18_WB33_volleyball.png"
 
-"JS6_P11_WB19_pancakes.png", 
+            ],
 
-"JS6_P11_WB19_parfait.png", 
+            "Months": [
 
-"JS6_P11_WB19_pie.png", 
+                "JS6_P6_WB12_April.png",
 
-"JS6_P11_WB19_popcorn.png", 
+                "JS6_P6_WB12_August.png",
 
-"JS6_P11_WB19_pudding.png", 
+                "JS6_P6_WB12_December.png",
 
-"JS6_P11_WB19_shavedice.png", 
+                "JS6_P6_WB12_February.png",
 
-"JS6_P11_WB19_yogurt.png" 
+                "JS6_P6_WB12_January.png",
 
-], 
+                "JS6_P6_WB12_July.png",
 
-"Drinks": [ 
+                "JS6_P6_WB12_June.png",
 
-"JS6_P10_WB18_coffee.png", 
+                "JS6_P6_WB12_March.png",
 
-"JS6_P10_WB18_greentea.png", 
+                "JS6_P6_WB12_May.png",
 
-"JS6_P10_WB18_juice.png", 
+                "JS6_P6_WB12_November.png",
 
-"JS6_P10_WB18_milk.png", 
+                "JS6_P6_WB12_October.png",
 
-"JS6_P10_WB18_mineralwater.png", 
+                "JS6_P6_WB12_September.png"
 
-"JS6_P10_WB18_sodapop.png", 
+            ],
 
-"JS6_P10_WB18_tea.png", 
+            "Moods": [
 
-"JS6_P10_WB18_water.png" 
+                "JS6_P3_WB05_busy.png",
 
-], 
+                "JS6_P3_WB05_fine.png",
 
-"Food": [ 
+                "JS6_P3_WB05_good.png",
 
-"JS6_P10_WB17_Frenchfries.png", 
+                "JS6_P3_WB05_happy.png",
 
-"JS6_P10_WB17_bread.png", 
+                "JS6_P3_WB05_hungry.png",
 
-"JS6_P10_WB17_curryandrice.png", 
+                "JS6_P3_WB05_sad.png",
 
-"JS6_P10_WB17_friedchicken.png", 
+                "JS6_P3_WB05_sick.png",
 
-"JS6_P10_WB17_grilledfish.png", 
+                "JS6_P3_WB05_sleepy.png",
 
-"JS6_P10_WB17_hamburger.png", 
+                "JS6_P3_WB05_sorry.png",
 
-"JS6_P10_WB17_hotdog.png", 
+                "JS6_P3_WB05_thirsty.png",
 
-"JS6_P10_WB17_jam.png", 
+                "JS6_P3_WB05_tired.png"
 
-"JS6_P10_WB17_noodles.png", 
+            ],
 
-"JS6_P10_WB17_omelet.png", 
+            "Past Tense": [
 
-"JS6_P10_WB17_pizza.png", 
+                "JS6_P16_WB27_ate.png",
 
-"JS6_P10_WB17_rice.png", 
+                "JS6_P16_WB27_enjoyed.png",
 
-"JS6_P10_WB17_riceball.png", 
+                "JS6_P16_WB27_had.png",
 
-"JS6_P10_WB17_salad.png", 
+                "JS6_P16_WB27_saw.png",
 
-"JS6_P10_WB17_sandwich.png", 
+                "JS6_P16_WB27_went.png"
 
-"JS6_P10_WB17_soup.png", 
+            ],
 
-"JS6_P10_WB17_spaghetti.png", 
+            "Present Tense": [
 
-"JS6_P10_WB17_steak.png" 
+                "JS6_P16_WB27_eat.png",
 
-], 
+                "JS6_P16_WB27_enjoy.png",
 
-"Greeting": [ 
+                "JS6_P16_WB27_go.png",
 
-"Hello.png", 
+                "JS6_P16_WB27_have.png",
 
-"Hi.png", 
+                "JS6_P16_WB27_see.png"
 
-"Goodbye.png", 
+            ],
 
-"See you.png", 
+            "School Life": [
 
-"Good morning.png" 
+                "JS6_P19_WB34_classroom.png",
 
-], 
+                "JS6_P19_WB34_entrance.png",
 
-"Junior High": [ 
+                "JS6_P19_WB34_gym.png",
 
-"JS6_P18_WB33_artclub.png", 
+                "JS6_P19_WB34_homework.png",
 
-"JS6_P18_WB33_badminton.png", 
+                "JS6_P19_WB34_library.png",
 
-"JS6_P18_WB33_baseball.png", 
+                "JS6_P19_WB34_playground.png",
 
-"JS6_P18_WB33_basketball.png", 
+                "JS6_P19_WB34_restroom.png",
 
-"JS6_P18_WB33_brassband.png", 
+                "JS6_P19_WB34_school.png",
 
-"JS6_P18_WB33_chorus.png", 
+                "JS6_P19_WB34_schoolnurses.png",
 
-"JS6_P18_WB33_clubactivities.png", 
+                "JS6_P19_WB34_schoolprincipal.png",
 
-"JS6_P18_WB33_dramaclub.png", 
+                "JS6_P19_WB34_student.png",
 
-"JS6_P18_WB33_gymnastics.png", 
+                "JS6_P19_WB34_swimmingpool.png",
 
-"JS6_P18_WB33_soccerteam.png", 
+                "JS6_P19_WB34_teachersoffice.png"
 
-"JS6_P18_WB33_softballteam.png", 
+            ],
 
-"JS6_P18_WB33_tabletennis.png", 
+            "Seasons": [
 
-"JS6_P18_WB33_tennisteam.png", 
+                "JS6_P6_WB11_autumn_fall.png",
 
-"JS6_P18_WB33_trackandfield.png", 
+                "JS6_P6_WB11_spring.png",
 
-"JS6_P18_WB33_volleyball.png" 
+                "JS6_P6_WB11_summer.png",
 
-], 
+                "JS6_P6_WB11_winter.png"
 
-"Months": [ 
+            ],
 
-"JS6_P6_WB12_April.png", 
+            "Shapes": [
 
-"JS6_P6_WB12_August.png", 
+                "JS6_P4_WB07_circle.png",
 
-"JS6_P6_WB12_December.png", 
+                "JS6_P4_WB07_class.png",
 
-"JS6_P6_WB12_February.png", 
+                "JS6_P4_WB07_diamond.png",
 
-"JS6_P6_WB12_January.png", 
+                "JS6_P4_WB07_heart.png",
 
-"JS6_P6_WB12_July.png", 
+                "JS6_P4_WB07_rectangle.png",
 
-"JS6_P6_WB12_June.png", 
+                "JS6_P4_WB07_square.png",
 
-"JS6_P6_WB12_March.png", 
+                "JS6_P4_WB07_star.png",
 
-"JS6_P6_WB12_May.png", 
+                "JS6_P4_WB07_triangle.png"
 
-"JS6_P6_WB12_November.png", 
+            ],
 
-"JS6_P6_WB12_October.png", 
+            "Sports": [
 
-"JS6_P6_WB12_September.png" 
+                "JS6_P13_WB24_badminton.png",
 
-], 
+                "JS6_P13_WB24_baseball.png",
 
-"Moods": [ 
+                "JS6_P13_WB24_basketball.png",
 
-"JS6_P3_WB05_busy.png", 
+                "JS6_P13_WB24_dodgeball.png",
 
-"JS6_P3_WB05_fine.png", 
+                "JS6_P13_WB24_icehockey.png",
 
-"JS6_P3_WB05_good.png", 
+                "JS6_P13_WB24_rugby.png",
 
-"JS6_P3_WB05_happy.png", 
+                "JS6_P13_WB24_soccer.png",
 
-"JS6_P3_WB05_hungry.png", 
+                "JS6_P13_WB24_swimming.png",
 
-"JS6_P3_WB05_sad.png", 
+                "JS6_P13_WB24_tabletennis.png",
 
-"JS6_P3_WB05_sick.png", 
+                "JS6_P13_WB24_tennis.png",
 
-"JS6_P3_WB05_sleepy.png", 
+                "JS6_P13_WB24_volleyball.png"
 
-"JS6_P3_WB05_sorry.png", 
+            ],
 
-"JS6_P3_WB05_thirsty.png", 
+            "Taste": [
 
-"JS6_P3_WB05_tired.png" 
+                "JS6_P11_WB20_bitter.png",
 
-], 
+                "JS6_P11_WB20_cold.png",
 
-"Past Tense": [ 
+                "JS6_P11_WB20_delicious.png",
 
-"JS6_P16_WB27_ate.png", 
+                "JS6_P11_WB20_fresh.png",
 
-"JS6_P16_WB27_enjoyed.png", 
+                "JS6_P11_WB20_hard.png",
 
-"JS6_P16_WB27_had.png", 
+                "JS6_P11_WB20_hot-1.png",
 
-"JS6_P16_WB27_saw.png", 
+                "JS6_P11_WB20_hot-2.png",
 
-"JS6_P16_WB27_went.png" 
+                "JS6_P11_WB20_salty.png",
 
-], 
+                "JS6_P11_WB20_soft.png",
 
-"Present Tense": [ 
+                "JS6_P11_WB20_sour.png",
 
-"JS6_P16_WB27_eat.png", 
+                "JS6_P11_WB20_sweet.png"
 
-"JS6_P16_WB27_enjoy.png", 
+            ],
 
-"JS6_P16_WB27_go.png", 
+            "To Do": [
 
-"JS6_P16_WB27_have.png", 
+                "JS6_P15_WB25_drawpictures.png",
 
-"JS6_P16_WB27_see.png" 
+                "JS6_P15_WB25_snapmyfingers.png",
 
-], 
+                "JS6_P17_WB28_dojudo.png",
 
-"School Life": [ 
+                "JS6_P17_WB28_makepapercranes.png",
 
-"JS6_P19_WB34_classroom.png", 
+                "JS6_P17_WB28_playshogi.png",
 
-"JS6_P19_WB34_entrance.png", 
+                "JS6_P17_WB28_playsoccer.png",
 
-"JS6_P19_WB34_gym.png", 
+                "JS6_P17_WB28_playthepiano.png",
 
-"JS6_P19_WB34_homework.png", 
+                "JS6_P17_WB28_rideaunicycle.png",
 
-"JS6_P19_WB34_library.png", 
+                "JS6_P17_WB28_speakChinese.png",
 
-"JS6_P19_WB34_playground.png", 
+                "JS6_P17_WB28_speakEnglish.png"
 
-"JS6_P19_WB34_restroom.png", 
+            ]
 
-"JS6_P19_WB34_school.png", 
+        };
 
-"JS6_P19_WB34_schoolnurses.png", 
+        /* @@MANIFEST_END@@ */
 
-"JS6_P19_WB34_schoolprincipal.png", 
+        let manifest = {};
+        let activePool = [];
+        let activeCategories = new Set();
+        let shuffleSeed = Math.floor(Math.random() * 0xfffff);
 
-"JS6_P19_WB34_student.png", 
 
-"JS6_P19_WB34_swimmingpool.png", 
 
-"JS6_P19_WB34_teachersoffice.png" 
+        // Caller deck state 
+        let callerDeck = []; // shuffled array of pool items 
+        let callerIndex = -1; // index of current card (-1 = not started) 
+        let pulledCards = []; // cards already drawn 
 
-], 
 
-"Seasons": [ 
 
-"JS6_P6_WB11_autumn_fall.png", 
+        // ── Seeded shuffle ────
 
-"JS6_P6_WB11_spring.png", 
+        function seededShuffle(arr, seed) {
+            const a = [...arr];
+            let s = seed;
+            function rand() {
 
-"JS6_P6_WB11_summer.png", 
+                s = (s * 1664525 + 1013904223) & 0xffffffff;
+                return (s >>> 0) / 0xffffffff;
 
-"JS6_P6_WB11_winter.png" 
+            }
 
-], 
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(rand() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
 
-"Shapes": [ 
+            }
 
-"JS6_P4_WB07_circle.png", 
+            return a;
 
-"JS6_P4_WB07_class.png", 
+        }
 
-"JS6_P4_WB07_diamond.png", 
 
-"JS6_P4_WB07_heart.png", 
 
-"JS6_P4_WB07_rectangle.png", 
+        function randomShuffle(arr) {
 
-"JS6_P4_WB07_square.png", 
+            return seededShuffle(arr, Math.floor(Math.random() * 0xffffff));
 
-"JS6_P4_WB07_star.png", 
+        }
 
-"JS6_P4_WB07_triangle.png" 
 
-], 
 
-"Sports": [ 
+        // ── Filename → word ────
 
-"JS6_P13_WB24_badminton.png", 
+        function toWord(filename) {
+            let name = filename.replace(/\.[^.]+$/, '');
+            name = name.replace(/^[A-Z0-9]+_[A-Z0-9]+_[A-Z0-9]+_/i, '');
+            name = name.replace(/([a-z])([A-Z])/g, '$1 $2');
+            name = name.replace(/_/g, ' ');
+            return name.toLowerCase();
 
-"JS6_P13_WB24_baseball.png", 
+        }
 
-"JS6_P13_WB24_basketball.png", 
 
-"JS6_P13_WB24_dodgeball.png", 
 
-"JS6_P13_WB24_icehockey.png", 
+        // ── Pool ─────
+        function poolFromCategory(category) {
 
-"JS6_P13_WB24_rugby.png", 
+            return (manifest[category] || []).map(filename => ({
+                word: toWord(filename),
+                img: `Images/${category}/${filename}`,
+                folder: category
 
-"JS6_P13_WB24_soccer.png", 
+            }));
 
-"JS6_P13_WB24_swimming.png", 
+        }
 
-"JS6_P13_WB24_tabletennis.png", 
 
-"JS6_P13_WB24_tennis.png", 
 
-"JS6_P13_WB24_volleyball.png" 
+        // ── View switching ──────
 
-], 
+        function switchView(view) {
 
-"Taste": [ 
+            const isCards = view === 'cards';
+            document.getElementById('cards-view').style.display = isCards ? 'block' : 'none';
+            document.getElementById('caller-view').classList.toggle('active', !isCards);
+            document.getElementById('btn-view-cards').classList.toggle('active', isCards);
+            document.getElementById('btn-view-caller').classList.toggle('active', !isCards);
+            document.querySelector('.bar-controls').style.display = isCards ? 'flex' : 'none';
 
-"JS6_P11_WB20_bitter.png", 
+            if (!isCards) updateDeckCounter();
 
-"JS6_P11_WB20_cold.png", 
+        }
 
-"JS6_P11_WB20_delicious.png", 
 
-"JS6_P11_WB20_fresh.png", 
+        function renderCards(pool) {
 
-"JS6_P11_WB20_hard.png", 
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
 
-"JS6_P11_WB20_hot-1.png", 
 
-"JS6_P11_WB20_hot-2.png", 
 
-"JS6_P11_WB20_salty.png", 
+            if (pool.length < 16) {
 
-"JS6_P11_WB20_soft.png", 
+                showError(`Need at least 16 images, found ${pool.length}.`);
+                return;
 
-"JS6_P11_WB20_sour.png", 
+            }
 
-"JS6_P11_WB20_sweet.png" 
+            hideError();
 
-], 
 
-"To Do": [ 
+            const CARDS_PER_PAGE = 2;
+            const CELLS_PER_CARD = 16;
+            const countInput = document.getElementById('card-count-input');
+            const totalCards = Math.max(1, parseInt(countInput?.value || 32, 10) || 32);
 
-"JS6_P15_WB25_drawpictures.png", 
 
-"JS6_P15_WB25_snapmyfingers.png", 
 
-"JS6_P17_WB28_dojudo.png", 
+            for (let pageNum = 0; pageNum < Math.ceil(totalCards / CARDS_PER_PAGE); pageNum++) {
+                const page = document.createElement('div');
+                page.className = 'page';
 
-"JS6_P17_WB28_makepapercranes.png", 
 
-"JS6_P17_WB28_playshogi.png", 
 
-"JS6_P17_WB28_playsoccer.png", 
+                const cardsThisPage = Math.min(CARDS_PER_PAGE, totalCards - pageNum * CARDS_PER_PAGE);
+                for (let cardOnPage = 0; cardOnPage < cardsThisPage; cardOnPage++) {
+                    const cardNum = pageNum * CARDS_PER_PAGE + cardOnPage + 1;
+                    const shuffled = seededShuffle(pool, (cardNum * 7919) ^ shuffleSeed);
+                    const selected = shuffled.slice(0, CELLS_PER_CARD);
 
-"JS6_P17_WB28_playthepiano.png", 
 
-"JS6_P17_WB28_rideaunicycle.png", 
 
-"JS6_P17_WB28_speakChinese.png", 
+                    const card = document.createElement('div');
+                    card.className = 'card';
 
-"JS6_P17_WB28_speakEnglish.png" 
 
-] 
 
-}; 
+                    const header = document.createElement('div');
+                    header.className = 'card-header';
+                    header.textContent = ' LOTERÍA ';
+                    card.appendChild(header);
 
-/* @@MANIFEST_END@@ */ 
 
-// ── State ──────────────────────────────────────────────────────────────────── 
 
-let manifest = {}; 
+                    const grid = document.createElement('div');
+                    grid.className = 'card-grid';
 
-let activePool = []; 
 
-let activeCategories = new Set(); 
 
-let shuffleSeed = Math.floor(Math.random() * 0xfffff); 
+                    selected.forEach(item => {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        const img = document.createElement('img');
+                        img.src = item.img;
+                        img.alt = item.word;
+                        img.loading = 'lazy';
+                        cell.appendChild(img);
+                        grid.appendChild(cell);
 
- 
+                    });
 
-// Caller deck state 
 
-let callerDeck = []; // shuffled array of pool items 
 
-let callerIndex = -1; // index of current card (-1 = not started) 
+                    card.appendChild(grid);
+                    page.appendChild(card);
 
-let pulledCards = []; // cards already drawn 
+                }
 
- 
+                container.appendChild(page);
 
-// ── Seeded shuffle ──────────────────────────────────────────────────────────── 
+            }
 
-function seededShuffle(arr, seed) { 
+            updateStatus();
 
-const a = [...arr]; 
+        }
 
-let s = seed; 
 
-function rand() { 
 
-s = (s * 1664525 + 1013904223) & 0xffffffff; 
+        function regenerate() {
 
-return (s >>> 0) / 0xffffffff; 
+            shuffleSeed = Math.floor(Math.random() * 0xfffff);
+            renderCards([...activePool]);
 
-} 
+        }
 
-for (let i = a.length - 1; i > 0; i--) { 
 
-const j = Math.floor(rand() * (i + 1)); 
+        function buildCallerDeck() {
 
-[a[i], a[j]] = [a[j], a[i]]; 
+            callerDeck = randomShuffle([...activePool]);
+            callerIndex = -1;
+            pulledCards = [];
+            renderPulledList();
+            resetCurrentCard();
+            updateDeckCounter();
 
-} 
+        }
 
-return a; 
 
-} 
 
- 
+        function reshuffleDeck() {
 
-function randomShuffle(arr) { 
+            buildCallerDeck();
 
-return seededShuffle(arr, Math.floor(Math.random() * 0xffffff)); 
+        }
 
-} 
 
- 
 
-// ── Filename → word ────────────────────────────────────────────────────────── 
+        function drawCard() {
 
-function toWord(filename) { 
+            if (callerIndex >= callerDeck.length - 1) return;
+            callerIndex++;
+            const item = callerDeck[callerIndex];
+            pulledCards.unshift(item); // newest first 
+            showCurrentCard(item, callerIndex + 1);
+            renderPulledList();
+            updateDeckCounter();
+            document.getElementById('btn-draw').disabled = (callerIndex >= callerDeck.length - 1);
 
-let name = filename.replace(/\.[^.]+$/, ''); 
+        }
 
-name = name.replace(/^[A-Z0-9]+_[A-Z0-9]+_[A-Z0-9]+_/i, ''); 
 
-name = name.replace(/([a-z])([A-Z])/g, '$1 $2'); 
 
-name = name.replace(/_/g, ' '); 
+        function showCurrentCard(item, num) {
 
-return name.toLowerCase(); 
+            const wrap = document.getElementById('current-card-wrap');
+            const img = document.getElementById('current-card-img');
+            const ph = document.getElementById('current-card-placeholder');
+            const numEl = document.getElementById('current-card-num');
 
-} 
 
- 
 
-// ── Pool ────────────────────────────────────────────────────────────────────── 
+            wrap.classList.remove('empty');
+            img.src = item.img;
+            img.alt = item.word;
+            img.style.display = 'block';
+            ph.style.display = 'none';
+            numEl.textContent = `#${num} of ${callerDeck.length}`;
 
-function poolFromCategory(category) { 
+            // highlight in pulled list 
 
-return (manifest[category] || []).map(filename => ({ 
+            document.querySelectorAll('.pulled-thumb').forEach((el, i) => {
+                el.classList.toggle('current-highlight', i === 0);
 
-word: toWord(filename), 
+            });
 
-img: `Images/${category}/${filename}`, 
+        }
 
-folder: category 
 
-})); 
 
-} 
+        function resetCurrentCard() {
 
- 
+            const wrap = document.getElementById('current-card-wrap');
+            const img = document.getElementById('current-card-img');
+            const ph = document.getElementById('current-card-placeholder');
+            const numEl = document.getElementById('current-card-num');
+            wrap.classList.add('empty');
+            img.style.display = 'none';
+            img.src = '';
+            ph.style.display = 'block';
+            numEl.textContent = '';
+            document.getElementById('btn-draw').disabled = false;
 
-// ── View switching ──────────────────────────────────────────────────────────── 
+        }
 
-function switchView(view) { 
 
-const isCards = view === 'cards'; 
 
-document.getElementById('cards-view').style.display = isCards ? 'block' : 'none'; 
+        function renderPulledList() {
 
-document.getElementById('caller-view').classList.toggle('active', !isCards); 
+            const list = document.getElementById('pulled-list');
+            const title = document.getElementById('pulled-title');
+            title.textContent = `PULLED (${pulledCards.length})`;
 
-document.getElementById('btn-view-cards').classList.toggle('active', isCards); 
 
-document.getElementById('btn-view-caller').classList.toggle('active', !isCards); 
 
-// Status bar card count only relevant for print view 
+            if (pulledCards.length === 0) {
 
-document.querySelector('.bar-controls').style.display = isCards ? 'flex' : 'none'; 
+                list.innerHTML = '<div id="pulled-empty">No cards drawn yet</div>';
+                return;
 
-if (!isCards) updateDeckCounter(); 
+            }
 
-} 
 
- 
 
-// ══════════════════════════════════════════════════════════════════════════════ 
+            list.innerHTML = '';
 
-// PRINT CARDS 
+            pulledCards.forEach((item, i) => {
 
-// ══════════════════════════════════════════════════════════════════════════════ 
+                const thumb = document.createElement('div');
+                thumb.className = 'pulled-thumb' + (i === 0 ? ' current-highlight' : '');
+                thumb.title = item.word;
 
-function renderCards(pool) { 
 
-const container = document.getElementById('cards-container'); 
 
-container.innerHTML = ''; 
+                const img = document.createElement('img');
+                img.src = item.img;
+                img.alt = item.word;
+                img.loading = 'lazy';
 
- 
+                // clicking a past card re-shows it as "current" 
 
-if (pool.length < 16) { 
+                thumb.onclick = () => {
 
-showError(`Need at least 16 images, found ${pool.length}.`); 
+                    document.querySelectorAll('.pulled-thumb').forEach(el => el.classList.remove('current-highlight'));
+                    thumb.classList.add('current-highlight');
+                    const deckPos = callerDeck.indexOf(item);
+                    showCurrentCard(item, deckPos + 1);
 
-return; 
+                };
 
-} 
 
-hideError(); 
 
- 
+                thumb.appendChild(img);
+                list.appendChild(thumb);
 
-const CARDS_PER_PAGE = 2; 
+            });
 
-const CELLS_PER_CARD = 16; 
+        }
 
-const countInput = document.getElementById('card-count-input'); 
 
-const totalCards = Math.max(1, parseInt(countInput?.value || 32, 10) || 32); 
 
- 
+        function updateDeckCounter() {
 
-for (let pageNum = 0; pageNum < Math.ceil(totalCards / CARDS_PER_PAGE); pageNum++) { 
+            const remaining = callerDeck.length - (callerIndex + 1);
+            document.getElementById('deck-counter').textContent =
+                callerDeck.length === 0
 
-const page = document.createElement('div'); 
+                    ? '— / —'
 
-page.className = 'page'; 
+                    : `${remaining} left · ${callerIndex + 1} drawn · ${callerDeck.length} total`;
 
- 
+        }
 
-const cardsThisPage = Math.min(CARDS_PER_PAGE, totalCards - pageNum * CARDS_PER_PAGE); 
+        function handleCategoryClick(category) {
+            const mode = document.getElementById('mode-select').value;
+            if (mode === 'replace') {
+                activeCategories = new Set([category]);
+            } else {
+                if (activeCategories.has(category)) activeCategories.delete(category);
+                else activeCategories.add(category);
+                if (activeCategories.size === 0) activeCategories.add(category);
 
-for (let cardOnPage = 0; cardOnPage < cardsThisPage; cardOnPage++) { 
+            }
 
-const cardNum = pageNum * CARDS_PER_PAGE + cardOnPage + 1; 
+            refreshPool();
+            highlightActiveButtons();
 
-const shuffled = seededShuffle(pool, (cardNum * 7919) ^ shuffleSeed); 
+        }
 
-const selected = shuffled.slice(0, CELLS_PER_CARD); 
 
- 
 
-const card = document.createElement('div'); 
+        function refreshPool() {
+            activePool = [];
+            activeCategories.forEach(cat => { activePool = activePool.concat(poolFromCategory(cat)); });
+            renderCards(activePool);
+            buildCallerDeck();
 
-card.className = 'card'; 
+        }
 
- 
 
-const header = document.createElement('div'); 
 
-header.className = 'card-header'; 
+        function highlightActiveButtons() {
+            const mode = document.getElementById('mode-select').value;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.className = `category-btn mode-${mode === 'replace' ? 'replace' : 'add'}`;
+                if (activeCategories.has(btn.dataset.category)) btn.classList.add('active');
 
-header.textContent = '✦ LOTERÍA ✦'; 
+            });
 
-card.appendChild(header); 
+        }
 
- 
 
-const grid = document.createElement('div'); 
 
-grid.className = 'card-grid'; 
+        function buildCategoryButtons() {
+            const wrap = document.getElementById('category-buttons');
+            wrap.innerHTML = '';
+            Object.keys(manifest).forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn mode-replace';
+                btn.dataset.category = category;
+                btn.textContent = category.toUpperCase();
+                btn.onclick = () => handleCategoryClick(category);
+                wrap.appendChild(btn);
 
- 
+            });
 
-selected.forEach(item => { 
+        }
 
-const cell = document.createElement('div'); 
 
-cell.className = 'cell'; 
 
-const img = document.createElement('img'); 
+        function updateStatus() {
 
-img.src = item.img; 
+            const cats = [...activeCategories].join(' + ');
+            const total = activePool.length;
+            document.getElementById('status-text').textContent =
+                `Active: ${cats.toUpperCase()} — ${total} image${total !== 1 ? 's' : ''} in pool`;
 
-img.alt = item.word; 
+        }
 
-img.loading = 'lazy'; 
 
-cell.appendChild(img); 
 
-// NO label — image already contains the word 
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = '⚠ ' + msg; el.style.display = 'block';
+        }
 
-grid.appendChild(cell); 
+        function hideError() { document.getElementById('error-msg').style.display = 'none'; }
 
-}); 
+        document.getElementById('mode-select').addEventListener('change', highlightActiveButtons);
+        document.getElementById('card-count-input').addEventListener('change', () => renderCards([...activePool]));
 
- 
 
-card.appendChild(grid); 
 
-page.appendChild(card); 
+        function init() {
 
-} 
+            if (typeof MANIFEST === 'undefined' || Object.keys(MANIFEST).length === 0) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('status-text').textContent = 'No manifest found';
+                showError('No image data found. Run "node generate-manifest.js" next to this file, then reload.');
 
-container.appendChild(page); 
+                return;
 
-} 
+            }
 
-updateStatus(); 
+            manifest = MANIFEST;
+            buildCategoryButtons();
+            const first = Object.keys(manifest)[0];
+            activeCategories = new Set([first]);
+            refreshPool();
+            highlightActiveButtons();
 
-} 
+        }
 
- 
+        init();
 
-function regenerate() { 
+    </script>
 
-shuffleSeed = Math.floor(Math.random() * 0xfffff); 
+</body>
 
-renderCards([...activePool]); 
-
-} 
-
- 
-
-// ══════════════════════════════════════════════════════════════════════════════ 
-
-// CALLER DECK 
-
-// ══════════════════════════════════════════════════════════════════════════════ 
-
-function buildCallerDeck() { 
-
-callerDeck = randomShuffle([...activePool]); 
-
-callerIndex = -1; 
-
-pulledCards = []; 
-
-renderPulledList(); 
-
-resetCurrentCard(); 
-
-updateDeckCounter(); 
-
-} 
-
- 
-
-function reshuffleDeck() { 
-
-buildCallerDeck(); 
-
-} 
-
- 
-
-function drawCard() { 
-
-if (callerIndex >= callerDeck.length - 1) return; 
-
-callerIndex++; 
-
-const item = callerDeck[callerIndex]; 
-
-pulledCards.unshift(item); // newest first 
-
-showCurrentCard(item, callerIndex + 1); 
-
-renderPulledList(); 
-
-updateDeckCounter(); 
-
-document.getElementById('btn-draw').disabled = (callerIndex >= callerDeck.length - 1); 
-
-} 
-
- 
-
-function showCurrentCard(item, num) { 
-
-const wrap = document.getElementById('current-card-wrap'); 
-
-const img = document.getElementById('current-card-img'); 
-
-const ph = document.getElementById('current-card-placeholder'); 
-
-const numEl = document.getElementById('current-card-num'); 
-
- 
-
-wrap.classList.remove('empty'); 
-
-img.src = item.img; 
-
-img.alt = item.word; 
-
-img.style.display = 'block'; 
-
-ph.style.display = 'none'; 
-
-numEl.textContent = `#${num} of ${callerDeck.length}`; 
-
- 
-
-// highlight in pulled list 
-
-document.querySelectorAll('.pulled-thumb').forEach((el, i) => { 
-
-el.classList.toggle('current-highlight', i === 0); 
-
-}); 
-
-} 
-
- 
-
-function resetCurrentCard() { 
-
-const wrap = document.getElementById('current-card-wrap'); 
-
-const img = document.getElementById('current-card-img'); 
-
-const ph = document.getElementById('current-card-placeholder'); 
-
-const numEl = document.getElementById('current-card-num'); 
-
-wrap.classList.add('empty'); 
-
-img.style.display = 'none'; 
-
-img.src = ''; 
-
-ph.style.display = 'block'; 
-
-numEl.textContent = ''; 
-
-document.getElementById('btn-draw').disabled = false; 
-
-} 
-
- 
-
-function renderPulledList() { 
-
-const list = document.getElementById('pulled-list'); 
-
-const title = document.getElementById('pulled-title'); 
-
-title.textContent = `PULLED (${pulledCards.length})`; 
-
- 
-
-if (pulledCards.length === 0) { 
-
-list.innerHTML = '<div id="pulled-empty">No cards drawn yet</div>'; 
-
-return; 
-
-} 
-
- 
-
-list.innerHTML = ''; 
-
-pulledCards.forEach((item, i) => { 
-
-const thumb = document.createElement('div'); 
-
-thumb.className = 'pulled-thumb' + (i === 0 ? ' current-highlight' : ''); 
-
-thumb.title = item.word; 
-
- 
-
-const img = document.createElement('img'); 
-
-img.src = item.img; 
-
-img.alt = item.word; 
-
-img.loading = 'lazy'; 
-
- 
-
-// clicking a past card re-shows it as "current" 
-
-thumb.onclick = () => { 
-
-document.querySelectorAll('.pulled-thumb').forEach(el => el.classList.remove('current-highlight')); 
-
-thumb.classList.add('current-highlight'); 
-
-const deckPos = callerDeck.indexOf(item); 
-
-showCurrentCard(item, deckPos + 1); 
-
-}; 
-
- 
-
-thumb.appendChild(img); 
-
-list.appendChild(thumb); 
-
-}); 
-
-} 
-
- 
-
-function updateDeckCounter() { 
-
-const remaining = callerDeck.length - (callerIndex + 1); 
-
-document.getElementById('deck-counter').textContent = 
-
-callerDeck.length === 0 
-
-? '— / —' 
-
-: `${remaining} left · ${callerIndex + 1} drawn · ${callerDeck.length} total`; 
-
-} 
-
- 
-
-// ══════════════════════════════════════════════════════════════════════════════ 
-
-// SHARED / INIT 
-
-// ══════════════════════════════════════════════════════════════════════════════ 
-
-function handleCategoryClick(category) { 
-
-const mode = document.getElementById('mode-select').value; 
-
-if (mode === 'replace') { 
-
-activeCategories = new Set([category]); 
-
-} else { 
-
-if (activeCategories.has(category)) activeCategories.delete(category); 
-
-else activeCategories.add(category); 
-
-if (activeCategories.size === 0) activeCategories.add(category); 
-
-} 
-
-refreshPool(); 
-
-highlightActiveButtons(); 
-
-} 
-
- 
-
-function refreshPool() { 
-
-activePool = []; 
-
-activeCategories.forEach(cat => { activePool = activePool.concat(poolFromCategory(cat)); }); 
-
-renderCards(activePool); 
-
-buildCallerDeck(); 
-
-} 
-
- 
-
-function highlightActiveButtons() { 
-
-const mode = document.getElementById('mode-select').value; 
-
-document.querySelectorAll('.category-btn').forEach(btn => { 
-
-btn.className = `category-btn mode-${mode === 'replace' ? 'replace' : 'add'}`; 
-
-if (activeCategories.has(btn.dataset.category)) btn.classList.add('active'); 
-
-}); 
-
-} 
-
- 
-
-function buildCategoryButtons() { 
-
-const wrap = document.getElementById('category-buttons'); 
-
-wrap.innerHTML = ''; 
-
-Object.keys(manifest).forEach(category => { 
-
-const btn = document.createElement('button'); 
-
-btn.className = 'category-btn mode-replace'; 
-
-btn.dataset.category = category; 
-
-btn.textContent = category.toUpperCase(); 
-
-btn.onclick = () => handleCategoryClick(category); 
-
-wrap.appendChild(btn); 
-
-}); 
-
-} 
-
- 
-
-function updateStatus() { 
-
-const cats = [...activeCategories].join(' + '); 
-
-const total = activePool.length; 
-
-document.getElementById('status-text').textContent = 
-
-`Active: ${cats.toUpperCase()} — ${total} image${total !== 1 ? 's' : ''} in pool`; 
-
-} 
-
- 
-
-function showError(msg) { 
-
-const el = document.getElementById('error-msg'); 
-
-el.textContent = '⚠ ' + msg; el.style.display = 'block'; 
-
-} 
-
-function hideError() { document.getElementById('error-msg').style.display = 'none'; } 
-
- 
-
-document.getElementById('mode-select').addEventListener('change', highlightActiveButtons); 
-
-document.getElementById('card-count-input').addEventListener('change', () => renderCards([...activePool])); 
-
- 
-
-function init() { 
-
-if (typeof MANIFEST === 'undefined' || Object.keys(MANIFEST).length === 0) { 
-
-document.getElementById('loading').style.display = 'none'; 
-
-document.getElementById('status-text').textContent = 'No manifest found'; 
-
-showError('No image data found. Run "node generate-manifest.js" next to this file, then reload.'); 
-
-return; 
-
-} 
-
-manifest = MANIFEST; 
-
-buildCategoryButtons(); 
-
-const first = Object.keys(manifest)[0]; 
-
-activeCategories = new Set([first]); 
-
-refreshPool(); 
-
-highlightActiveButtons(); 
-
-} 
-
- 
-
-init(); 
-
-</script> 
-
-</body> 
-
-</html> 
-
- 
+</html>

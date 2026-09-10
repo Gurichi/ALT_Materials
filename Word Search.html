@@ -477,7 +477,6 @@
         document.getElementById('btn-theme-dark').classList.toggle('btn-active', theme === 'dark');
         document.getElementById('btn-theme-light').classList.toggle('btn-active', theme === 'light');
         
-        // オーバーレイハイライトの色やブレンドを馴染ませるために再描画
         syncAnswerDisplay();
     }
 
@@ -759,13 +758,12 @@
             }
 
             if (grid[r][c] !== '') {
-                // BUG FIX: 同一軸上（同じ直線上）で完全に隠蔽される単語や、
-                // 不自然に直列に結合して文字が連続してしまうバグを完全にブロックします。
+
                 if (directionGrid[r][c] === currentAxisKey) {
                     return false;
                 }
 
-                // 異なる軸同士がクロスして交差する場合は、文字が完全一致していれば共有を許可します
+
                 if (grid[r][c] !== word[i]) {
                     return false;
                 }
@@ -782,7 +780,7 @@
             const c = col + dc * i;
 
             grid[r][c] = word[i];
-            directionGrid[r][c] = currentAxisKey; // 配置された文字に軸の方向を記録
+            directionGrid[r][c] = currentAxisKey;
         }
     }
 
@@ -877,7 +875,7 @@
 
     function toggleAnswerSheet() {
         showAnswer = !showAnswer;
-        syncAnswerDisplay(); // 再生成させず、マーカーストライクの表示だけを瞬時にトグル
+        syncAnswerDisplay(); 
     }
 
     function extractWordsFromGrid(grid) {

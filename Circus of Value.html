@@ -113,7 +113,7 @@
             align-items: center;
             background: radial-gradient(circle at center, #111115 0%, #050507 100%);
             overflow: hidden;
-            padding-bottom: 80px; /* ボタン用の下部余白 */
+            padding-bottom: 80px;
         }
 
         .wheels-canvas-grid {
@@ -626,7 +626,6 @@
             });
         }
 
-        // --- データモデル変更制御群 ---
         addNewItem() {
             const hue = Math.floor(Math.random() * 360);
             const nextId = this.items.length > 0 ? Math.max(...this.items.map(i => i.id)) + 1 : 1;
@@ -666,7 +665,7 @@
             this.saveSystemSettings();
         }
 
-        // --- MULTI-CANVAS DYNAMIC GRID ENGINE ---
+        // --- MULTI-CANVAS DYNAMIC GRID ---
         rebuildFrenzyLayout() {
             this.els.wheelsGrid.innerHTML = '';
             
@@ -768,7 +767,6 @@
             ctx.lineWidth = 4; ctx.strokeStyle = "var(--primary-color)"; ctx.stroke();
         }
 
-        // --- 物理演算 ＆ 減速シミュレーションループ ---
         startPhysicsLoop() {
             const step = () => {
                 this.wheelsState.forEach(w => {
@@ -805,7 +803,6 @@
             requestAnimationFrame(step);
         }
 
-        // --- 手動フリック（スワイプ）の可変速ポインター処理 ---
         findTargetWheelState(e) {
             const canvasEl = e.target.closest('canvas');
             if (!canvasEl) return null;
@@ -899,13 +896,11 @@
             }
         }
 
-        // --- スピンボタンによる一斉トリガー ---
         triggerGlobalSpin() {
             this.initAudioContext();
             this.wheelsState.forEach(w => {
                 w.isDragging = false;
                 w.isSpinning = true;
-                // 高速または低速をシミュレートする完全ランダムな初速を各ホイールに個別に注入
                 const randomPower = (Math.random() * 18 + 12) * (Math.random() > 0.5 ? 1 : -1);
                 w.angularVelocity = randomPower;
             });
@@ -913,7 +908,6 @@
             this.els.globalStopBtn.style.display = 'inline-flex';
         }
 
-        // --- ストップボタンによる即時急減速 ---
         triggerGlobalStop() {
             this.wheelsState.forEach(w => {
                 if (w.isSpinning) {
@@ -924,7 +918,6 @@
             this.els.globalStopBtn.style.display = 'none';
         }
 
-        // --- 当選者判定 ＆ イリミネーションオート処理 ---
         evaluateFrenzyWinners() {
             const winners = [];
             
@@ -933,7 +926,6 @@
                 if (activeSegments.length === 0) return;
 
                 const arcSize = (Math.PI * 2) / activeSegments.length;
-                // 針の位置：真上 (12時方向 = 3*PI/2)
                 const pointerAngle = 3 * Math.PI / 2;
                 let offset = (pointerAngle - w.currentAngle) % (Math.PI * 2);
                 if (offset < 0) offset += Math.PI * 2;
@@ -944,7 +936,6 @@
 
             if (winners.length === 0) return;
 
-            // 複数ある場合は最初の当選者をベースにしつつ、全当選情報をマージして発表
             const primary = winners[0].item;
             const isJa = this.settings.language === 'ja';
             
@@ -961,7 +952,6 @@
                 this.els.winnerImg.style.display = "none";
             }
 
-            // イリミネーションモード（自動除外）がONの場合、当選した全アイテムを除外フラグに設定
             if (this.settings.eliminationMode) {
                 winners.forEach(w => w.item.eliminated = true);
                 this.renderContentsList();
@@ -973,10 +963,8 @@
             this.triggerConfetti();
             this.els.winnerModal.classList.add('active');
             
-            // Speech synthesis removed
         }
 
-        // --- 外部通信が発生しない超高速ネイティブ紙吹雪演出 ---
         triggerConfetti() {
             const colors = ['#6366f1', '#10b981', '#ef4444', '#eab308', '#ec4899', '#3b82f6'];
             const particles = [];
@@ -1025,7 +1013,7 @@
             run();
         }
 
-        // --- LOCALSTORAGE 永続化ストレージ処理 ---
+        // --- LOCALSTORAGE ---
         saveSystemSettings() {
             localStorage.setItem('circus_wheel_items', JSON.stringify(this.items));
             localStorage.setItem('circus_wheel_config', JSON.stringify(this.settings));
@@ -1051,7 +1039,6 @@
             }
         }
 
-        // --- JSONデータインポート・エクスポート（画像Base64対応） ---
         exportToJSON() {
             const str = JSON.stringify(this.items, null, 2);
             const blob = new Blob([str], { type: 'application/json' });
@@ -1096,18 +1083,15 @@
             reader.readAsDataURL(file);
         }
 
-        // --- イベントの包括登録・デリゲーション管理 ---
+
         bindCoreEvents() {
-            // グローバルスピンボタンの一斉ランダム起動
             this.els.globalSpinBtn.addEventListener('click', () => this.triggerGlobalSpin());
             this.els.globalStopBtn.addEventListener('click', () => this.triggerGlobalStop());
 
-            // 各種ポップアップモーダルの表示・非表示切替
             this.els.openSettingsBtn.addEventListener('click', () => this.els.settingsModal.classList.add('active'));
             this.els.closeSettingsBtn.addEventListener('click', () => this.els.settingsModal.classList.remove('active'));
             this.els.winnerCloseBtn.addEventListener('click', () => this.els.winnerModal.classList.remove('active'));
 
-            // 環境設定切り替えトグル
             this.els.eliminationToggle.addEventListener('change', (e) => {
                 this.settings.eliminationMode = e.target.checked;
                 this.saveSystemSettings();
@@ -1127,7 +1111,6 @@
                 this.saveSystemSettings();
             });
 
-            // フレンジーモードの分割数を動的に適用
             this.els.applyFrenzyBtn.addEventListener('click', () => {
                 let val = parseInt(this.els.frenzyWheelsInput.value) || 1;
                 this.wheelCount = Math.max(1, Math.min(4, val));
@@ -1136,16 +1119,13 @@
                 this.renderContentsList();
             });
 
-            // 言語切替 — ヘッダーとウィナーモーダル両方に配置
             this.els.langBtn.addEventListener('click', () => this.toggleLanguage());
             this.els.winnerLangBtn.addEventListener('click', () => this.toggleLanguage());
 
-            // JSONファイルのローカル保存・読み込み
             this.els.exportBtn.addEventListener('click', () => this.exportToJSON());
             this.els.importBtn.addEventListener('click', () => this.els.importFileHidden.click());
             this.els.importFileHidden.addEventListener('change', (e) => this.importFromJSON(e));
 
-            // 分割された全キャンバスに対するマウス・タッチ操作のドラッグ委譲
             this.els.wheelsGrid.addEventListener('mousedown', (e) => this.pointerDown(e));
             window.addEventListener('mousemove', (e) => this.pointerMove(e));
             window.addEventListener('mouseup', () => this.pointerUp());
@@ -1154,7 +1134,6 @@
             window.addEventListener('touchmove', (e) => this.pointerMove(e), { passive: false });
             window.addEventListener('touchend', () => this.pointerUp());
 
-            // 管理画面内のインプット要素群に対する動的変更デリゲーション
             this.els.itemsListContainer.addEventListener('click', (e) => {
                 const card = e.target.closest('.item-row-card');
                 if (!card) return;
@@ -1180,7 +1159,6 @@
                         this.saveSystemSettings();
                     });
                 } else if (e.target.classList.contains('route-wheel-chk')) {
-                    // 各アイテムが割り当てられているホイール番号の配列をリアルタイム同期
                     const chks = card.querySelectorAll('.route-wheel-chk');
                     const assigned = [];
                     chks.forEach(c => {
@@ -1209,17 +1187,14 @@
                 this.saveSystemSettings();
             });
 
-            // ウィンドウサイズ変更時にぼやけを防ぐ自動再レンダリング
             window.addEventListener('resize', () => this.drawAllWheels());
         }
 
-        // --- アプリケーション起動口 ---
         init() {
             this.startPhysicsLoop();
         }
-    } // クラス (CircusOfValueApp) の終了
+    }
 
-    // ページのDOM構文解析が完了した時点でシステムを起動
     document.addEventListener('DOMContentLoaded', () => {
         window.circusInstance = new CircusOfValueApp();
         window.circusInstance.init();
