@@ -523,7 +523,7 @@
             if (this.lastWinners && this.lastWinners.length > 0 && this.els.winnerModal.classList.contains('active')) {
                 const isJa = this.settings.language === 'ja';
                 this.els.winnerTitle.textContent = this.lastWinners.map(w => isJa ? w.item.text.ja : w.item.text.en).join(" + ");
-                const combinedDesc = this.lastWinners.map(w => `[W${w.wheelIndex}] ` + (isJa ? w.item.desc.ja : w.item.desc.en)).join("\n\n");
+                const combinedDesc = this.lastWinners.map(w => (isJa ? w.item.desc.ja : w.item.desc.en)).join("\n\n");
                 this.els.winnerDesc.innerHTML = combinedDesc.replace(/\n/g, "<br>");
             }
         }
@@ -940,7 +940,7 @@
             const isJa = this.settings.language === 'ja';
             
             let combinedTitle = winners.map(w => isJa ? w.item.text.ja : w.item.text.en).join(" + ");
-            let combinedDesc = winners.map(w => `[W${w.wheelIndex}] ` + (isJa ? w.item.desc.ja : w.item.desc.en)).join("\n\n");
+            let combinedDesc = winners.map(w => (isJa ? w.item.desc.ja : w.item.desc.en)).join("\n\n");
 
             this.els.winnerTitle.textContent = combinedTitle;
             this.els.winnerDesc.innerHTML = combinedDesc.replace(/\n/g, "<br>");
