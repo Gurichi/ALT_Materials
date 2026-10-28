@@ -1578,7 +1578,7 @@
         let attemptedThisClue = [], isAddedToPool = false, isSlotRunning = false, slotIntervalId = null, isDoublePoints = false, turnQueue = [], countdownInt = null;
         let audioCtx = null, bgmNodes = [], bgmGain = null, fjThemeNodes = [], audioSettings = { volume: 0.5, bgm: true, se: true };
 
-        const DEFAULT_DATA = { timer: 15, currencySymbol: '$', finalPool: 0, doubleChance: 20, halloweenPackVersion: 2, finalJeopardy: { category: "Halloween in Japan", question: "What do people often wear at Halloween events in Japan?", answer: "Costumes", img: "" }, teams: [{ name: "Team 1", score: 0, color: "#ff4757" }, { name: "Team 2", score: 0, color: "#1e90ff" }], categories: [
+        const DEFAULT_DATA = { timer: 15, currencySymbol: '$', finalPool: 2000, doubleChance: 20, halloweenPackVersion: 2, finalJeopardy: { category: "Halloween in Japan", question: "What do people often wear at Halloween events in Japan?", answer: "Costumes", img: "" }, teams: [{ name: "Team 1", score: 0, color: "#ff4757" }, { name: "Team 2", score: 0, color: "#1e90ff" }], categories: [
             { name: 'MONSTERS', img: "", clues: [
                 { v: 200, q: 'Which monster says “Boo!”?', a: 'A ghost', img: "", used: false },
                 { v: 400, q: 'Which monster has sharp teeth and drinks blood in stories?', a: 'A vampire', img: "", used: false },
@@ -1631,7 +1631,7 @@
                     if (!data.finalJeopardy) data.finalJeopardy = JSON.parse(JSON.stringify(DEFAULT_DATA.finalJeopardy));
                 } catch (e) { data = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
             } else data = JSON.parse(JSON.stringify(DEFAULT_DATA));
-            if (!data.finalPool) data.finalPool = 0;
+            if (!data.finalPool) data.finalPool = 2000;
             if (data.doubleChance === undefined) data.doubleChance = 20;
             if (!data.currencySymbol) data.currencySymbol = '$';
             if (!data.finalJeopardy?.img) data.finalJeopardy.img = '';
@@ -1804,7 +1804,69 @@
         }
         function updateAudioFromUI() { const vol = document.getElementById('setting-vol'); if (vol) audioSettings.volume = parseFloat(vol.value); audioSettings.bgm = document.getElementById('bgm-toggle')?.checked ?? true; audioSettings.se = document.getElementById('se-toggle')?.checked ?? true; const disp = document.getElementById('vol-display'); if (disp) disp.textContent = Math.round(audioSettings.volume * 100) + '%'; if (audioSettings.bgm && bgmNodes.length === 0) playBgm(); if (!audioSettings.bgm) stopBgm(); }
         function previewSfx(n) { if (audioCtx?.state === 'suspended') audioCtx.resume(); const wasSe = audioSettings.se, wasBgm = audioSettings.bgm; audioSettings.se = true; audioSettings.bgm = true; playSound(n); audioSettings.se = wasSe; audioSettings.bgm = wasBgm; }
-        function handleImgFile(e, inputId, ci, ri) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { const url = ev.target.result; if (inputId && document.getElementById(inputId)) document.getElementById(inputId).value = url; if (ci !== undefined && ri !== undefined && data.categories[ci]?.clues[ri]) data.categories[ci].clues[ri].img = url; else if (ci !== undefined && data.categories[ci]) data.categories[ci].img = url; else if (inputId === 'fj-img-input') { if (!data.finalJeopardy) data.finalJeopardy = {}; data.finalJeopardy.img = url; } renderEditor(); showToast(t("imageLoaded")); }; reader.readAsDataURL(file); }
+        // Compress uploaded pictures before storing them. localStorage has a browser-imposed quota,
+        // so smaller JPEGs allow many more images than the original full-size files.
+        function imageFileToCompactDataURL(file, maxDimension = 1000, quality = 0.72) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Could not read image file'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Could not decode image'));
+                    img.onload = () => {
+                        const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+                        canvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+                        const ctx = canvas.getContext('2d');
+                        if (!ctx) { resolve(reader.result); return; }
+                        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch (err) { reject(err); }
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        function compactExistingImage(dataUrl, maxDimension = 1000, quality = 0.68) {
+            return new Promise(resolve => {
+                if (typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/') || dataUrl.length < 250000) return resolve(dataUrl);
+                const img = new Image();
+                img.onerror = () => resolve(dataUrl);
+                img.onload = () => {
+                    const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+                    canvas.height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return resolve(dataUrl);
+                    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    try { const smaller = canvas.toDataURL('image/jpeg', quality); resolve(smaller.length < dataUrl.length ? smaller : dataUrl); } catch (e) { resolve(dataUrl); }
+                };
+                img.src = dataUrl;
+            });
+        }
+        async function compressAllStoredImages() {
+            const jobs = [];
+            (data.categories || []).forEach(cat => {
+                jobs.push(compactExistingImage(cat.img).then(v => { if (cat.img) cat.img = v; }));
+                (cat.clues || []).forEach(clue => jobs.push(compactExistingImage(clue.img).then(v => { if (clue.img) clue.img = v; })));
+            });
+            if (data.finalJeopardy) jobs.push(compactExistingImage(data.finalJeopardy.img).then(v => { if (data.finalJeopardy.img) data.finalJeopardy.img = v; }));
+            await Promise.all(jobs);
+        }
+        function handleImgFile(e, inputId, ci, ri) {
+            const file = e.target.files[0]; if (!file) return;
+            showToast('Optimizing image…');
+            imageFileToCompactDataURL(file).then(url => {
+                if (inputId && document.getElementById(inputId)) document.getElementById(inputId).value = url;
+                if (ci !== undefined && ri !== undefined && data.categories[ci]?.clues[ri]) data.categories[ci].clues[ri].img = url;
+                else if (ci !== undefined && data.categories[ci]) data.categories[ci].img = url;
+                else if (inputId === 'fj-img-input') { if (!data.finalJeopardy) data.finalJeopardy = {}; data.finalJeopardy.img = url; }
+                renderEditor(); showToast(t('imageLoaded') + ' (compressed)');
+            }).catch(() => showToast('Could not load this image. Try JPG or PNG.'));
+        }
         function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('toast-show'); setTimeout(() => t.classList.remove('toast-show'), 2500); }
         function switchScreen(id) { document.querySelectorAll('.screen').forEach(el => el.classList.remove('active')); document.getElementById(id).classList.add('active'); if (id === 'screen-settings') renderEditor(); applyLang(); }
@@ -2119,11 +2181,11 @@
         function spawnEmoji(e) { const el = document.createElement('div'); el.className = 'emoji-float'; el.textContent = e; el.style.left = (5 + Math.random() * 90) + 'vw'; el.style.bottom = '-60px'; document.getElementById('winner-overlay').appendChild(el); setTimeout(() => el.remove(), 5000); }
         let confettiAnim = null; function startConfetti(c) { const canvas = document.getElementById('confetti-canvas'); canvas.width = innerWidth; canvas.height = innerHeight; const ctx = canvas.getContext('2d'); const parts = Array(120).fill().map(() => ({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height, w: 6 + Math.random() * 8, h: 3 + Math.random() * 5, color: [c, '#ffcc00', '#fff', '#ff4757'][Math.floor(Math.random() * 4)], vy: 2 + Math.random() * 4, vx: (Math.random() - 0.5) * 2, rot: Math.random() * Math.PI * 2, rotSpd: (Math.random() - 0.5) * 0.1 })); if (confettiAnim) cancelAnimationFrame(confettiAnim); function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); parts.forEach(p => { p.y += p.vy; p.x += p.vx; p.rot += p.rotSpd; if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; } ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore(); }); confettiAnim = requestAnimationFrame(draw); } draw(); }
         function stopConfetti() { if (confettiAnim) cancelAnimationFrame(confettiAnim); const c = document.getElementById('confetti-canvas'); c.getContext('2d').clearRect(0, 0, c.width, c.height); }
-        function newGame() { stopConfetti(); document.getElementById('winner-overlay').classList.remove('show'); data.teams.forEach(t => t.score = 0); data.categories.forEach(c => c.clues.forEach(cl => { cl.used = false; cl._double = false; })); data.finalPool = 0; localStorage.setItem('j_ultimate_v4', JSON.stringify(data)); startGame(); }
+        function newGame() { stopConfetti(); document.getElementById('winner-overlay').classList.remove('show'); data.teams.forEach(t => t.score = 0); data.categories.forEach(c => c.clues.forEach(cl => { cl.used = false; cl._double = false; })); data.finalPool = 2000; localStorage.setItem('j_ultimate_v4', JSON.stringify(data)); startGame(); }
         function quitGame() { stopConfetti(); document.getElementById('winner-overlay').classList.remove('show'); switchScreen('screen-menu'); }
         function showPause() { document.getElementById('pause-overlay').style.display = 'flex'; if (timerInt) clearInterval(timerInt); }
         function hidePause() { document.getElementById('pause-overlay').style.display = 'none'; if (document.getElementById('clue-overlay').style.display === 'flex') startTimerForClue(); }
-        function showResetConfirm() { showConfirmPopup(t("resetConfirm"), ok => { if (ok) { data.teams.forEach(t => t.score = 0); data.categories.forEach(c => c.clues.forEach(cl => { cl.used = false; cl._double = false; })); data.finalPool = 0; localStorage.setItem('j_ultimate_v4', JSON.stringify(data)); hidePause(); startGame(); showToast(t("gameReset")); } }); }
+        function showResetConfirm() { showConfirmPopup(t("resetConfirm"), ok => { if (ok) { data.teams.forEach(t => t.score = 0); data.categories.forEach(c => c.clues.forEach(cl => { cl.used = false; cl._double = false; })); data.finalPool = 2000; localStorage.setItem('j_ultimate_v4', JSON.stringify(data)); hidePause(); startGame(); showToast(t("gameReset")); } }); }
         function quitToMenu() { showConfirmPopup(t("quitConfirm"), ok => { if (ok) { hidePause(); switchScreen('screen-menu'); } }); }
         function addTeam() { if (data.teams.length >= 10) { showToast(t("maxTeams")); return; } let num = data.teams.length + 1; let name = `Team ${num}`; while (data.teams.some(t => t.name === name)) { num++; name = `Team ${num}`; } data.teams.push({ name, score: 0, color: `hsl(${Math.random() * 360},70%,55%)` }); renderEditor(); showToast(t('added') + ' ' + name); }
         function removeTeam(idx) { if (data.teams.length <= 1) { showToast(t("needTeam")); return; } data.teams.splice(idx, 1); data.teams.forEach((team, i) => { t.name = `Team ${i + 1}`; }); renderEditor(); }
@@ -2131,7 +2193,21 @@
         function removeCategory(ci) { if (data.categories.length <= 1) { showToast(t("keepCol")); return; } data.categories.splice(ci, 1); renderEditor(); }
         function addRow() { data.categories.forEach(cat => { const newVal = (cat.clues.length + 1) * 200; cat.clues.push({ v: newVal, q: "New Q", a: "New A", img: "", used: false }); }); renderEditor(); showToast(t("rowAdded")); }
         function removeRowGlobal(rIdx) { if (data.categories[0].clues.length <= 1) { showToast(t("minRow")); return; } data.categories.forEach(cat => cat.clues.splice(rIdx, 1)); renderEditor(); showToast(t("rowRemoved")); }
-        function saveData() { data.timer = parseInt(document.getElementById('edit-timer').value) || 15; data.currencySymbol = document.getElementById('currency-select').value; data.doubleChance = parseInt(document.getElementById('edit-double-chance').value) || 0; data.finalJeopardy = { category: document.getElementById('fj-cat-input').value || 'Final Jeopardy', question: document.getElementById('fj-q-input').value || '', answer: document.getElementById('fj-a-input').value || '', img: document.getElementById('fj-img-input').value || '' }; localStorage.setItem('j_ultimate_v4', JSON.stringify(data)); showToast(t("saved")); switchScreen('screen-menu'); }
+        async function saveData() {
+            data.timer = parseInt(document.getElementById('edit-timer').value) || 15;
+            data.currencySymbol = document.getElementById('currency-select').value;
+            data.doubleChance = parseInt(document.getElementById('edit-double-chance').value) || 0;
+            data.finalJeopardy = { category: document.getElementById('fj-cat-input').value || 'Final Jeopardy', question: document.getElementById('fj-q-input').value || '', answer: document.getElementById('fj-a-input').value || '', img: document.getElementById('fj-img-input').value || '' };
+            try {
+                await compressAllStoredImages();
+                localStorage.setItem('j_ultimate_v4', JSON.stringify(data));
+                showToast(t('saved') + ' Images optimized.');
+                switchScreen('screen-menu');
+            } catch (err) {
+                console.error('Save failed:', err);
+                showToast('Storage is still full. Export your game data, then remove some large images.');
+            }
+        }
         function handleFileSelect(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = ev => { try { const loaded = JSON.parse(ev.target.result); if (loaded.categories && loaded.teams) { data = loaded; if (!data.finalJeopardy) data.finalJeopardy = { category: "Final Jeopardy", question: "", answer: "", img: "" }; localStorage.setItem('j_ultimate_v4', JSON.stringify(data)); renderEditor(); showToast(t("loaded")); } else showToast(t("invalidFile")); } catch (e) { showToast(t("parseError")); } }; reader.readAsText(file); }
         function exportToJson() {
             const str = JSON.stringify(data, null, 2); const blob = new Blob([str], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'jeopardy_data.json'; a.click(); URL.revokeObjectURL(url); showToast(t("exported")); const currencySelect = document.getElementById('currency-select');
