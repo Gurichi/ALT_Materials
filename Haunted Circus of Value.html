@@ -1171,20 +1171,82 @@
             run();
         }
 
-        // --- LOCALSTORAGE ---
-        saveSystemSettings() {
-            localStorage.setItem('circus_wheel_items', JSON.stringify(this.items));
-            localStorage.setItem('circus_wheel_config', JSON.stringify(this.settings));
-            localStorage.setItem('circus_wheel_count', this.wheelCount);
+        // --- PERSISTENCE ---
+        // IndexedDB has a much larger browser-managed quota than localStorage and is
+        // better suited to image-heavy setups. Keep small preferences in localStorage.
+        openStorageDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('CircusOfValueStorage', 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains('appData')) db.createObjectStore('appData');
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
         }
 
-        loadSystemSettings() {
-            const savedItems = localStorage.getItem('circus_wheel_items');
+        async saveSystemSettings() {
+            localStorage.setItem('circus_wheel_config', JSON.stringify(this.settings));
+            localStorage.setItem('circus_wheel_count', String(this.wheelCount));
+            try {
+                const db = await this.openStorageDB();
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction('appData', 'readwrite');
+                    tx.objectStore('appData').put(this.items, 'items');
+                    tx.oncomplete = resolve;
+                    tx.onerror = () => reject(tx.error);
+                    tx.onabort = () => reject(tx.error);
+                });
+                db.close();
+            } catch (err) {
+                console.error('Could not save wheel data to IndexedDB:', err);
+                alert(this.settings.language === 'ja'
+                    ? '保存できませんでした。画像を小さくするか、JSONエクスポートでバックアップしてください。'
+                    : 'The setup could not be saved by the browser. Try smaller images or use Export JSON to back up your setup.');
+            }
+        }
+
+        async loadSystemSettings() {
             const savedConfig = localStorage.getItem('circus_wheel_config');
             const savedCount = localStorage.getItem('circus_wheel_count');
 
-            if (savedItems) { try { this.items = JSON.parse(savedItems); } catch(e){} }
-            if (savedCount) { this.wheelCount = parseInt(savedCount) || 1; this.els.frenzyWheelsInput.value = this.wheelCount; }
+            // Migrate older setups from localStorage when no IndexedDB copy exists.
+            let savedItems = null;
+            try {
+                const db = await this.openStorageDB();
+                savedItems = await new Promise((resolve, reject) => {
+                    const tx = db.transaction('appData', 'readonly');
+                    const request = tx.objectStore('appData').get('items');
+                    request.onsuccess = () => resolve(request.result || null);
+                    request.onerror = () => reject(request.error);
+                });
+                if (!savedItems) {
+                    const legacy = localStorage.getItem('circus_wheel_items');
+                    if (legacy) {
+                        try {
+                            savedItems = JSON.parse(legacy);
+                            await new Promise((resolve, reject) => {
+                                const tx = db.transaction('appData', 'readwrite');
+                                tx.objectStore('appData').put(savedItems, 'items');
+                                tx.oncomplete = resolve;
+                                tx.onerror = () => reject(tx.error);
+                            });
+                        } catch (e) {}
+                    }
+                }
+                db.close();
+            } catch (err) {
+                console.warn('IndexedDB unavailable; trying legacy localStorage data.', err);
+                const legacy = localStorage.getItem('circus_wheel_items');
+                if (legacy) { try { savedItems = JSON.parse(legacy); } catch (e) {} }
+            }
+
+            if (savedItems && Array.isArray(savedItems)) this.items = savedItems;
+            if (savedCount) {
+                this.wheelCount = Math.max(1, Math.min(4, parseInt(savedCount) || 1));
+                this.els.frenzyWheelsInput.value = this.wheelCount;
+            }
             if (savedConfig) {
                 try {
                     this.settings = { ...this.settings, ...JSON.parse(savedConfig) };
@@ -1195,6 +1257,12 @@
                     this.els.fontSizeValue.textContent = this.settings.labelFontSize + 'px';
                 } catch (e) {}
             }
+
+            // The constructor initially draws defaults while IndexedDB is loading.
+            this.els.frenzyWheelsInput.value = this.wheelCount;
+            this.rebuildFrenzyLayout();
+            this.renderContentsList();
+            this.updateLanguageUI();
         }
 
         exportToJSON() {
@@ -1236,9 +1304,40 @@
         handleImageConversion(event, callback) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // Downscale large photos and re-encode them to JPEG to reduce memory and
+            // storage use. IndexedDB then stores the setup without localStorage's tiny quota.
+            if (!file.type.startsWith('image/')) {
+                alert(this.settings.language === 'ja' ? '画像ファイルを選択してください。' : 'Please select an image file.');
+                event.target.value = '';
+                return;
+            }
+
             const reader = new FileReader();
-            reader.onload = (e) => callback(e.target.result);
+            reader.onerror = () => alert(this.settings.language === 'ja' ? '画像を読み込めませんでした。' : 'Could not read that image.');
+            reader.onload = (e) => {
+                const image = new Image();
+                image.onerror = () => alert(this.settings.language === 'ja' ? '画像を開けませんでした。' : 'Could not open that image.');
+                image.onload = () => {
+                    const maxSide = 1600;
+                    const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+                    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                    try {
+                        callback(canvas.toDataURL('image/jpeg', 0.78));
+                    } catch (err) {
+                        alert(this.settings.language === 'ja' ? '画像を変換できませんでした。' : 'Could not convert this image.');
+                    }
+                };
+                image.src = e.target.result;
+            };
             reader.readAsDataURL(file);
+            event.target.value = '';
         }
 
 
